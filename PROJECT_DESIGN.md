@@ -66,7 +66,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         RUNTIME LAYER                               │
 │                                                                     │
-│  main.py CLI (1,938 lines — known god module; target of RFC-001)    │
+│  main.py CLI (956 lines — reduced, still refactor target via RFC-001)│
 │    │                                                                 │
 │    ├─ MarketDataFeed ──► HistoricalDataProvider (Protocol)          │
 │    │        ├─ YFinanceProvider       ✅ Implemented                │
@@ -358,12 +358,12 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 ---
 
 ### RFC-001: Extract Trading Loop from `main.py`
-**Status:** PROPOSED
+**Status:** IN PROGRESS
 **Date:** 2026-02-24
 **Target Backlog Steps:** 37, 38, 43
 **Author:** Structural review (Feb 24, 2026)
 
-**Problem:** `cmd_paper` in `main.py` is 981 lines containing a 280-line `on_bar` closure. It captures 10+ objects from the outer scope (a late-binding closure risk — see `.python-style-guide.md §10`). It is effectively untestable as written.
+**Problem:** `main.py` remains oversized (956 lines) and still anchors too much runtime orchestration. Core extraction has landed, but full entrypoint slimming and test decoupling are incomplete.
 
 **Proposed Change:**
 - Create `src/trading/loop.py` with `TradingLoopHandler` class
@@ -380,10 +380,17 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 **Implementation Order:** Step 38 (quick, no conflicts) → Step 39 (trivial) → Step 37 (main extraction) → Step 43 (CLI cleanup)
 
+**Progress Update (Feb 24, 2026):**
+- ✅ `src/trading/loop.py` extracted with `TradingLoopHandler`
+- ✅ `src/trading/stream_events.py` extracted
+- ✅ `src/execution/resilience.py` extracted and wired
+- ✅ `src/cli/arguments.py` extraction completed
+- ⚠️ Remaining: final `main.py` reduction and test import decoupling from `main.py`
+
 ---
 
 ### RFC-002: Unified `BrokerBase` Interface
-**Status:** PROPOSED
+**Status:** CLOSED
 **Date:** 2026-02-24
 **Target Backlog Step:** 40
 **Author:** Structural review (Feb 24, 2026)
@@ -400,10 +407,12 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 - Error handling contract documented in `BrokerBase` docstring
 - `tests/test_ibkr_broker.py` still passes
 
+**Completion Note (Feb 24, 2026):** `IBKRBroker` now inherits `BrokerBase`; interface parity objective met.
+
 ---
 
 ### RFC-003: Signal and Timestamp Validation at Dataclass Level
-**Status:** PROPOSED
+**Status:** CLOSED
 **Date:** 2026-02-24
 **Target Backlog Step:** 41
 
@@ -418,6 +427,8 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 - `Bar(timestamp=datetime.now(), ...)` raises `ValueError` (naive datetime)
 - Tests in `tests/test_models.py` cover all cases
 
+**Completion Note (Feb 24, 2026):** Dataclass-level `__post_init__` validation is implemented for strength bounds and UTC-aware timestamps; model tests added.
+
 ---
 
 ## §5 Technical Debt Register
@@ -427,11 +438,11 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 | ID | Description | Severity | Backlog Step | Notes |
 |---|---|---|---|---|
-| **TD-001** | `main.py` god module (1,938 lines, 0 classes) | HIGH | Steps 37–43 | Largest single maintainability risk; `cmd_paper` closure is untestable |
-| **TD-002** | 18 test files importing from `main.py` | HIGH | Step 37 side-effect | Creates hidden coupling; breaks if `main.py` is refactored |
-| **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | MEDIUM | Step 40 | Inconsistent interface vs. `AlpacaBroker` / `PaperBroker` |
-| **TD-004** | `Signal.strength` not validated at construction | MEDIUM | Step 41 | Documented invariant in `CLAUDE.md` but not enforced |
-| **TD-005** | Missing `research/__init__.py` | MEDIUM | Step 39 | `from research.data import ...` fails in some environments |
+| **TD-001** | `main.py` remains oversized (956 lines) | HIGH | Steps 37–43 | Reduced from 1,938 lines; additional extraction still required |
+| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly |
+| **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | LOW (RESOLVED) | Step 40 | Resolved Feb 24, 2026 |
+| **TD-004** | `Signal.strength` not validated at construction | LOW (RESOLVED) | Step 41 | Resolved Feb 24, 2026 |
+| **TD-005** | Missing `research/__init__.py` | LOW (RESOLVED) | Step 39 | Resolved Feb 24, 2026 |
 | **TD-006** | No persistent market data cache | HIGH | Step 34 | In-memory only; Alpha Vantage 25 req/day quota exhausted in one session |
 | **TD-007** | Reporting modules are function-bags, not classes | LOW | Step 42 | `execution_dashboard.py`, `broker_reconciliation.py`, `session_summary.py` each open independent SQLite connections |
 | **TD-008** | `approve_signal()` is 240 lines with no decomposition | LOW | Future | Each risk gate is a nested block; testable only as a whole; not blocking |
@@ -465,6 +476,18 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 - `.python-style-guide.md` expanded to v1.1 with Hitchhiker's Guide design concepts (Sections 10–16)
 - `CLAUDE.md` updated: style guide rules embedded directly; "auto-loaded" claim corrected to explicit mandatory-read instruction
 - ADR-012 (QuantConnect cross-validation) and ADRs 001–011 formalised in this document
+
+**[2026-02-24] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Step 1A operational runbook progressed with dedicated wrappers:
+    - functional any-time path: `run_step1a_functional.ps1`
+    - market in-window path: `run_step1a_market.ps1`
+    - guarded market scheduler-friendly path: `run_step1a_market_if_window.ps1`
+- Functional validation track (A1) completed and evidenced (`step1a_burnin_latest.json` shows `runs_passed=1`, `commands_passed=true`, `drift_flag_count=0`)
+- RFC/debt synchronization update:
+    - RFC-002 closed (BrokerBase unification objective met)
+    - RFC-003 closed (model-level invariant enforcement landed)
+    - TD-003/TD-004/TD-005 marked resolved
+    - RFC-001 kept in progress (main.py still above target size; test import decoupling pending)
 
 ---
 
