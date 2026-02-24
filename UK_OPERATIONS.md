@@ -1,0 +1,282 @@
+# UK Operations Runbook
+
+End-to-end operational guide for UK-based paper trading and UK tax export workflow.
+
+---
+
+## 1) Preconditions
+
+- Python environment installed and dependencies available:
+  - `python -m pip install -r requirements.txt`
+- Interactive Brokers TWS or IB Gateway running locally.
+- IBKR is set to **paper** account mode (`DU...`) for sandbox runs.
+- You are in project root:
+  - `C:\Users\rando\Projects\trading-bot`
+- Database isolation env vars are configured (defaults now provided in `.env`):
+  - `DATABASE_URL_PAPER=sqlite:///trading_paper.db`
+  - `DATABASE_URL_LIVE=sqlite:///trading_live.db`
+  - `DATABASE_URL_TEST=sqlite:///trading_test.db`
+  - `STRICT_DB_ISOLATION=true`
+
+---
+
+## 2) Validate Build Health
+
+Run tests before any live paper session:
+
+```bash
+python -m pytest tests/ -v
+```
+
+Expected: full pass.
+
+Run UK pre-flight checks before starting sessions:
+
+```bash
+python main.py uk_health_check --profile uk_paper --strict-health
+```
+
+Optional data connectivity validation:
+
+```bash
+python main.py uk_health_check --profile uk_paper --with-data-check --strict-health
+```
+
+Machine-readable JSON output (for schedulers/alerting):
+
+```bash
+python main.py uk_health_check --profile uk_paper --health-json --strict-health
+```
+
+---
+
+## 3) Start UK Paper Profile
+
+Run with UK profile defaults (IBKR + UK symbols + GBP base):
+
+```bash
+python main.py paper --profile uk_paper --strategy ma_crossover
+```
+
+UK profile currently applies:
+- Broker: `ibkr`
+- IBKR paper port: `7497`
+- Market timezone: `Europe/London`
+- Symbols: `HSBA.L VOD.L BP.L BARC.L SHEL.L`
+- Base currency: `GBP`
+- FX seed rate: `USD_GBP=0.79`
+- Market-hours gating: enabled
+
+---
+
+## 4) Operational Safety Checks
+
+At startup, verify logs indicate:
+- IBKR account detected as paper (`DU...`)
+- Pre-warm completed (or clear warnings per symbol)
+- Paper trading loop started
+
+The runtime guardrails will block:
+- paper mode + live IBKR account mismatch
+- live mode + paper IBKR account mismatch
+
+---
+
+## 5) Optional Runtime Variants
+
+Disable market-hours gating (debug only):
+
+```bash
+python main.py paper --profile uk_paper --no-market-hours
+```
+
+Override symbols while still using UK profile:
+
+```bash
+python main.py paper --profile uk_paper --symbols HSBA.L VOD.L BARC.L
+```
+
+---
+
+## 6) Audit and Tax Export
+
+Paper/live loop writes audit events into `trading.db` (signals, orders, fills, session lifecycle, errors).
+
+Generate UK tax-oriented CSVs:
+
+```bash
+python main.py uk_tax_export --profile uk_paper --db-path trading.db --output-dir reports/uk_tax
+```
+
+Generated files:
+- `reports/uk_tax/trade_ledger.csv`
+- `reports/uk_tax/realized_gains.csv`
+- `reports/uk_tax/fx_notes.csv`
+
+Generate paper session KPI summary (JSON + CSV):
+
+```bash
+python main.py paper_session_summary --profile uk_paper --db-path trading.db --output-dir reports/session
+```
+
+Generated files:
+- `reports/session/paper_session_summary.json`
+- `reports/session/paper_session_summary.csv`
+
+Run paper KPI reconciliation against expected targets:
+
+```bash
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/expected_kpis.json --output-dir reports/reconcile
+```
+
+Fail CI/automation when drift flags are detected:
+
+```bash
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/expected_kpis.json --output-dir reports/reconcile --strict-reconcile
+```
+
+Optional custom tolerance overrides:
+
+```bash
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/expected_kpis.json --tolerance-json reports/session/tolerances.json --output-dir reports/reconcile
+```
+
+Preset KPI profiles (recommended):
+
+```bash
+# Conservative
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/presets/expected_kpis_conservative.json --tolerance-json reports/session/presets/tolerances_conservative.json --output-dir reports/reconcile --strict-reconcile
+
+# Standard (default baseline)
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/presets/expected_kpis_standard.json --tolerance-json reports/session/presets/tolerances_standard.json --output-dir reports/reconcile --strict-reconcile
+
+# Aggressive
+python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/presets/expected_kpis_aggressive.json --tolerance-json reports/session/presets/tolerances_aggressive.json --output-dir reports/reconcile --strict-reconcile
+```
+
+Generated files:
+- `reports/reconcile/paper_reconciliation.json`
+- `reports/reconcile/paper_reconciliation.csv`
+
+### Simplified: Trial Manifests
+
+Instead of long CLI arguments, use pre-configured manifest JSON files (recommended for repeatable checks):
+
+**Standard (15-min baseline health check):**
+```bash
+python main.py paper_trial --manifest configs/trial_standard.json
+```
+
+**Conservative (1-hour pre-live validation):**
+```bash
+python main.py paper_trial --manifest configs/trial_conservative.json
+```
+
+**Quick smoke test (5-min integration test):**
+```bash
+python main.py paper_trial --manifest configs/trial_aggressive.json
+```
+
+Notes on trials:
+- Runs UK health check first (fails fast on blocking errors).
+- Rotates paper DB by default before trial start.
+- Runs paper loop for configured duration, then exports summary and reconciliation.
+- Use `--skip-health-check` or `--skip-rotate` only for debugging.
+- See [TRIAL_MANIFEST.md](TRIAL_MANIFEST.md) for full manifest documentation and custom manifest creation.
+
+### Legacy: Long CLI Format
+
+If you prefer explicit flags instead of manifest JSON:
+
+```bash
+python main.py paper_trial --profile uk_paper --paper-duration-seconds 900 --expected-json reports/session/presets/expected_kpis_standard.json --tolerance-json reports/session/presets/tolerances_standard.json --output-dir reports/reconcile --strict-reconcile
+```
+
+---
+
+## 7) Interpreting Export Files
+
+### `trade_ledger.csv`
+Contains per-fill rows including:
+- timestamp, symbol, side, qty
+- `price_reference`, `price`, `slippage_pct_vs_signal`
+- `fee`, `currency`
+- base-currency normalized gross/fee columns
+
+### `realized_gains.csv`
+Contains FIFO-matched realized gains per sell event:
+- matched quantity
+- proceeds (base currency)
+- cost basis (base currency)
+- realized gain (base currency)
+
+### `fx_notes.csv`
+Lists FX pairs used during conversion and configured rates.
+
+---
+
+## 8) Troubleshooting
+
+### IBKR connection fails
+- Confirm TWS/Gateway is running.
+- Confirm API access is enabled.
+- Confirm host/port/client ID values (`127.0.0.1:7497` for paper default).
+
+### No data for UK symbol
+- Verify Yahoo/IBKR symbol format uses `.L` suffix where needed.
+- Try a short manual backtest fetch first:
+  - `python main.py backtest --symbols HSBA.L --start 2024-01-01 --end 2024-12-31`
+
+### Tax export missing trades
+- Ensure trading loop wrote `ORDER_FILLED`/`FILL`/`TRADE` events into `trading.db`.
+- Confirm `--db-path` points to the active runtime DB.
+
+---
+
+## 9) Recommended Routine
+
+1. `python -m pytest tests/ -v`
+2. `python main.py uk_health_check --profile uk_paper --strict-health`
+3. `python main.py paper --profile uk_paper --strategy <strategy>`
+4. Let session run for target window.
+5. `python main.py uk_tax_export --profile uk_paper --db-path trading.db --output-dir reports/uk_tax`
+6. `python main.py paper_session_summary --profile uk_paper --db-path trading.db --output-dir reports/session`
+7. `python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/expected_kpis.json --output-dir reports/reconcile --strict-reconcile`
+8. Archive `reports/uk_tax`, `reports/session`, and `reports/reconcile` with run date and strategy metadata.
+
+Tip: Replace `expected_kpis.json`/`tolerances.json` with one of the files in `reports/session/presets/` to choose conservative, standard, or aggressive drift policy.
+Tip: For repeatable ops, replace steps 3-7 with a single `paper_trial` run.
+
+---
+
+## 10) Paper DB Rotation (Session Isolation)
+
+Archive (move) current paper DB into dated archive path:
+
+```bash
+python main.py rotate_paper_db --profile uk_paper --archive-dir archives/db
+```
+
+Enable automatic rotation at paper session start:
+
+```bash
+python main.py paper --profile uk_paper --auto-rotate-paper-db
+```
+
+Disable auto-rotation explicitly (overrides env default):
+
+```bash
+python main.py paper --profile uk_paper --no-auto-rotate-paper-db
+```
+
+Keep current DB and archive a copy instead:
+
+```bash
+python main.py rotate_paper_db --profile uk_paper --archive-dir archives/db --keep-original
+```
+
+Force deterministic archive suffix (useful for scripted runs):
+
+```bash
+python main.py rotate_paper_db --profile uk_paper --archive-dir archives/db --rotate-suffix 20260223_120000
+```

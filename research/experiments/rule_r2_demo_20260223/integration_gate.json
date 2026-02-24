@@ -1,0 +1,16 @@
+{
+  "experiment_id": "rule_r2_demo_20260223",
+  "stage": "R2",
+  "decision": "PASS",
+  "strategy_registry_id": "uk_rule_alpha_demo:0.1.0",
+  "registry_status": "experimental",
+  "reviewer_1": "copilot",
+  "reviewer_2": "pending_second_reviewer",
+  "reviewed_at": "2026-02-23T22:32:09.051569+00:00",
+  "candidate_dir": "research\\experiments\\rule_r2_demo_20260223",
+  "registry_db_path": "trading.db",
+  "artifacts_dir": "strategies",
+  "artifact_sha256_expected": "not_applicable_for_rule",
+  "artifact_sha256_actual": null,
+  "artifact_sha256_verified": null
+}

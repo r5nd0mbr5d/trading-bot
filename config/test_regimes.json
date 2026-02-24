@@ -1,0 +1,311 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Pre-defined historical market regime periods for UK equities backtesting and paper trial validation. See docs/UK_TEST_PLAN.md for usage and statistical requirements.",
+    "last_updated": "2026-02-23",
+    "benchmark_index": "FTSE 100",
+    "data_sources": ["yfinance (^FTSE)", "LSE historical data"],
+    "notes": "All date ranges are inclusive. FTSE 100 returns are approximate. Regime classification uses price action + VIX-equivalent (VFTSE). Date ranges are reproducible and fixed."
+  },
+  "regimes": {
+    "2018_2019_pre_covid_bull": {
+      "id": "2018_2019_pre_covid_bull",
+      "type": "bull",
+      "label": "Pre-COVID Bull (2018–2019)",
+      "start_date": "2018-01-02",
+      "end_date": "2019-12-31",
+      "ftse100_return_approx": 0.04,
+      "vftse_avg_approx": 14.5,
+      "key_events": [
+        "US-China trade tensions (2018)",
+        "Brexit uncertainty throughout",
+        "BoE held rates at 0.75% (Aug 2018)",
+        "FTSE recovered from Dec 2018 selloff in 2019"
+      ],
+      "characteristics": {
+        "trend": "mild_upward",
+        "volatility": "moderate",
+        "spread_environment": "normal",
+        "liquidity": "high"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "should_perform",
+        "rsi_momentum": "should_perform",
+        "bollinger_bands": "neutral",
+        "macd_crossover": "should_perform"
+      },
+      "dst_transitions": [
+        { "date": "2018-03-25", "direction": "GMT_to_BST" },
+        { "date": "2018-10-28", "direction": "BST_to_GMT" },
+        { "date": "2019-03-31", "direction": "GMT_to_BST" },
+        { "date": "2019-10-27", "direction": "BST_to_GMT" }
+      ]
+    },
+    "2020_covid_crisis": {
+      "id": "2020_covid_crisis",
+      "type": "crisis",
+      "label": "COVID Crisis (Feb–Apr 2020)",
+      "start_date": "2020-02-03",
+      "end_date": "2020-04-30",
+      "ftse100_return_approx": -0.34,
+      "vftse_avg_approx": 55.0,
+      "key_events": [
+        "COVID-19 pandemic declared (Mar 11, 2020)",
+        "FTSE 100 dropped 34% peak-to-trough",
+        "BoE emergency rate cut to 0.1% (Mar 19, 2020)",
+        "UK lockdown announced (Mar 23, 2020)",
+        "BoE QE expansion (£200bn, Mar 2020)"
+      ],
+      "characteristics": {
+        "trend": "severe_decline",
+        "volatility": "extreme",
+        "spread_environment": "very_wide",
+        "liquidity": "impaired"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "death_cross_signal_expected",
+        "rsi_momentum": "oversold_signals_extreme",
+        "bollinger_bands": "band_break_extreme",
+        "macd_crossover": "strong_bearish_signal"
+      },
+      "warnings": [
+        "Circuit breakers expected to trigger in this regime",
+        "Fill rates may be significantly lower due to volatility",
+        "ATR-scaled stops are critical — fixed % stops will be too tight",
+        "Kill switch may activate — do not use this regime for initial validation"
+      ],
+      "dst_transitions": [
+        { "date": "2020-03-29", "direction": "GMT_to_BST" }
+      ]
+    },
+    "2020_2021_post_covid_bull": {
+      "id": "2020_2021_post_covid_bull",
+      "type": "bull",
+      "label": "Post-COVID Recovery Bull (Nov 2020 – Dec 2021)",
+      "start_date": "2020-11-02",
+      "end_date": "2021-12-31",
+      "ftse100_return_approx": 0.29,
+      "vftse_avg_approx": 18.5,
+      "key_events": [
+        "Vaccine announcement (Pfizer/BioNTech, Nov 9, 2020)",
+        "UK vaccine rollout fastest in G7",
+        "FTSE 100 surged +25% from Nov 2020 lows",
+        "Reopening trades dominated H1 2021",
+        "BoE held rates at 0.1% throughout"
+      ],
+      "characteristics": {
+        "trend": "strong_upward",
+        "volatility": "low_to_moderate",
+        "spread_environment": "normal",
+        "liquidity": "high"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "golden_cross_signal_expected",
+        "rsi_momentum": "overbought_conditions_extended",
+        "bollinger_bands": "trend_may_reduce_reversion_opportunities",
+        "macd_crossover": "strong_bullish_signal"
+      },
+      "dst_transitions": [
+        { "date": "2020-10-25", "direction": "BST_to_GMT" },
+        { "date": "2021-03-28", "direction": "GMT_to_BST" },
+        { "date": "2021-10-31", "direction": "BST_to_GMT" }
+      ]
+    },
+    "2022_bear_stagflation": {
+      "id": "2022_bear_stagflation",
+      "type": "bear",
+      "label": "2022 Bear / Stagflation",
+      "start_date": "2022-01-03",
+      "end_date": "2022-12-30",
+      "ftse100_return_approx": -0.045,
+      "vftse_avg_approx": 27.0,
+      "key_events": [
+        "Russia invades Ukraine (Feb 24, 2022)",
+        "UK inflation peaked at 11.1% (Oct 2022)",
+        "BoE hiked rates from 0.25% to 3.5%",
+        "Liz Truss mini-budget (Sep 23, 2022) — gilt crisis",
+        "FTSE 100 outperformed most global indices (energy / commodity weighting)",
+        "Sterling fell to near-parity with USD (Sep 2022)"
+      ],
+      "characteristics": {
+        "trend": "mild_downward_with_volatility",
+        "volatility": "high",
+        "spread_environment": "moderately_wide",
+        "liquidity": "reduced_in_september"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "whipsaw_risk_in_sideways_periods",
+        "rsi_momentum": "oversold_bounces_frequent",
+        "bollinger_bands": "mean_reversion_with_breakouts",
+        "macd_crossover": "crossovers_frequent_in_volatile_market"
+      },
+      "special_notes": [
+        "FX risk is elevated: GBP/USD dropped 20% in 2022. FX conversion in PortfolioTracker critical.",
+        "Sep 2022 (Truss mini-budget) is an extreme stress event — results from that period should be noted separately",
+        "Energy stocks in blue-chip basket significantly outperformed — sector concentration risk"
+      ],
+      "dst_transitions": [
+        { "date": "2022-03-27", "direction": "GMT_to_BST" },
+        { "date": "2022-10-30", "direction": "BST_to_GMT" }
+      ]
+    },
+    "2023_bull": {
+      "id": "2023_bull",
+      "type": "bull",
+      "label": "2023 Recovery Bull",
+      "start_date": "2023-01-03",
+      "end_date": "2023-12-29",
+      "ftse100_return_approx": 0.048,
+      "vftse_avg_approx": 16.0,
+      "key_events": [
+        "UK avoided technical recession (narrowly)",
+        "BoE continued hiking to 5.25% (Aug 2023)",
+        "Inflation fell steadily from 11% to ~4%",
+        "FTSE 100 hit all-time high in Feb 2023",
+        "UK joined CPTPP trade agreement"
+      ],
+      "characteristics": {
+        "trend": "mild_upward",
+        "volatility": "low_to_moderate",
+        "spread_environment": "normal",
+        "liquidity": "high"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "should_perform",
+        "rsi_momentum": "should_perform",
+        "bollinger_bands": "neutral_to_positive",
+        "macd_crossover": "should_perform"
+      },
+      "recommended_for": "primary_validation",
+      "notes": "Best regime for initial strategy validation due to low volatility and good liquidity.",
+      "dst_transitions": [
+        { "date": "2023-03-26", "direction": "GMT_to_BST" },
+        { "date": "2023-10-29", "direction": "BST_to_GMT" }
+      ]
+    },
+    "2024_sideways": {
+      "id": "2024_sideways",
+      "type": "sideways",
+      "label": "2024 Sideways / Mixed",
+      "start_date": "2024-01-02",
+      "end_date": "2024-09-30",
+      "ftse100_return_approx": 0.085,
+      "vftse_avg_approx": 13.5,
+      "key_events": [
+        "UK general election (Jul 4, 2024) — Labour landslide",
+        "BoE first rate cut since 2020 (Aug 2024, to 5.0%)",
+        "FTSE 100 gradual recovery from Q1 dip",
+        "US election uncertainty weighed on global risk appetite (Q3)"
+      ],
+      "characteristics": {
+        "trend": "range_bound",
+        "volatility": "low",
+        "spread_environment": "tight",
+        "liquidity": "high"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "whipsaw_risk_in_range_bound_market",
+        "rsi_momentum": "good_for_mean_reversion_signals",
+        "bollinger_bands": "should_perform_well",
+        "macd_crossover": "frequent_crossovers_in_range_bound"
+      },
+      "special_notes": [
+        "UK election day (Jul 4, 2024) — consider excluding from analysis or noting as special event"
+      ],
+      "dst_transitions": [
+        { "date": "2024-03-31", "direction": "GMT_to_BST" },
+        { "date": "2024-10-27", "direction": "BST_to_GMT" }
+      ]
+    },
+    "2025_volatile": {
+      "id": "2025_volatile",
+      "type": "volatile",
+      "label": "2025 Volatile / Macro Uncertainty",
+      "start_date": "2025-01-06",
+      "end_date": "2025-09-30",
+      "ftse100_return_approx": null,
+      "vftse_avg_approx": null,
+      "key_events": [
+        "Trump tariff announcements (Apr 2025) caused global volatility",
+        "UK Spring Statement (Mar 2025)",
+        "BoE rate cuts continued (3.75% by mid-2025)",
+        "AI sector valuations elevated; tech selloff risk",
+        "GBP/USD volatile on US tariff news"
+      ],
+      "characteristics": {
+        "trend": "uncertain",
+        "volatility": "high",
+        "spread_environment": "moderately_wide",
+        "liquidity": "reduced_on_event_days"
+      },
+      "strategy_expectations": {
+        "ma_crossover": "whipsaw_risk_elevated",
+        "rsi_momentum": "frequent_reversals",
+        "bollinger_bands": "band_expansion_expected",
+        "macd_crossover": "signal_noise_elevated"
+      },
+      "special_notes": [
+        "This is a recent/ongoing period — backtest data may be incomplete for some symbols",
+        "Use ATR-scaled stops (not fixed %) for all strategies in this regime",
+        "Liquidity events around tariff announcements may cause fill rate degradation"
+      ],
+      "dst_transitions": [
+        { "date": "2025-03-30", "direction": "GMT_to_BST" },
+        { "date": "2025-10-26", "direction": "BST_to_GMT" }
+      ]
+    }
+  },
+  "regime_test_matrix": {
+    "description": "Recommended regime × basket combinations for a complete UK test plan. Complete all phase 1 (blue_chip) combinations first.",
+    "combinations": [
+      { "basket": "uk_blue_chip", "regime": "2023_bull", "phase": 1, "priority": "HIGH", "notes": "Primary validation — start here" },
+      { "basket": "uk_blue_chip", "regime": "2024_sideways", "phase": 1, "priority": "HIGH", "notes": "Sideways test for mean-reversion strategies" },
+      { "basket": "uk_blue_chip", "regime": "2022_bear_stagflation", "phase": 1, "priority": "HIGH", "notes": "Bear market resilience check" },
+      { "basket": "uk_blue_chip", "regime": "2020_2021_post_covid_bull", "phase": 1, "priority": "MEDIUM", "notes": "Strong bull — trend-following should shine" },
+      { "basket": "uk_blue_chip", "regime": "2025_volatile", "phase": 1, "priority": "MEDIUM", "notes": "Recent volatile environment" },
+      { "basket": "uk_blue_chip", "regime": "2020_covid_crisis", "phase": 1, "priority": "LOW", "notes": "Stress test only; circuit breakers will likely fire" },
+      { "basket": "uk_mid_cap", "regime": "2023_bull", "phase": 2, "priority": "HIGH", "notes": "Mid-cap primary validation" },
+      { "basket": "uk_mid_cap", "regime": "2022_bear_stagflation", "phase": 2, "priority": "HIGH", "notes": "Mid-cap bear test" },
+      { "basket": "uk_mid_cap", "regime": "2024_sideways", "phase": 2, "priority": "MEDIUM", "notes": "Mid-cap sideways" },
+      { "basket": "uk_energy", "regime": "2022_bear_stagflation", "phase": 3, "priority": "HIGH", "notes": "Energy outperformed in 2022 — correlation check" },
+      { "basket": "uk_banking", "regime": "2022_bear_stagflation", "phase": 3, "priority": "HIGH", "notes": "Rate-hike cycle impact on banking sector" },
+      { "basket": "uk_pharma", "regime": "2023_bull", "phase": 3, "priority": "MEDIUM", "notes": "Pharma sector in recovery" },
+      { "basket": "uk_retail", "regime": "2022_bear_stagflation", "phase": 3, "priority": "MEDIUM", "notes": "Consumer squeeze environment" },
+      { "basket": "uk_mining", "regime": "2022_bear_stagflation", "phase": 3, "priority": "MEDIUM", "notes": "Commodity super-cycle dynamics" },
+      { "basket": "uk_aim_small_cap", "regime": "2023_bull", "phase": 4, "priority": "LOW", "notes": "AIM only after phases 1-3 complete" }
+    ]
+  },
+  "pass_thresholds_by_regime": {
+    "description": "Per-regime minimum thresholds for strategy promotion evaluation. A strategy must pass at least 3 of 5 primary regime tests.",
+    "bull": {
+      "min_win_rate": 0.52,
+      "min_profit_factor": 1.15,
+      "max_drawdown_pct": 0.12,
+      "min_fill_rate": 0.92
+    },
+    "bear": {
+      "min_win_rate": 0.45,
+      "min_profit_factor": 1.00,
+      "max_drawdown_pct": 0.18,
+      "min_fill_rate": 0.90
+    },
+    "sideways": {
+      "min_win_rate": 0.50,
+      "min_profit_factor": 1.10,
+      "max_drawdown_pct": 0.10,
+      "min_fill_rate": 0.92
+    },
+    "volatile": {
+      "min_win_rate": 0.48,
+      "min_profit_factor": 1.05,
+      "max_drawdown_pct": 0.20,
+      "min_fill_rate": 0.88
+    },
+    "crisis": {
+      "min_win_rate": 0.40,
+      "min_profit_factor": 0.90,
+      "max_drawdown_pct": 0.30,
+      "min_fill_rate": 0.80
+    }
+  }
+}

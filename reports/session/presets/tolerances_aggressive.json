@@ -1,0 +1,9 @@
+{
+  "fill_rate": 0.08,
+  "win_rate": 0.1,
+  "profit_factor": 0.3,
+  "avg_slippage_pct": 0.0015,
+  "avg_fee_per_trade": 0.35,
+  "realized_pnl": 400.0,
+  "closed_trade_count": 8.0
+}

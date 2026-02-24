@@ -1,0 +1,16 @@
+{
+  "name": "Aggressive Trial — Permissive KPI validation",
+  "profile": "uk_paper",
+  "strategy": "ma_crossover",
+  "duration_seconds": 300,
+  "symbols": ["MSFT", "AAPL"],
+  "capital": 50000.0,
+  "expected_json": "reports/session/presets/expected_kpis_aggressive.json",
+  "tolerance_json": "reports/session/presets/tolerances_aggressive.json",
+  "output_dir": "reports/reconcile",
+  "db_path": "trading_paper.db",
+  "strict_reconcile": false,
+  "skip_health_check": false,
+  "skip_rotate": false,
+  "notes": "Permissive validation: min 12 trades, 44% win rate, 1.0 profit factor. Quick smoke test; loose tolerances."
+}

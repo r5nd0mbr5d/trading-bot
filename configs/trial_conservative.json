@@ -1,0 +1,16 @@
+{
+  "name": "Conservative Trial — Tight KPI validation",
+  "profile": "uk_paper",
+  "strategy": "ma_crossover",
+  "duration_seconds": 3600,
+  "symbols": ["MSFT", "AAPL", "NVDA"],
+  "capital": 100000.0,
+  "expected_json": "reports/session/presets/expected_kpis_conservative.json",
+  "tolerance_json": "reports/session/presets/tolerances_conservative.json",
+  "output_dir": "reports/reconcile",
+  "db_path": "trading_paper.db",
+  "strict_reconcile": true,
+  "skip_health_check": false,
+  "skip_rotate": false,
+  "notes": "High-bar validation: min 30 trades, 58% win rate, 1.35 profit factor. Use before promoting to live."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "strategy_name_here",
+  "version": "0.1.0",
+  "strategy_type": "rule",
+  "parameters": {
+    "param_a": 1.0,
+    "param_b": 0.5
+  },
+  "experiment_id": "experiment_id_here",
+  "artifact_sha256": "not_applicable_for_rule"
+}

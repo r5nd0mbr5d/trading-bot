@@ -1,0 +1,194 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Pre-defined UK equities symbol baskets for paper testing. See docs/UK_TEST_PLAN.md for usage.",
+    "last_updated": "2026-02-23",
+    "exchange": "LSE",
+    "symbol_suffix": ".L",
+    "base_currency": "GBP"
+  },
+  "baskets": {
+    "uk_blue_chip": {
+      "name": "UK Blue-Chip (FTSE 100)",
+      "description": "Highest-liquidity FTSE 100 constituents. Ideal for initial strategy validation. Tight spreads, high fill rates.",
+      "index": "FTSE 100",
+      "expected_fill_rate_min": 0.95,
+      "expected_avg_spread_bps": 3,
+      "recommended_max_position_pct": 0.10,
+      "symbols": [
+        "SHEL.L",
+        "AZN.L",
+        "HSBA.L",
+        "ULVR.L",
+        "BP.L",
+        "GSK.L",
+        "RIO.L",
+        "DGE.L",
+        "BARC.L",
+        "LSEG.L"
+      ],
+      "symbol_details": {
+        "SHEL.L": { "company": "Shell plc", "sector": "Energy", "market_cap_tier": "mega" },
+        "AZN.L":  { "company": "AstraZeneca plc", "sector": "Pharmaceuticals", "market_cap_tier": "mega" },
+        "HSBA.L": { "company": "HSBC Holdings plc", "sector": "Banking", "market_cap_tier": "mega" },
+        "ULVR.L": { "company": "Unilever plc", "sector": "Consumer Goods", "market_cap_tier": "mega" },
+        "BP.L":   { "company": "BP plc", "sector": "Energy", "market_cap_tier": "mega" },
+        "GSK.L":  { "company": "GSK plc", "sector": "Pharmaceuticals", "market_cap_tier": "large" },
+        "RIO.L":  { "company": "Rio Tinto plc", "sector": "Mining", "market_cap_tier": "large" },
+        "DGE.L":  { "company": "Diageo plc", "sector": "Beverages", "market_cap_tier": "large" },
+        "BARC.L": { "company": "Barclays plc", "sector": "Banking", "market_cap_tier": "large" },
+        "LSEG.L": { "company": "London Stock Exchange Group plc", "sector": "Financial Services", "market_cap_tier": "large" }
+      }
+    },
+    "uk_mid_cap": {
+      "name": "UK Mid-Cap (FTSE 250)",
+      "description": "FTSE 250 constituents. Higher alpha potential but wider spreads. Use after blue-chip validation.",
+      "index": "FTSE 250",
+      "expected_fill_rate_min": 0.88,
+      "expected_avg_spread_bps": 15,
+      "recommended_max_position_pct": 0.08,
+      "symbols": [
+        "IMB.L",
+        "SDR.L",
+        "MKS.L",
+        "NWG.L",
+        "JET2.L",
+        "RWS.L",
+        "TW.L",
+        "HFD.L",
+        "SMDS.L",
+        "JDW.L"
+      ],
+      "symbol_details": {
+        "IMB.L":  { "company": "Imperial Brands plc", "sector": "Tobacco", "market_cap_tier": "mid" },
+        "SDR.L":  { "company": "Schroders plc", "sector": "Asset Management", "market_cap_tier": "mid" },
+        "MKS.L":  { "company": "Marks & Spencer Group plc", "sector": "Retail", "market_cap_tier": "mid" },
+        "NWG.L":  { "company": "NatWest Group plc", "sector": "Banking", "market_cap_tier": "mid" },
+        "JET2.L": { "company": "Jet2 plc", "sector": "Travel", "market_cap_tier": "mid" },
+        "RWS.L":  { "company": "RWS Holdings plc", "sector": "Business Services", "market_cap_tier": "mid" },
+        "TW.L":   { "company": "Taylor Wimpey plc", "sector": "Housebuilding", "market_cap_tier": "mid" },
+        "HFD.L":  { "company": "Halfords Group plc", "sector": "Retail Automotive", "market_cap_tier": "mid" },
+        "SMDS.L": { "company": "DS Smith plc", "sector": "Packaging", "market_cap_tier": "mid" },
+        "JDW.L":  { "company": "JD Wetherspoon plc", "sector": "Hospitality", "market_cap_tier": "mid" }
+      }
+    },
+    "uk_aim_small_cap": {
+      "name": "UK AIM / Small-Cap",
+      "description": "AIM-listed small-cap stocks. Highest volatility and spreads. Only use after blue-chip and mid-cap validation. Reduce position sizing for AIM.",
+      "index": "AIM All-Share",
+      "expected_fill_rate_min": 0.75,
+      "expected_avg_spread_bps": 100,
+      "recommended_max_position_pct": 0.05,
+      "warning": "AIM stocks carry significant liquidity risk. Do not use for initial paper testing. Ensure max_position_pct is reduced to 0.05 before running.",
+      "symbols": [
+        "GGP.L",
+        "AFC.L",
+        "BOIL.L",
+        "ASLR.L",
+        "AMFI.L"
+      ],
+      "symbol_details": {
+        "GGP.L":  { "company": "Greatland Gold plc", "sector": "Mining", "market_cap_tier": "small" },
+        "AFC.L":  { "company": "AFC Energy plc", "sector": "Clean Energy", "market_cap_tier": "small" },
+        "BOIL.L": { "company": "Boil Energy plc", "sector": "Energy", "market_cap_tier": "small" },
+        "ASLR.L": { "company": "Asler Mining plc", "sector": "Mining", "market_cap_tier": "small" },
+        "AMFI.L": { "company": "Amigo Holdings plc", "sector": "Financial Services", "market_cap_tier": "small" }
+      }
+    },
+    "uk_energy": {
+      "name": "UK Energy Sector",
+      "description": "UK-listed energy companies. Highly correlated with Brent crude oil price. Treat as a single risk factor when running alongside other energy positions.",
+      "sector": "Energy",
+      "expected_fill_rate_min": 0.92,
+      "expected_avg_spread_bps": 5,
+      "recommended_max_position_pct": 0.10,
+      "concentration_warning": "All symbols are correlated with oil price. Limit total sector exposure to 40% of portfolio.",
+      "symbols": [
+        "SHEL.L",
+        "BP.L",
+        "TLW.L"
+      ],
+      "symbol_details": {
+        "SHEL.L": { "company": "Shell plc", "sector": "Energy", "market_cap_tier": "mega" },
+        "BP.L":   { "company": "BP plc", "sector": "Energy", "market_cap_tier": "mega" },
+        "TLW.L":  { "company": "Tullow Oil plc", "sector": "Energy (E&P)", "market_cap_tier": "mid" }
+      }
+    },
+    "uk_banking": {
+      "name": "UK Banking Sector",
+      "description": "UK-listed banks. Correlated with BoE base rate cycle. Can move sharply on MPC decisions and credit events.",
+      "sector": "Banking",
+      "expected_fill_rate_min": 0.93,
+      "expected_avg_spread_bps": 4,
+      "recommended_max_position_pct": 0.10,
+      "concentration_warning": "All symbols are correlated with UK interest rate expectations. Limit total sector exposure to 40% of portfolio.",
+      "symbols": [
+        "HSBA.L",
+        "BARC.L",
+        "NWG.L",
+        "LLOY.L"
+      ],
+      "symbol_details": {
+        "HSBA.L": { "company": "HSBC Holdings plc", "sector": "Banking", "market_cap_tier": "mega" },
+        "BARC.L": { "company": "Barclays plc", "sector": "Banking", "market_cap_tier": "large" },
+        "NWG.L":  { "company": "NatWest Group plc", "sector": "Banking", "market_cap_tier": "mid" },
+        "LLOY.L": { "company": "Lloyds Banking Group plc", "sector": "Banking", "market_cap_tier": "large" }
+      }
+    },
+    "uk_pharma": {
+      "name": "UK Pharmaceuticals Sector",
+      "description": "UK-listed pharmaceutical companies. Subject to binary approval events (MHRA/FDA). Can gap significantly on trial results.",
+      "sector": "Pharmaceuticals",
+      "expected_fill_rate_min": 0.92,
+      "expected_avg_spread_bps": 5,
+      "recommended_max_position_pct": 0.08,
+      "symbols": [
+        "AZN.L",
+        "GSK.L",
+        "HIK.L"
+      ],
+      "symbol_details": {
+        "AZN.L": { "company": "AstraZeneca plc", "sector": "Pharmaceuticals", "market_cap_tier": "mega" },
+        "GSK.L": { "company": "GSK plc", "sector": "Pharmaceuticals", "market_cap_tier": "large" },
+        "HIK.L": { "company": "Hikma Pharmaceuticals plc", "sector": "Pharmaceuticals", "market_cap_tier": "mid" }
+      }
+    },
+    "uk_retail": {
+      "name": "UK Retail Sector",
+      "description": "UK-listed retailers. Correlated with consumer sentiment, CPI data and retail sales releases.",
+      "sector": "Retail",
+      "expected_fill_rate_min": 0.90,
+      "expected_avg_spread_bps": 8,
+      "recommended_max_position_pct": 0.09,
+      "symbols": [
+        "TSCO.L",
+        "MKS.L",
+        "SBRY.L"
+      ],
+      "symbol_details": {
+        "TSCO.L": { "company": "Tesco plc", "sector": "Food Retail", "market_cap_tier": "large" },
+        "MKS.L":  { "company": "Marks & Spencer Group plc", "sector": "Retail", "market_cap_tier": "mid" },
+        "SBRY.L": { "company": "Sainsbury's plc", "sector": "Food Retail", "market_cap_tier": "mid" }
+      }
+    },
+    "uk_mining": {
+      "name": "UK Mining Sector",
+      "description": "UK-listed diversified and precious metals miners. Correlated with commodity prices and Chinese demand sentiment.",
+      "sector": "Mining",
+      "expected_fill_rate_min": 0.92,
+      "expected_avg_spread_bps": 5,
+      "recommended_max_position_pct": 0.09,
+      "concentration_warning": "All symbols are correlated with commodity cycle and CNY sentiment.",
+      "symbols": [
+        "RIO.L",
+        "AAL.L",
+        "BHP.L"
+      ],
+      "symbol_details": {
+        "RIO.L": { "company": "Rio Tinto plc", "sector": "Diversified Mining", "market_cap_tier": "large" },
+        "AAL.L": { "company": "Anglo American plc", "sector": "Diversified Mining", "market_cap_tier": "large" },
+        "BHP.L": { "company": "BHP Group plc (UK listing)", "sector": "Diversified Mining", "market_cap_tier": "mega" }
+      }
+    }
+  }
+}

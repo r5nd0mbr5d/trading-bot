@@ -1,0 +1,23 @@
+{
+  "snapshot_dir": "research/data/snapshots/<snapshot_id>",
+  "experiment_id": "xgb_h5_v1_20260223",
+  "symbol": "AAPL",
+  "output_dir": "research/experiments/xgb_h5_v1_20260223",
+  "horizon_days": 5,
+  "train_ratio": 0.6,
+  "val_ratio": 0.2,
+  "gap_days": 0,
+  "feature_version": "v1",
+  "label_version": "h5",
+  "model_id": "xgb_h5_v1",
+  "xgb_params": {
+    "max_depth": 4,
+    "n_estimators": 300
+  },
+  "calibrate": false,
+  "walk_forward": false,
+  "train_months": 6,
+  "val_months": 3,
+  "test_months": 3,
+  "step_months": 3
+}

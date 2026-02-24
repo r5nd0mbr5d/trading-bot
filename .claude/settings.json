@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Read(//c/Users/rando/Projects/trading-bot/**)",
+      "Bash(python3 -m py_compile:*)"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python main.py:*)",
+      "WebFetch(domain:massive.com)",
+      "Bash(python -m pytest:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.lean.io)"
+    ]
+  }
+}

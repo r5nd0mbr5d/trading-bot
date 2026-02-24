@@ -1,0 +1,128 @@
+# Pylint configuration for trading-bot
+# Enforces project style guide conventions
+
+[MASTER]
+# Specify a configuration file
+#load-plugins=
+jobs=4
+unsafe-load-any-extension=False
+extension-pkg-allow-list=
+
+# Ignore these files/directories
+ignore-patterns=^\.#
+ignore-paths=^archive/,^archives/,^build/,^dist/,^\.venv/,^__pycache__/
+
+[MESSAGES CONTROL]
+# Only show warnings with the listed confidence levels
+confidence=HIGH
+
+# Disable specific warnings (use sparingly, prefer fixing code instead)
+disable=
+    # Docstring/Documentation
+    C0111,  # missing-docstring (too strict for rapid development)
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    # Naming
+    C0103,  # invalid-name (allow some abbreviations like df, hr, etc)
+    # Imports
+    E0401,  # import-error (handled by runtime)
+    # Consistency
+    R0913,  # too-many-arguments (trading functions often have many params)
+    R0914,  # too-many-locals (OK for complex calculations)
+    # Others
+    W0212,  # protected-access (allow _private usage)
+    fixme,  # Allow TODO/FIXME comments
+
+[VARIABLES]
+# A regular expression matching the name of dummy variables (i.e. expected to
+# not be used).
+dummy-variables-rgx=^_+$|^__+$
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=100
+
+# Regexp for a line that is allowed to be longer than the limit.
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$|^.{0,10}(pylint|type:\s*ignore)
+
+# Allow the body of a class to be on the same line as the declaration.
+single-line-class-stmt=False
+
+# Allow the body of an if to be on the same line as the test (one line if).
+single-line-if-stmt=False
+
+[LOGGING]
+# Logging format (not used directly, but good to document)
+logging-format-style=old
+
+[BASIC]
+# Good variable names which should always be accepted, separated by a comma
+good-names=i, j, k, ex, Run, _, __, df, hr, x, y, z, df_, lr, fn, tp, fp, tn
+
+# Bad variable names which should always be rejected, separated by a comma
+bad-names=foo, bar, baz, toto, tutu, tata, l, O
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=7
+
+# Maximum number of attributes for a class
+max-attributes=10
+
+# Maximum number of boolean expressions in an if statement
+max-bool-expr=5
+
+# Maximum number of branch for function / method body
+max-branches=12
+
+# Maximum number of locals for function / method body
+max-locals=15
+
+# Maximum number of parents for a class (see R0901).
+max-parents=7
+
+# Maximum number of public methods for a class
+max-public-methods=20
+
+# Maximum number of return / yield for function / method body
+max-returns=6
+
+# Maximum number of statements in function / method body
+max-statements=50
+
+# Minimum number of public methods for a class
+min-public-methods=1
+
+[CLASSES]
+# List of method names used to declare an abstract method.
+abstract-methods=abstractmethod
+
+[IMPORTS]
+# Force import order to recognize this module as part of standard
+# compatibility libraries.
+known-standard-library=
+
+# Force import order to recognize these modules as part of a third
+# party library.
+known-third-party=numpy,pandas,pytest,requests
+
+# Analyse import fallback blocks. This can be used to support for
+# except ImportError, ImportWarning blocks.
+analyse-fallback-blocks=False
+
+[SIMILARITIES]
+# Minimum lines number of a similarity.
+min-similarity-lines=4
+
+# Ignore comments when computing similarities.
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities.
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities.
+ignore-imports=yes
+
+[MISCELLANEOUS]
+# List of note tags to take in consideration, separated by a comma.
+notes=FIXME, XXX, TODO

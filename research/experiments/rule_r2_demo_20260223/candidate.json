@@ -1,0 +1,12 @@
+{
+  "name": "uk_rule_alpha_demo",
+  "version": "0.1.0",
+  "strategy_type": "rule",
+  "parameters": {
+    "signal_threshold": 0.55,
+    "risk_profile": "conservative",
+    "notes": "R2 registration evidence demo candidate"
+  },
+  "experiment_id": "rule_r2_demo_20260223",
+  "artifact_sha256": "not_applicable_for_rule"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Standard Trial — Baseline KPI validation",
+  "profile": "uk_paper",
+  "strategy": "ma_crossover",
+  "duration_seconds": 900,
+  "symbols": ["MSFT", "AAPL", "NVDA"],
+  "capital": 100000.0,
+  "expected_json": "reports/session/presets/expected_kpis_standard.json",
+  "tolerance_json": "reports/session/presets/tolerances_standard.json",
+  "output_dir": "reports/reconcile",
+  "db_path": "trading_paper.db",
+  "strict_reconcile": false,
+  "skip_health_check": false,
+  "skip_rotate": false,
+  "notes": "Baseline validation: min 20 trades, 50% win rate, 1.10 profit factor. Drift warnings only (no exit code 1)."
+}
