@@ -9,11 +9,8 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Deque, Dict, List, Optional, Tuple
 
+from src.reporting.engine import ReportingEngine
 from src.risk.fx_staleness import evaluate_fx_staleness
-
-
-def _connect(db_path: str) -> sqlite3.Connection:
-    return sqlite3.connect(db_path)
 
 
 def _infer_currency(symbol: str) -> str:
@@ -56,18 +53,7 @@ def _fx_rate_with_metadata(
 
 
 def _load_events(db_path: str) -> List[sqlite3.Row]:
-    with _connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        try:
-            return conn.execute("""
-                SELECT timestamp, event_type, symbol, payload_json
-                FROM audit_log
-                ORDER BY timestamp ASC
-                """).fetchall()
-        except sqlite3.OperationalError as exc:
-            if "no such table" in str(exc).lower() and "audit_log" in str(exc).lower():
-                return []
-            raise
+    return ReportingEngine(db_path).fetch_audit_events()
 
 
 def summarize_paper_session(

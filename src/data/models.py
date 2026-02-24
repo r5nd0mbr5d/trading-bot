@@ -6,6 +6,10 @@ from enum import Enum
 from typing import Optional
 
 
+def _is_timezone_aware(value: datetime) -> bool:
+    return value.tzinfo is not None and value.tzinfo.utcoffset(value) is not None
+
+
 class OrderSide(str, Enum):
     BUY = "buy"
     SELL = "sell"
@@ -37,6 +41,10 @@ class Bar:
     close: float
     volume: float
 
+    def __post_init__(self) -> None:
+        if not _is_timezone_aware(self.timestamp):
+            raise ValueError("Bar.timestamp must be timezone-aware (UTC)")
+
     @property
     def typical_price(self) -> float:
         return (self.high + self.low + self.close) / 3
@@ -53,6 +61,12 @@ class Signal:
     strategy_name: str
     metadata: dict = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.strength <= 1.0:
+            raise ValueError("Signal.strength must be in [0.0, 1.0]")
+        if not _is_timezone_aware(self.timestamp):
+            raise ValueError("Signal.timestamp must be timezone-aware (UTC)")
+
 
 @dataclass
 class Order:
@@ -67,6 +81,10 @@ class Order:
     filled_at: Optional[datetime] = None
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        if self.filled_at is not None and not _is_timezone_aware(self.filled_at):
+            raise ValueError("Order.filled_at must be timezone-aware (UTC)")
 
 
 @dataclass

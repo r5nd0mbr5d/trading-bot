@@ -9,9 +9,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-def _connect(db_path: str) -> sqlite3.Connection:
-    return sqlite3.connect(db_path)
+from src.reporting.engine import ReportingEngine
 
 
 def _parse_ts(ts: Optional[str]) -> Optional[datetime]:
@@ -32,18 +30,7 @@ def _parse_ts(ts: Optional[str]) -> Optional[datetime]:
 
 
 def _load_events(db_path: str) -> List[sqlite3.Row]:
-    with _connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        try:
-            return conn.execute("""
-                SELECT timestamp, event_type, symbol, payload_json
-                FROM audit_log
-                ORDER BY timestamp ASC
-                """).fetchall()
-        except sqlite3.OperationalError as exc:
-            if "no such table" in str(exc).lower() and "audit_log" in str(exc).lower():
-                return []
-            raise
+    return ReportingEngine(db_path).fetch_audit_events()
 
 
 def _safe_json_load(text: Optional[str]) -> Dict[str, Any]:

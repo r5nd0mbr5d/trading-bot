@@ -7,20 +7,24 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 ## Executive Summary
 
 **Total Items**: 52 (7 Prompts + 44 Next Steps + Code Style Governance)
-**Completed**: 43 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 38–39)
-**In Progress**: 1 (Step 1A burn-in; Step 37 partially structured)
-**Not Started**: 8 (Steps 32–33, 37 full integration, 40–43)
+**Completed**: 48 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 37–43)
+**In Progress**: 1 (Step 1A burn-in)
+**Not Started**: 3 (Steps 32–33 + QuantConnect cross-validation)
 
-**Special Note** (Feb 24, 2026 23:55 UTC):
+**Special Note** (Feb 25, 2026 00:50 UTC):
 - ✅ **Refactoring Progress**:
   - Step 39 COMPLETE: Added `research/__init__.py`
-  - Step 38 COMPLETE: Extracted broker resilience to `src/execution/resilience.py` (run_broker_operation)
-  - Step 37 (Partial): Created `TradingLoopHandler` class in `src/trading/loop.py` (foundation for trading loop extraction)
-- ✅ Test Suite: All 422 tests passing post-refactoring (no regressions)
+  - Step 38 COMPLETE: Extracted broker resilience to `src/execution/resilience.py` (`run_broker_operation`)
+  - Step 40 COMPLETE: Verified `IBKRBroker(BrokerBase)` interface consistency already satisfied
+  - Step 41 COMPLETE: Added model boundary validations (`Signal.strength`, timezone-aware timestamps) + tests
+  - Step 37 COMPLETE: `cmd_paper` now delegates bar processing to `TradingLoopHandler` + stream event builders
+  - Step 42 COMPLETE: Added shared `ReportingEngine` and routed reporting/audit loaders through it
+  - Step 43 COMPLETE: Extracted CLI parser/dispatch into `src/cli/arguments.py`; `main.py` now uses parser + dispatch entrypoint wiring
+- ✅ Test Suite: All 436 tests passing post-refactoring (no regressions)
 - ✅ Code Quality: All files black-formatted, isort-sorted, pre-commit hooks ready
 - ✅ Git: Repository initialized and pushed to GitHub (https://github.com/r5nd0mbr5d/trading-bot)
 
-Last updated: Feb 24, 2026 23:45 UTC
+Last updated: Feb 25, 2026 00:50 UTC
 
 **Latest**: Git repository initialized and pushed to https://github.com/r5nd0mbr5d/trading-bot
 - Commit: `5d09489` — Initial commit with style governance, execution flows, and comprehensive documentation
@@ -1497,7 +1501,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 37: Refactor `main.py` — Extract Trading Loop
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: HIGH — largest maintainability risk in the codebase
 **Intended Agent**: Copilot
 **Execution Prompt**: `main.py` is 1,938 lines with 0 classes. Extract the async paper trading loop into a proper class-based module. Create `src/trading/loop.py` containing `TradingLoopHandler` with `on_bar()`, `_check_data_quality()`, `_generate_signal()`, `_gate_risk()`, `_submit_order()`, and `_snapshot_portfolio()` as separate methods. Create `src/trading/stream_events.py` for `on_stream_heartbeat` and `on_stream_error` handlers. Update `cmd_paper` in `main.py` to instantiate and delegate to `TradingLoopHandler`. All existing tests must continue to pass; add tests for each extracted method in `tests/test_trading_loop.py`.
@@ -1516,10 +1520,19 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 8–12 hours
 
+**Completion (Feb 25, 2026)**:
+- ✅ Added `src/trading/__init__.py`
+- ✅ Added `src/trading/loop.py` with `TradingLoopHandler` and extracted per-bar processing methods
+- ✅ Added `src/trading/stream_events.py` for heartbeat/error callback builders
+- ✅ Updated `main.py::cmd_paper` to delegate stream processing to `TradingLoopHandler.on_bar`
+- ✅ Decomposed `TradingLoopHandler.on_bar` into helper methods: `_check_data_quality`, `_check_kill_switch`, `_generate_signal`, `_gate_risk`, `_submit_order`, `_update_var`, `_snapshot_portfolio`
+- ✅ Added focused extraction tests in `tests/test_trading_loop.py`
+- ✅ Regression: full suite passing (`436 passed`)
+
 ---
 
 ### Step 38: Extract Broker Resilience to `src/execution/resilience.py`
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: HIGH — broker retry logic belongs in the execution layer, not the CLI
 **Intended Agent**: Copilot
 **Execution Prompt**: Move `_run_broker_operation()` and its retry/backoff state management out of `main.py` into `src/execution/resilience.py`. Create a `BrokerResilienceHandler` class (or module-level function) with the same signature and behaviour. Update all callers in `main.py` to import from the new location. Update the 2–3 test files that currently import `_run_broker_operation` from `main` to import from `src.execution.resilience` instead. All existing tests must pass.
@@ -1536,10 +1549,16 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 1–2 hours
 
+**Completion (Feb 24, 2026)**:
+- ✅ Added `src/execution/resilience.py` with `run_broker_operation(...)`
+- ✅ Removed `_run_broker_operation(...)` from `main.py` and switched callers to imported resilience helper
+- ✅ Updated `tests/test_main_broker_resilience.py` imports/calls to `src.execution.resilience`
+- ✅ Regression: full suite passing
+
 ---
 
 ### Step 39: Add Missing `research/__init__.py`
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: HIGH — blocks `from research.data import ...` import patterns in some environments
 **Intended Agent**: Copilot
 **Execution Prompt**: Create `research/__init__.py` (empty or with a single docstring). Verify that `from research.data.features import compute_features` and similar imports work correctly in the test suite. Run `python -m pytest tests/ -v` to confirm no regressions.
@@ -1554,10 +1573,14 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 15 minutes
 
+**Completion (Feb 24, 2026)**:
+- ✅ Added `research/__init__.py` with package docstring
+- ✅ Regression: full suite passing
+
 ---
 
 ### Step 40: Make `IBKRBroker` Inherit `BrokerBase`
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: MEDIUM — interface consistency across broker implementations
 **Intended Agent**: Copilot
 **Execution Prompt**: `IBKRBroker` in `src/execution/ibkr_broker.py` does not inherit from `BrokerBase`, unlike `AlpacaBroker` and `PaperBroker`. Update `IBKRBroker` to inherit `BrokerBase` and implement any missing abstract methods. Resolve any method signature mismatches. Run all tests to confirm no regressions; specifically verify `tests/test_ibkr_broker.py` still passes.
@@ -1574,10 +1597,15 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 2–3 hours
 
+**Completion (Feb 25, 2026)**:
+- ✅ Verified `IBKRBroker` already inherits `BrokerBase` in `src/execution/ibkr_broker.py`
+- ✅ Verified interface stability via `tests/test_ibkr_broker.py`
+- ✅ No duplicate refactor applied (item already satisfied by existing code)
+
 ---
 
 ### Step 41: Add `Signal.strength` Validation
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: MEDIUM — enforces a documented invariant (`CLAUDE.md`: "Signal strength must be in [0.0, 1.0]")
 **Intended Agent**: Copilot
 **Execution Prompt**: Add `__post_init__` validation to the `Signal` dataclass in `src/data/models.py` that raises `ValueError` if `strength` is not in `[0.0, 1.0]`. Also add timezone-awareness validation: raise `ValueError` if any timestamp field on `Signal`, `Order`, or `Bar` is a naive datetime (i.e. `tzinfo is None`). Add tests in `tests/test_models.py` covering: valid strength, strength < 0, strength > 1, naive timestamp rejection, aware timestamp acceptance.
@@ -1593,10 +1621,20 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 30 minutes–1 hour
 
+**Completion (Feb 25, 2026)**:
+- ✅ Added `__post_init__` validations in `src/data/models.py`:
+  - `Signal.strength` must be in `[0.0, 1.0]`
+  - `Bar.timestamp` must be timezone-aware
+  - `Signal.timestamp` must be timezone-aware
+  - `Order.filled_at` (if provided) must be timezone-aware
+- ✅ Added `tests/test_models.py` (7 tests) for boundary and timezone validation
+- ✅ Updated `tests/test_risk.py` boundary assertions to match model-level validation behavior
+- ✅ Regression: full suite passing
+
 ---
 
 ### Step 42: Unify Reporting Modules into `ReportingEngine`
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: LOW — reduces duplication across reporting/audit modules
 **Intended Agent**: Copilot
 **Execution Prompt**: The modules `src/reporting/execution_dashboard.py`, `src/reporting/data_quality_report.py`, `src/audit/broker_reconciliation.py`, and `src/audit/session_summary.py` each open independent SQLite connections and implement similar query patterns. Create `src/reporting/engine.py` with a `ReportingEngine` class that accepts a `db_path` and exposes each report as a method. Migrate the four modules to use `ReportingEngine` internally, preserving all existing public function signatures. All existing tests must pass; add `tests/test_reporting_engine.py` covering the consolidated interface.
@@ -1615,10 +1653,20 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 4–6 hours
 
+**Completion (Feb 25, 2026)**:
+- ✅ Added shared `src/reporting/engine.py` with centralized SQLite query methods
+- ✅ Migrated loaders to `ReportingEngine` in:
+  - `src/reporting/execution_dashboard.py`
+  - `src/reporting/data_quality_report.py`
+  - `src/audit/session_summary.py`
+- ✅ Added `tests/test_reporting_engine.py` for consolidated query coverage
+- ✅ `src/audit/broker_reconciliation.py` intentionally unchanged for DB access because it already operates on in-memory broker/internal state inputs (no SQLite coupling to deduplicate)
+- ✅ Regression: full suite passing (`436 passed`)
+
 ---
 
 ### Step 43: Extract CLI `ArgumentParser` to `src/cli/arguments.py`
-**Status**: NOT STARTED
+**Status**: COMPLETED
 **Priority**: LOW — completes the `main.py` size reduction started in Step 37
 **Intended Agent**: Copilot
 **Execution Prompt**: The `ArgumentParser` block in `main.py` is ~490 lines with 40+ arguments and nested conditional dispatch. Extract it to `src/cli/arguments.py` as `build_argument_parser() -> argparse.ArgumentParser` and `dispatch(args, settings)` for mode routing. Update `main.py` to call `build_argument_parser()` and `dispatch()`. All existing CLI behaviour must be preserved; run the full test suite to confirm. Do this step after Step 37 (trading loop extraction) to avoid merge conflicts.
@@ -1634,6 +1682,13 @@ black --check src/ tests/ backtest/ --line-length 100
 - 18 test files currently import from `main` — after Steps 37–38 most will have been updated to import from stable module paths
 
 **Estimated Effort**: 2–3 hours
+
+**Completion (Feb 25, 2026)**:
+- ✅ Added `src/cli/__init__.py` and `src/cli/arguments.py`
+- ✅ Implemented `build_argument_parser(...)`, `apply_common_settings(...)`, and `dispatch(...)`
+- ✅ Replaced inline parser/dispatch block in `main.py` with extracted CLI module usage
+- ✅ Preserved CLI behavior parity across paper/live/trial/research modes
+- ✅ Regression: focused CLI tests passing + full suite passing (`436 passed`)
 
 ---
 

@@ -6,13 +6,13 @@ Responsible for:
 - Coordinating portfolio snapshots and P&L tracking
 """
 
-import asyncio
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 from config.settings import Settings
 from src.audit.logger import AuditLogger
-from src.data.models import Bar
+from src.data.models import Bar, Order, Signal
 from src.execution.broker import BrokerBase
 from src.execution.market_hours import is_market_open
 from src.execution.resilience import run_broker_operation
@@ -131,7 +131,33 @@ class TradingLoopHandler:
         Args:
             bar: OHLCV bar with timestamp
         """
-        # Data quality gate
+        if not self._check_data_quality(bar):
+            return
+
+        if self.settings.enforce_market_hours and not is_market_open(
+            bar.symbol, bar.timestamp
+        ):
+            logger.debug(
+                "Skipping %s bar at %s: market closed",
+                bar.symbol,
+                bar.timestamp.isoformat(),
+            )
+            return
+
+        if not self._check_kill_switch(bar):
+            return
+
+        signal = self._generate_signal(bar)
+        if signal:
+            price = bar.close
+            order = self._gate_risk(signal, price)
+            if order:
+                self._submit_order(order, signal, price)
+
+        self._update_var(bar)
+        self._snapshot_portfolio(bar)
+
+    def _check_data_quality(self, bar: Bar) -> bool:
         dq_reasons = self.data_quality.check_bar(
             bar.symbol, bar.timestamp, datetime.now(timezone.utc)
         )
@@ -152,22 +178,13 @@ class TradingLoopHandler:
                     strategy=self.settings.strategy.name,
                     severity="critical",
                 )
-            return
+            return False
+        return True
 
-        # Market hours gate
-        if self.settings.enforce_market_hours and not is_market_open(
-            bar.symbol, bar.timestamp
-        ):
-            logger.debug(
-                "Skipping %s bar at %s: market closed",
-                bar.symbol,
-                bar.timestamp.isoformat(),
-            )
-            return
-
-        # Kill switch check
+    def _check_kill_switch(self, bar: Bar) -> bool:
         try:
             self.kill_switch.check_and_raise()
+            return True
         except RuntimeError as exc:
             logger.critical(str(exc))
             self.enqueue_audit(
@@ -177,149 +194,149 @@ class TradingLoopHandler:
                 strategy=self.settings.strategy.name,
                 severity="critical",
             )
-            return
+            return False
 
-        # Strategy signal generation
+    def _generate_signal(self, bar: Bar) -> Optional[Signal]:
         signal = self.strategy.on_bar(bar)
-        if signal:
-            self.enqueue_audit(
-                "SIGNAL",
-                {
-                    "type": signal.signal_type.value,
-                    "strength": signal.strength,
-                    "metadata": signal.metadata,
-                    "timestamp": signal.timestamp.isoformat(),
-                },
+        if not signal:
+            return None
+        self.enqueue_audit(
+            "SIGNAL",
+            {
+                "type": signal.signal_type.value,
+                "strength": signal.strength,
+                "metadata": signal.metadata,
+                "timestamp": signal.timestamp.isoformat(),
+            },
+            symbol=signal.symbol,
+            strategy=signal.strategy_name,
+        )
+        return signal
+
+    def _gate_risk(self, signal: Signal, price: float) -> Optional[Order]:
+        try:
+            positions = run_broker_operation(
+                self.settings,
+                "get_positions",
+                self.broker.get_positions,
+                retry_state=self.broker_retry_state,
+                kill_switch=self.kill_switch,
+                enqueue_audit=self.enqueue_audit,
                 symbol=signal.symbol,
                 strategy=signal.strategy_name,
             )
-            price = bar.close
-            try:
-                positions = run_broker_operation(
-                    self.settings,
-                    "get_positions",
-                    self.broker.get_positions,
-                    retry_state=self.broker_retry_state,
-                    kill_switch=self.kill_switch,
-                    enqueue_audit=self.enqueue_audit,
-                    symbol=signal.symbol,
-                    strategy=signal.strategy_name,
-                )
-                portfolio_value = run_broker_operation(
-                    self.settings,
-                    "get_portfolio_value",
-                    self.broker.get_portfolio_value,
-                    retry_state=self.broker_retry_state,
-                    kill_switch=self.kill_switch,
-                    enqueue_audit=self.enqueue_audit,
-                    symbol=signal.symbol,
-                    strategy=signal.strategy_name,
-                )
-            except RuntimeError as exc:
-                logger.error("Broker unavailable during risk checks: %s", exc)
-                return
+            portfolio_value = run_broker_operation(
+                self.settings,
+                "get_portfolio_value",
+                self.broker.get_portfolio_value,
+                retry_state=self.broker_retry_state,
+                kill_switch=self.kill_switch,
+                enqueue_audit=self.enqueue_audit,
+                symbol=signal.symbol,
+                strategy=signal.strategy_name,
+            )
+        except RuntimeError as exc:
+            logger.error("Broker unavailable during risk checks: %s", exc)
+            return None
 
-            # Risk approval
-            order = self.risk.approve_signal(signal, portfolio_value, price, positions)
-            if not order:
-                rejection = self.risk.get_last_rejection()
-                if rejection.get("code") == "SECTOR_CONCENTRATION_REJECTED":
-                    self.enqueue_audit(
-                        "SECTOR_CONCENTRATION_REJECTED",
-                        {"reason": rejection.get("reason", "")},
-                        symbol=signal.symbol,
-                        strategy=signal.strategy_name,
-                        severity="warning",
-                    )
-
-            if order:
+        order = self.risk.approve_signal(signal, portfolio_value, price, positions)
+        if not order:
+            rejection = self.risk.get_last_rejection()
+            if rejection.get("code") == "SECTOR_CONCENTRATION_REJECTED":
                 self.enqueue_audit(
-                    "ORDER_SUBMITTED",
+                    "SECTOR_CONCENTRATION_REJECTED",
+                    {"reason": rejection.get("reason", "")},
+                    symbol=signal.symbol,
+                    strategy=signal.strategy_name,
+                    severity="warning",
+                )
+        return order
+
+    def _submit_order(self, order: Order, signal: Signal, price: float) -> None:
+        self.enqueue_audit(
+            "ORDER_SUBMITTED",
+            {
+                "side": order.side.value,
+                "qty": order.qty,
+                "stop_loss": order.stop_loss,
+                "take_profit": order.take_profit,
+                "price_reference": price,
+            },
+            symbol=order.symbol,
+            strategy=signal.strategy_name,
+        )
+        try:
+            filled = run_broker_operation(
+                self.settings,
+                "submit_order",
+                lambda: self.broker.submit_order(order),
+                retry_state=self.broker_retry_state,
+                kill_switch=self.kill_switch,
+                enqueue_audit=self.enqueue_audit,
+                symbol=order.symbol,
+                strategy=signal.strategy_name,
+            )
+            if filled.status.value == "filled":
+                logger.info(
+                    f"ORDER FILLED: {filled.side.value.upper()} "
+                    f"{filled.qty} {filled.symbol} @ ~${price:.2f}"
+                )
+                fill_price = filled.filled_price or price
+                commission_per_share = float(
+                    getattr(self.settings.broker, "commission_per_share", 0.0) or 0.0
+                )
+                estimated_fee = round(max(filled.qty, 0.0) * commission_per_share, 6)
+                slippage_pct_vs_signal = 0.0
+                if price > 0:
+                    slippage_pct_vs_signal = round((fill_price - price) / price, 8)
+                currency = "USD"
+                if self.settings.broker.provider.lower() == "ibkr":
+                    currency = self.broker.get_symbol_currency(filled.symbol)
+                self.enqueue_audit(
+                    "ORDER_FILLED",
                     {
-                        "side": order.side.value,
-                        "qty": order.qty,
-                        "stop_loss": order.stop_loss,
-                        "take_profit": order.take_profit,
+                        "side": filled.side.value,
+                        "qty": filled.qty,
+                        "filled_price": fill_price,
                         "price_reference": price,
+                        "fee": estimated_fee,
+                        "commission": estimated_fee,
+                        "slippage_pct_vs_signal": slippage_pct_vs_signal,
+                        "status": filled.status.value,
+                        "currency": currency,
                     },
-                    symbol=order.symbol,
+                    symbol=filled.symbol,
                     strategy=signal.strategy_name,
                 )
-                try:
-                    filled = run_broker_operation(
-                        self.settings,
-                        "submit_order",
-                        lambda: self.broker.submit_order(order),
-                        retry_state=self.broker_retry_state,
-                        kill_switch=self.kill_switch,
-                        enqueue_audit=self.enqueue_audit,
-                        symbol=order.symbol,
-                        strategy=signal.strategy_name,
-                    )
-                    if filled.status.value == "filled":
-                        logger.info(
-                            f"ORDER FILLED: {filled.side.value.upper()} "
-                            f"{filled.qty} {filled.symbol} @ ~${price:.2f}"
-                        )
-                        fill_price = filled.filled_price or price
-                        commission_per_share = float(
-                            getattr(self.settings.broker, "commission_per_share", 0.0)
-                            or 0.0
-                        )
-                        estimated_fee = round(
-                            max(filled.qty, 0.0) * commission_per_share, 6
-                        )
-                        slippage_pct_vs_signal = 0.0
-                        if price > 0:
-                            slippage_pct_vs_signal = round((fill_price - price) / price, 8)
-                        currency = "USD"
-                        if self.settings.broker.provider.lower() == "ibkr":
-                            currency = self.broker.get_symbol_currency(filled.symbol)
-                        self.enqueue_audit(
-                            "ORDER_FILLED",
-                            {
-                                "side": filled.side.value,
-                                "qty": filled.qty,
-                                "filled_price": fill_price,
-                                "price_reference": price,
-                                "fee": estimated_fee,
-                                "commission": estimated_fee,
-                                "slippage_pct_vs_signal": slippage_pct_vs_signal,
-                                "status": filled.status.value,
-                                "currency": currency,
-                            },
-                            symbol=filled.symbol,
-                            strategy=signal.strategy_name,
-                        )
-                    else:
-                        logger.warning(
-                            f"Order {filled.status.value}: "
-                            f"{filled.side.value.upper()} {filled.qty} {filled.symbol}"
-                        )
-                        self.enqueue_audit(
-                            "ORDER_NOT_FILLED",
-                            {
-                                "side": filled.side.value,
-                                "qty": filled.qty,
-                                "status": filled.status.value,
-                            },
-                            symbol=filled.symbol,
-                            strategy=signal.strategy_name,
-                            severity="warning",
-                        )
-                        if filled.side.value == "sell":
-                            self.risk.record_trade_result(is_profitable=False)
-                except Exception as exc:
-                    logger.error(f"Order submission failed: {exc}")
-                    self.enqueue_audit(
-                        "ORDER_ERROR",
-                        {"error": str(exc)},
-                        symbol=order.symbol,
-                        strategy=signal.strategy_name,
-                        severity="error",
-                    )
+            else:
+                logger.warning(
+                    f"Order {filled.status.value}: "
+                    f"{filled.side.value.upper()} {filled.qty} {filled.symbol}"
+                )
+                self.enqueue_audit(
+                    "ORDER_NOT_FILLED",
+                    {
+                        "side": filled.side.value,
+                        "qty": filled.qty,
+                        "status": filled.status.value,
+                    },
+                    symbol=filled.symbol,
+                    strategy=signal.strategy_name,
+                    severity="warning",
+                )
+                if filled.side.value == "sell":
+                    self.risk.record_trade_result(is_profitable=False)
+        except Exception as exc:
+            logger.error("Order submission failed: %s", exc)
+            self.enqueue_audit(
+                "ORDER_ERROR",
+                {"error": str(exc)},
+                symbol=order.symbol,
+                strategy=signal.strategy_name,
+                severity="error",
+            )
 
-        # Update VaR with portfolio return
+    def _update_var(self, bar: Bar) -> None:
         try:
             current_value = run_broker_operation(
                 self.settings,
@@ -339,9 +356,6 @@ class TradingLoopHandler:
             daily_return = (current_value - self.prev_portfolio_value) / self.prev_portfolio_value
             self.risk.update_portfolio_return(daily_return)
         self.prev_portfolio_value = current_value
-
-        # Portfolio snapshot
-        self._snapshot_portfolio(bar)
 
     def _snapshot_portfolio(self, bar: Bar) -> None:
         """Fetch positions/cash and generate portfolio snapshot."""

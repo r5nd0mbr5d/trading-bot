@@ -12,7 +12,6 @@ Examples:
   python main.py paper --strategy ma_crossover
 """
 
-import argparse
 import asyncio
 import glob
 import hashlib
@@ -33,7 +32,6 @@ from src.audit.session_summary import export_paper_session_summary
 from src.audit.uk_tax_export import export_uk_tax_reports
 from src.data.feeds import MarketDataFeed
 from src.execution.ibkr_broker import IBKRBroker
-from src.execution.resilience import run_broker_operation
 from src.monitoring.execution_trend import update_execution_trend
 from src.promotions.checklist import export_promotion_checklist
 from src.reporting.data_quality_report import export_data_quality_report
@@ -42,7 +40,6 @@ from src.strategies.registry import StrategyRegistry
 from src.trial.manifest import TrialManifest
 from src.trial.runner import TrialAndRunner
 from research.bridge.strategy_bridge import load_candidate_bundle, register_candidate_strategy
-from src.execution.market_hours import is_market_open
 from src.risk.kill_switch import KillSwitch
 from src.risk.manager import RiskManager
 from src.strategies.adx_filter import ADXFilterStrategy
@@ -866,6 +863,10 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
     from src.portfolio.tracker import PortfolioTracker
     from src.risk.data_quality import DataQualityGuard
     from src.trading.loop import TradingLoopHandler
+    from src.trading.stream_events import (
+        build_stream_error_handler,
+        build_stream_heartbeat_handler,
+    )
 
     runtime_mode = "paper" if settings.broker.paper_trading else "live"
     _ensure_trading_mode_matches(settings, runtime_mode, context="paper_live")
@@ -976,356 +977,41 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         strategy=settings.strategy.name,
     )
 
-    # --- Pre-warm the strategy with recent history ---
-    # Feeds all available recent bars so the strategy is ready to signal
-    # immediately, rather than waiting for min_bars_required poll cycles.
-    logger.info("Pre-warming strategy with recent 5-day history…")
-    for symbol in settings.data.symbols:
-        try:
-            df = feed.fetch_historical(symbol, period="5d", interval="1m")
-            bars = feed.to_bars(symbol, df)
-            for bar in bars:
-                strategy.on_bar(bar)
-            logger.info(
-                f"  {symbol}: {len(bars)} bars loaded "
-                f"(strategy ready: {len(bars) >= strategy.min_bars_required()})"
-            )
-        except Exception as exc:
-            logger.warning(f"  {symbol}: pre-warm failed — {exc}")
-            enqueue_audit(
-                "PREWARM_ERROR",
-                {"error": str(exc)},
-                symbol=symbol,
-                strategy=settings.strategy.name,
-                severity="warning",
-            )
+    handler = TradingLoopHandler(
+        settings=settings,
+        strategy=strategy,
+        risk=risk,
+        broker=broker,
+        tracker=tracker,
+        data_quality=data_quality,
+        kill_switch=kill_switch,
+        audit=audit,
+        enqueue_audit=enqueue_audit,
+        broker_retry_state=broker_retry_state,
+    )
+    handler._prewarm_strategy(feed)
 
     logger.info(
         f"Paper trading started. "
         f"Min bars required: {strategy.min_bars_required()}. "
         f"Polling every 300s. Ctrl+C to stop."
     )
-
-    prev_portfolio_value = run_broker_operation(
-        settings,
-        "get_portfolio_value",
-        broker.get_portfolio_value,
-        retry_state=broker_retry_state,
-        kill_switch=kill_switch,
-        enqueue_audit=enqueue_audit,
-        strategy=settings.strategy.name,
-    )
-
-    def on_bar(bar):
-        nonlocal prev_portfolio_value
-
-        dq_reasons = data_quality.check_bar(bar.symbol, bar.timestamp, datetime.now(timezone.utc))
-        if dq_reasons and settings.data_quality.enable_stale_check:
-            enqueue_audit(
-                "DATA_QUALITY_BLOCK",
-                {"reasons": dq_reasons, "bar_ts": bar.timestamp.isoformat()},
-                symbol=bar.symbol,
-                strategy=settings.strategy.name,
-                severity="warning",
-            )
-            if "stale_data_max_consecutive" in dq_reasons:
-                kill_switch.trigger("stale_data_max_consecutive")
-                enqueue_audit(
-                    "KILL_SWITCH_TRIGGERED",
-                    {"reason": "stale_data_max_consecutive"},
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                    severity="critical",
-                )
-            return
-
-        if settings.enforce_market_hours and not is_market_open(bar.symbol, bar.timestamp):
-            logger.debug(
-                "Skipping %s bar at %s: market closed",
-                bar.symbol,
-                bar.timestamp.isoformat(),
-            )
-            return
-
-        # Kill switch check — halt immediately if active
-        try:
-            kill_switch.check_and_raise()
-        except RuntimeError as exc:
-            logger.critical(str(exc))
-            enqueue_audit(
-                "KILL_SWITCH_ACTIVE",
-                {"error": str(exc)},
-                symbol=bar.symbol,
-                strategy=settings.strategy.name,
-                severity="critical",
-            )
-            return
-
-        signal = strategy.on_bar(bar)
-        if signal:
-            enqueue_audit(
-                "SIGNAL",
-                {
-                    "type": signal.signal_type.value,
-                    "strength": signal.strength,
-                    "metadata": signal.metadata,
-                    "timestamp": signal.timestamp.isoformat(),
-                },
-                symbol=signal.symbol,
-                strategy=signal.strategy_name,
-            )
-            price = bar.close
-            try:
-                positions = run_broker_operation(
-                    settings,
-                    "get_positions",
-                    broker.get_positions,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=signal.symbol,
-                    strategy=signal.strategy_name,
-                )
-                portfolio_value = run_broker_operation(
-                    settings,
-                    "get_portfolio_value",
-                    broker.get_portfolio_value,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=signal.symbol,
-                    strategy=signal.strategy_name,
-                )
-            except RuntimeError as exc:
-                logger.error("Broker unavailable during risk checks: %s", exc)
-                return
-            order = risk.approve_signal(signal, portfolio_value, price, positions)
-            if not order:
-                rejection = risk.get_last_rejection()
-                if rejection.get("code") == "SECTOR_CONCENTRATION_REJECTED":
-                    enqueue_audit(
-                        "SECTOR_CONCENTRATION_REJECTED",
-                        {"reason": rejection.get("reason", "")},
-                        symbol=signal.symbol,
-                        strategy=signal.strategy_name,
-                        severity="warning",
-                    )
-            if order:
-                enqueue_audit(
-                    "ORDER_SUBMITTED",
-                    {
-                        "side": order.side.value,
-                        "qty": order.qty,
-                        "stop_loss": order.stop_loss,
-                        "take_profit": order.take_profit,
-                        "price_reference": price,
-                    },
-                    symbol=order.symbol,
-                    strategy=signal.strategy_name,
-                )
-                try:
-                    filled = run_broker_operation(
-                        settings,
-                        "submit_order",
-                        lambda: broker.submit_order(order),
-                        retry_state=broker_retry_state,
-                        kill_switch=kill_switch,
-                        enqueue_audit=enqueue_audit,
-                        symbol=order.symbol,
-                        strategy=signal.strategy_name,
-                    )
-                    if filled.status.value == "filled":
-                        logger.info(
-                            f"ORDER FILLED: {filled.side.value.upper()} "
-                            f"{filled.qty} {filled.symbol} @ ~${price:.2f}"
-                        )
-                        fill_price = filled.filled_price or price
-                        commission_per_share = float(
-                            getattr(settings.broker, "commission_per_share", 0.0) or 0.0
-                        )
-                        estimated_fee = round(max(filled.qty, 0.0) * commission_per_share, 6)
-                        slippage_pct_vs_signal = 0.0
-                        if price > 0:
-                            slippage_pct_vs_signal = round((fill_price - price) / price, 8)
-                        currency = "USD"
-                        if settings.broker.provider.lower() == "ibkr":
-                            currency = broker.get_symbol_currency(filled.symbol)
-                        enqueue_audit(
-                            "ORDER_FILLED",
-                            {
-                                "side": filled.side.value,
-                                "qty": filled.qty,
-                                "filled_price": fill_price,
-                                "price_reference": price,
-                                "fee": estimated_fee,
-                                "commission": estimated_fee,
-                                "slippage_pct_vs_signal": slippage_pct_vs_signal,
-                                "status": filled.status.value,
-                                "currency": currency,
-                            },
-                            symbol=filled.symbol,
-                            strategy=signal.strategy_name,
-                        )
-                    else:
-                        logger.warning(
-                            f"Order {filled.status.value}: "
-                            f"{filled.side.value.upper()} {filled.qty} {filled.symbol}"
-                        )
-                        enqueue_audit(
-                            "ORDER_NOT_FILLED",
-                            {
-                                "side": filled.side.value,
-                                "qty": filled.qty,
-                                "status": filled.status.value,
-                            },
-                            symbol=filled.symbol,
-                            strategy=signal.strategy_name,
-                            severity="warning",
-                        )
-                        if filled.side.value == "sell":
-                            risk.record_trade_result(is_profitable=False)
-                except Exception as exc:
-                    logger.error(f"Order submission failed: {exc}")
-                    enqueue_audit(
-                        "ORDER_ERROR",
-                        {"error": str(exc)},
-                        symbol=order.symbol,
-                        strategy=signal.strategy_name,
-                        severity="error",
-                    )
-
-        # Update VaR tracker with today's portfolio return
-        try:
-            current_value = run_broker_operation(
-                settings,
-                "get_portfolio_value",
-                broker.get_portfolio_value,
-                retry_state=broker_retry_state,
-                kill_switch=kill_switch,
-                enqueue_audit=enqueue_audit,
-                symbol=bar.symbol,
-                strategy=settings.strategy.name,
-            )
-        except RuntimeError as exc:
-            logger.error("Broker unavailable during VaR update: %s", exc)
-            return
-        if prev_portfolio_value > 0:
-            daily_return = (current_value - prev_portfolio_value) / prev_portfolio_value
-            risk.update_portfolio_return(daily_return)
-        prev_portfolio_value = current_value
-
-        symbol_currencies = None
-        cash_currency = settings.base_currency
-        if settings.broker.provider.lower() == "ibkr":
-            try:
-                positions = run_broker_operation(
-                    settings,
-                    "get_positions",
-                    broker.get_positions,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                )
-            except RuntimeError as exc:
-                logger.error("Broker unavailable during snapshot positions: %s", exc)
-                return
-            symbol_currencies = {
-                sym: broker.get_symbol_currency(sym)
-                for sym in positions.keys()
-            }
-            cash_currency = (
-                run_broker_operation(
-                    settings,
-                    "get_account_base_currency",
-                    broker.get_account_base_currency,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                )
-                or settings.base_currency
-            )
-            snap = tracker.snapshot(
-                positions,
-                run_broker_operation(
-                    settings,
-                    "get_cash",
-                    broker.get_cash,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                ),
-                base_currency=settings.base_currency,
-                symbol_currencies=symbol_currencies,
-                cash_currency=cash_currency,
-                fx_rates=settings.fx_rates,
-            )
-        else:
-            snap = tracker.snapshot(
-                run_broker_operation(
-                    settings,
-                    "get_positions",
-                    broker.get_positions,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                ),
-                run_broker_operation(
-                    settings,
-                    "get_cash",
-                    broker.get_cash,
-                    retry_state=broker_retry_state,
-                    kill_switch=kill_switch,
-                    enqueue_audit=enqueue_audit,
-                    symbol=bar.symbol,
-                    strategy=settings.strategy.name,
-                ),
-                base_currency=settings.base_currency,
-                cash_currency=cash_currency,
-                fx_rates=settings.fx_rates,
-            )
-        logger.info(
-            f"Portfolio: ${snap['portfolio_value']:,.2f}  "
-            f"cash=${snap['cash']:,.2f}  "
-            f"positions={snap['num_positions']}  "
-            f"return={snap['return_pct']:+.2f}%"
-        )
+    handler.initialize_portfolio_value()
 
     try:
-        def on_stream_heartbeat(payload: dict) -> None:
-            enqueue_audit(
-                payload.get("event", "STREAM_HEARTBEAT"),
-                payload,
-                strategy=settings.strategy.name,
-                severity="info",
-            )
-
-        def on_stream_error(payload: dict) -> None:
-            event = payload.get("event", "STREAM_ERROR")
-            severity = "warning"
-            if event == "STREAM_FAILURE_LIMIT_REACHED":
-                severity = "critical"
-                kill_switch.trigger(
-                    "stream_failure_limit_reached: "
-                    f"{payload.get('consecutive_failure_cycles')}"
-                )
-            enqueue_audit(
-                event,
-                payload,
-                strategy=settings.strategy.name,
-                severity=severity,
-            )
+        on_stream_heartbeat = build_stream_heartbeat_handler(
+            enqueue_audit,
+            settings.strategy.name,
+        )
+        on_stream_error = build_stream_error_handler(
+            enqueue_audit,
+            settings.strategy.name,
+            kill_switch,
+        )
 
         await feed.stream(
             settings.data.symbols,
-            on_bar,
+            handler.on_bar,
             interval_seconds=300,
             heartbeat_callback=on_stream_heartbeat,
             error_callback=on_stream_error,
@@ -1356,489 +1042,36 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Algorithmic Trading Bot")
-    parser.add_argument("mode", choices=["backtest", "walk_forward", "paper", "live", "uk_tax_export", "uk_health_check", "rotate_paper_db", "paper_session_summary", "paper_reconcile", "paper_trial", "trial_batch", "execution_dashboard", "data_quality_report", "promotion_checklist", "research_register_candidate", "research_train_xgboost", "research_download_ticks", "research_build_tick_splits", "research_ingest_flat_files"])
-    parser.add_argument("--start", default="2022-01-01")
-    parser.add_argument(
-        "--end", default=datetime.today().strftime("%Y-%m-%d")
-    )
-    parser.add_argument(
-        "--strategy", default="ma_crossover", choices=list(STRATEGIES.keys())
-    )
-    parser.add_argument("--symbols", nargs="+", default=None)
-    parser.add_argument("--capital", type=float, default=100_000.0)
-    parser.add_argument("--broker", choices=["alpaca", "ibkr"], default=None)
-    parser.add_argument("--profile", choices=["default", "uk_paper"], default="default")
-    parser.add_argument("--no-market-hours", action="store_true")
-    parser.add_argument("--with-data-check", action="store_true")
-    parser.add_argument("--health-json", action="store_true")
-    parser.add_argument("--strict-health", action="store_true")
-    parser.add_argument("--db-path", default=None)
-    parser.add_argument("--output-dir", default="reports/uk_tax")
-    parser.add_argument("--output", default=None)
-    parser.add_argument("--refresh-seconds", type=int, default=60)
-    parser.add_argument("--summary-json", default=None)
-    parser.add_argument("--audit-db-path", default=None)
-    parser.add_argument("--candidate-dir", default=None)
-    parser.add_argument("--registry-db-path", default="trading.db")
-    parser.add_argument("--artifacts-dir", default="strategies")
-    parser.add_argument("--reviewer-1", default="copilot")
-    parser.add_argument("--reviewer-2", default="pending_second_reviewer")
-    parser.add_argument("--config", default=None)
-    parser.add_argument("--snapshot-dir", default=None)
-    parser.add_argument("--experiment-id", default=None)
-    parser.add_argument("--model-id", default=None)
-    parser.add_argument("--tick-provider", default="polygon", choices=["polygon"])
-    parser.add_argument("--tick-date", default=None)
-    parser.add_argument("--tick-start-date", default=None)
-    parser.add_argument("--tick-end-date", default=None)
-    parser.add_argument("--tick-api-key", default=None)
-    parser.add_argument("--tick-output-dir", default="research/data/ticks")
-    parser.add_argument("--tick-limit", type=int, default=50000)
-    parser.add_argument("--tick-max-pages", type=int, default=20)
-    parser.add_argument("--tick-build-manifest", action="store_true")
-    parser.add_argument("--tick-manifest-path", default=None)
-    parser.add_argument("--tick-input-manifest", default=None)
-    parser.add_argument("--tick-split-output-dir", default="research/data/ticks/splits")
-    parser.add_argument("--tick-train-end", default=None)
-    parser.add_argument("--tick-val-end", default=None)
-    parser.add_argument("--flat-output-dir", default="research/data/snapshots")
-    parser.add_argument("--flat-manifest-path", default=None)
-    parser.add_argument("--flat-skip-existing", action="store_true")
-    parser.add_argument("--horizon-days", type=int, default=5)
-    parser.add_argument("--train-ratio", type=float, default=0.6)
-    parser.add_argument("--val-ratio", type=float, default=0.2)
-    parser.add_argument("--gap-days", type=int, default=0)
-    parser.add_argument("--walk-forward", action="store_true")
-    parser.add_argument("--train-months", type=int, default=6)
-    parser.add_argument("--val-months", type=int, default=3)
-    parser.add_argument("--test-months", type=int, default=3)
-    parser.add_argument("--step-months", type=int, default=3)
-    parser.add_argument("--feature-version", default="v1")
-    parser.add_argument("--label-version", default="h5")
-    parser.add_argument("--xgb-params-json", default=None)
-    parser.add_argument("--xgb-preset", default=None)
-    parser.add_argument(
-        "--xgb-presets-path",
-        default="research/experiments/configs/xgb_params_presets.json",
-    )
-    parser.add_argument("--print-presets", action="store_true")
-    parser.add_argument("--calibrate", action="store_true")
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--expected-json", default=None)
-    parser.add_argument("--tolerance-json", default=None)
-    parser.add_argument("--strict-reconcile", action="store_true")
-    parser.add_argument("--paper-duration-seconds", type=int, default=900)
-    parser.add_argument("--skip-health-check", action="store_true")
-    parser.add_argument("--skip-rotate", action="store_true")
-    parser.add_argument("--manifests", nargs="+", default=None)
-    parser.add_argument("--parallel", action="store_true")
-    parser.add_argument("--confirm-paper", action="store_true")
-    parser.add_argument("--confirm-live", action="store_true")
-    parser.add_argument("--confirm-paper-trial", action="store_true")
-    parser.add_argument("--manifest", default=None, help="Path to trial manifest JSON file (overrides other trial flags)")
-    parser.add_argument("--archive-dir", default="archives/db")
-    parser.add_argument("--keep-original", action="store_true")
-    parser.add_argument("--rotate-suffix", default=None)
-    parser.add_argument("--auto-rotate-paper-db", action="store_true")
-    parser.add_argument("--no-auto-rotate-paper-db", action="store_true")
+    from src.cli.arguments import apply_common_settings, build_argument_parser, dispatch
+
+    parser = build_argument_parser(STRATEGIES.keys())
     args = parser.parse_args()
 
     settings = Settings()
-    apply_runtime_profile(settings, args.profile)
-    settings.strategy.name = args.strategy
-    settings.initial_capital = args.capital
-    if args.broker:
-        settings.broker.provider = args.broker
-    if args.no_market_hours:
-        settings.enforce_market_hours = False
-    if args.auto_rotate_paper_db:
-        settings.auto_rotate_paper_db = True
-    if args.no_auto_rotate_paper_db:
-        settings.auto_rotate_paper_db = False
-    if args.symbols:
-        settings.data.symbols = args.symbols
+    apply_common_settings(args, settings, apply_runtime_profile)
 
-    if args.mode == "backtest":
-        cmd_backtest(settings, args.start, args.end)
-
-    elif args.mode == "walk_forward":
-        cmd_walk_forward(
-            settings,
-            args.start,
-            args.end,
-            args.train_months,
-            args.test_months,
-            args.step_months,
-        )
-
-    elif args.mode in ("paper", "live"):
-        _require_explicit_confirmation(
-            args.mode,
-            confirm_paper=args.confirm_paper,
-            confirm_live=args.confirm_live,
-            confirm_paper_trial=args.confirm_paper_trial,
-        )
-        if args.mode == "live":
-            settings.broker.paper_trading = False
-            if settings.broker.provider.lower() == "ibkr":
-                confirm = input(
-                    "\nWARNING: IBKR LIVE trading with real money.\n"
-                    "Type 'yes ibkr live' to confirm: "
-                )
-                if confirm.strip().lower() != "yes ibkr live":
-                    print("Aborted.")
-                    raise SystemExit(0)
-            else:
-                confirm = input(
-                    "\nWARNING: LIVE trading with real money.\n"
-                    "Type 'yes I understand' to confirm: "
-                )
-                if confirm.strip().lower() != "yes i understand":
-                    print("Aborted.")
-                    raise SystemExit(0)
-        else:
-            settings.broker.paper_trading = True
-
-        broker = None
-        if settings.broker.provider.lower() == "ibkr":
-            broker = IBKRBroker(settings)
-        try:
-            asyncio.run(cmd_paper(settings, broker=broker))
-        finally:
-            if broker is not None:
-                broker.disconnect()
-
-    elif args.mode == "uk_tax_export":
-        export_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-        cmd_uk_tax_export(settings, export_db_path, args.output_dir)
-
-    elif args.mode == "paper_session_summary":
-        summary_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-        cmd_paper_session_summary(settings, summary_db_path, args.output_dir)
-
-    elif args.mode == "paper_reconcile":
-        if not args.expected_json:
-            raise SystemExit("--expected-json is required for paper_reconcile mode")
-        reconcile_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-        drift_count = cmd_paper_reconcile(
-            settings,
-            reconcile_db_path,
-            args.output_dir,
-            args.expected_json,
-            args.tolerance_json,
-        )
-        if args.strict_reconcile and drift_count > 0:
-            raise SystemExit(1)
-
-    elif args.mode == "paper_trial":
-        _require_explicit_confirmation(
-            args.mode,
-            confirm_paper=args.confirm_paper,
-            confirm_live=args.confirm_live,
-            confirm_paper_trial=args.confirm_paper_trial,
-        )
-        if args.manifest:
-            # Load all settings from manifest
-            manifest = TrialManifest.from_json(args.manifest)
-            logger.info("Loaded trial manifest: %s", manifest.name)
-            
-            # Override settings from manifest
-            if manifest.profile:
-                apply_runtime_profile(settings, manifest.profile)
-            if manifest.strategy:
-                settings.strategy.name = manifest.strategy
-            if manifest.symbols:
-                settings.data.symbols = manifest.symbols
-            if manifest.capital:
-                settings.initial_capital = manifest.capital
-            
-            trial_db_path = manifest.db_path or resolve_runtime_db_path(settings, "paper")
-            exit_code = cmd_paper_trial(
-                settings,
-                duration_seconds=manifest.duration_seconds,
-                db_path=trial_db_path,
-                output_dir=manifest.output_dir,
-                expected_json_path=manifest.expected_json,
-                tolerance_json_path=manifest.tolerance_json,
-                strict_reconcile=manifest.strict_reconcile,
-                skip_health_check=manifest.skip_health_check,
-                skip_rotate=manifest.skip_rotate,
-            )
-        else:
-            # Use CLI arguments (legacy mode)
-            trial_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-            exit_code = cmd_paper_trial(
-                settings,
-                duration_seconds=args.paper_duration_seconds,
-                db_path=trial_db_path,
-                output_dir=args.output_dir,
-                expected_json_path=args.expected_json,
-                tolerance_json_path=args.tolerance_json,
-                strict_reconcile=args.strict_reconcile,
-                skip_health_check=args.skip_health_check,
-                skip_rotate=args.skip_rotate,
-            )
-        if exit_code != 0:
-            raise SystemExit(exit_code)
-
-    elif args.mode == "trial_batch":
-        _require_explicit_confirmation(
-            "paper_trial",
-            confirm_paper=args.confirm_paper,
-            confirm_live=args.confirm_live,
-            confirm_paper_trial=args.confirm_paper_trial,
-        )
-        if not args.manifests:
-            raise SystemExit("--manifests is required for trial_batch mode")
-        cmd_trial_batch(
-            settings,
-            manifest_patterns=args.manifests,
-            output_dir=args.output_dir,
-            parallel=args.parallel,
-        )
-
-    elif args.mode == "execution_dashboard":
-        dashboard_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-        dashboard_output = args.output or "reports/execution_dashboard.html"
-        cmd_execution_dashboard(
-            settings,
-            dashboard_db_path,
-            dashboard_output,
-            refresh_seconds=args.refresh_seconds,
-        )
-
-    elif args.mode == "data_quality_report":
-        quality_db_path = args.db_path or resolve_runtime_db_path(settings, "paper")
-        quality_output = args.output or "reports/data_quality.json"
-        cmd_data_quality_report(
-            settings,
-            quality_db_path,
-            quality_output,
-            dashboard_path="reports/execution_dashboard.html",
-        )
-
-    elif args.mode == "promotion_checklist":
-        checklist_output_dir = args.output_dir or "reports/promotions"
-        cmd_promotion_checklist(
-            settings,
-            strategy=settings.strategy.name,
-            output_dir=checklist_output_dir,
-            summary_json_path=args.summary_json,
-            audit_db_path=args.audit_db_path,
-        )
-
-    elif args.mode == "research_register_candidate":
-        if not args.candidate_dir:
-            raise SystemExit("--candidate-dir is required for research_register_candidate mode")
-        cmd_research_register_candidate(
-            settings,
-            candidate_dir=args.candidate_dir,
-            output_dir=args.output_dir,
-            registry_db_path=args.registry_db_path,
-            artifacts_dir=args.artifacts_dir,
-            reviewer_1=args.reviewer_1,
-            reviewer_2=args.reviewer_2,
-        )
-
-    elif args.mode == "research_train_xgboost":
-        if args.print_presets:
-            from research.experiments.presets import load_xgb_presets
-
-            presets = load_xgb_presets(args.xgb_presets_path)
-            print(json.dumps(presets, indent=2))
-            raise SystemExit(0)
-
-        config = None
-        if args.config:
-            from research.experiments.config import load_experiment_config
-
-            config = load_experiment_config(args.config)
-
-        if config is None:
-            if not args.snapshot_dir:
-                raise SystemExit("--snapshot-dir is required for research_train_xgboost mode")
-            if not args.experiment_id:
-                raise SystemExit("--experiment-id is required for research_train_xgboost mode")
-            if not args.symbols or len(args.symbols) != 1:
-                raise SystemExit("--symbols must include exactly one symbol for research_train_xgboost")
-
-        params = None
-        if args.xgb_params_json:
-            params_path = Path(args.xgb_params_json)
-            params = json.loads(params_path.read_text(encoding="utf-8"))
-
-        from research.experiments.presets import resolve_xgb_params
-
-        preset_name = config.xgb_preset if config else args.xgb_preset
-        preset_path = args.xgb_presets_path
-        resolved_params = resolve_xgb_params(
-            preset_name=preset_name,
-            explicit_params=config.xgb_params if config else params,
-            presets_path=preset_path,
-        )
-
-        if args.dry_run:
-            resolved_config = {
-                "snapshot_dir": config.snapshot_dir if config else args.snapshot_dir,
-                "experiment_id": config.experiment_id if config else args.experiment_id,
-                "symbol": config.symbol if config else args.symbols[0],
-                "output_dir": config.output_dir if config else args.output_dir,
-                "horizon_days": config.horizon_days if config else args.horizon_days,
-                "train_ratio": config.train_ratio if config else args.train_ratio,
-                "val_ratio": config.val_ratio if config else args.val_ratio,
-                "gap_days": config.gap_days if config else args.gap_days,
-                "feature_version": config.feature_version if config else args.feature_version,
-                "label_version": config.label_version if config else args.label_version,
-                "model_id": config.model_id if config else args.model_id,
-                "xgb_params": resolved_params,
-                "calibrate": config.calibrate if config else args.calibrate,
-            }
-            print(json.dumps(resolved_config, indent=2))
-            raise SystemExit(0)
-
-        from research.experiments.xgboost_pipeline import run_xgboost_experiment
-
-        result = run_xgboost_experiment(
-            snapshot_dir=config.snapshot_dir if config else args.snapshot_dir,
-            experiment_id=config.experiment_id if config else args.experiment_id,
-            symbol=config.symbol if config else args.symbols[0],
-            output_dir=config.output_dir if config else args.output_dir,
-            horizon_days=config.horizon_days if config else args.horizon_days,
-            train_ratio=config.train_ratio if config else args.train_ratio,
-            val_ratio=config.val_ratio if config else args.val_ratio,
-            gap_days=config.gap_days if config else args.gap_days,
-            feature_version=config.feature_version if config else args.feature_version,
-            label_version=config.label_version if config else args.label_version,
-            model_id=config.model_id if config else args.model_id,
-            model_params=resolved_params,
-            calibrate=config.calibrate if config else args.calibrate,
-            walk_forward=config.walk_forward if config else args.walk_forward,
-            train_months=config.train_months if config else args.train_months,
-            val_months=config.val_months if config else args.val_months,
-            test_months=config.test_months if config else args.test_months,
-            step_months=config.step_months if config else args.step_months,
-        )
-
-        logger.info("XGBoost experiment complete: %s", result.training_report_path)
-
-    elif args.mode == "research_download_ticks":
-        if not args.symbols or len(args.symbols) != 1:
-            raise SystemExit("--symbols must include exactly one symbol for research_download_ticks")
-        if not args.tick_date and not (args.tick_start_date and args.tick_end_date):
-            raise SystemExit("Provide --tick-date or both --tick-start-date and --tick-end-date")
-
-        symbol = args.symbols[0]
-        if args.tick_provider != "polygon":
-            raise SystemExit(f"Unsupported tick provider: {args.tick_provider}")
-
-        from research.data.tick_download import (
-            convert_polygon_json_to_tick_csv,
-            download_polygon_trades_range,
-            download_polygon_trades_json,
-        )
-
-        if args.tick_date:
-            json_paths = [
-                download_polygon_trades_json(
-                    symbol=symbol,
-                    trade_date=args.tick_date,
-                    output_dir=args.tick_output_dir,
-                    api_key=args.tick_api_key,
-                    limit=args.tick_limit,
-                    max_pages=args.tick_max_pages,
-                )
-            ]
-        else:
-            json_paths = download_polygon_trades_range(
-                symbol=symbol,
-                start_date=args.tick_start_date,
-                end_date=args.tick_end_date,
-                output_dir=args.tick_output_dir,
-                api_key=args.tick_api_key,
-                limit=args.tick_limit,
-                max_pages=args.tick_max_pages,
-            )
-
-        for json_path in json_paths:
-            trade_date = json_path.stem.split("_")[-1]
-            csv_path = Path(args.tick_output_dir) / f"polygon_{symbol}_{trade_date}.csv"
-            convert_polygon_json_to_tick_csv(json_path, output_csv=csv_path, symbol_override=symbol)
-            logger.info("Downloaded Polygon ticks JSON: %s", json_path)
-            logger.info("Converted canonical tick CSV: %s", csv_path)
-
-        if args.tick_build_manifest:
-            from research.data.tick_backlog import build_tick_backlog_manifest
-
-            manifest_path = (
-                Path(args.tick_manifest_path)
-                if args.tick_manifest_path
-                else Path(args.tick_output_dir) / "tick_backlog_manifest.json"
-            )
-            result = build_tick_backlog_manifest(
-                data_dir=args.tick_output_dir,
-                output_path=manifest_path,
-            )
-            logger.info("Tick backlog manifest written: %s", result)
-
-    elif args.mode == "research_build_tick_splits":
-        if not args.tick_input_manifest:
-            raise SystemExit("--tick-input-manifest is required for research_build_tick_splits mode")
-        if not args.tick_train_end or not args.tick_val_end:
-            raise SystemExit("--tick-train-end and --tick-val-end are required")
-
-        symbol = args.symbols[0] if args.symbols and len(args.symbols) == 1 else None
-        from research.data.tick_bundle import build_tick_split_bundles
-
-        outputs = build_tick_split_bundles(
-            manifest_path=args.tick_input_manifest,
-            output_dir=args.tick_split_output_dir,
-            symbol=symbol,
-            start_date=args.tick_start_date,
-            end_date=args.tick_end_date,
-            train_end=args.tick_train_end,
-            val_end=args.tick_val_end,
-        )
-
-        logger.info("Tick split bundle (train): %s", outputs["train"])
-        logger.info("Tick split bundle (val): %s", outputs["val"])
-        logger.info("Tick split bundle (test): %s", outputs["test"])
-        logger.info("Tick split summary: %s", outputs["summary"])
-
-    elif args.mode == "research_ingest_flat_files":
-        if not args.symbols:
-            raise SystemExit("--symbols is required for research_ingest_flat_files")
-        if not args.start or not args.end:
-            raise SystemExit("--start and --end are required for research_ingest_flat_files")
-
-        from research.data.flat_file_ingestion import ingest_flat_files
-
-        result = ingest_flat_files(
-            symbols=args.symbols,
-            start=args.start,
-            end=args.end,
-            output_dir=args.flat_output_dir,
-            manifest_path=args.flat_manifest_path,
-            skip_existing=args.flat_skip_existing,
-        )
-        logger.info("Flat file ingestion completed")
-        logger.info("  manifest: %s", result.manifest_path)
-        logger.info("  files: %s", result.file_count)
-        logger.info("  rows: %s", result.total_rows)
-
-    elif args.mode == "uk_health_check":
-        error_count = cmd_uk_health_check(
-            settings,
-            with_data_check=args.with_data_check,
-            json_output=args.health_json,
-        )
-        if args.strict_health and error_count > 0:
-            raise SystemExit(1)
-
-    elif args.mode == "rotate_paper_db":
-        cmd_rotate_paper_db(
-            settings,
-            archive_dir=args.archive_dir,
-            keep_original=args.keep_original,
-            suffix=args.rotate_suffix,
-        )
+    dispatch(
+        args,
+        settings,
+        handlers={
+            "logger": logger,
+            "apply_runtime_profile": apply_runtime_profile,
+            "resolve_runtime_db_path": resolve_runtime_db_path,
+            "_require_explicit_confirmation": _require_explicit_confirmation,
+            "cmd_backtest": cmd_backtest,
+            "cmd_walk_forward": cmd_walk_forward,
+            "cmd_paper": cmd_paper,
+            "cmd_uk_tax_export": cmd_uk_tax_export,
+            "cmd_paper_session_summary": cmd_paper_session_summary,
+            "cmd_paper_reconcile": cmd_paper_reconcile,
+            "cmd_paper_trial": cmd_paper_trial,
+            "cmd_trial_batch": cmd_trial_batch,
+            "cmd_execution_dashboard": cmd_execution_dashboard,
+            "cmd_data_quality_report": cmd_data_quality_report,
+            "cmd_promotion_checklist": cmd_promotion_checklist,
+            "cmd_research_register_candidate": cmd_research_register_candidate,
+            "cmd_uk_health_check": cmd_uk_health_check,
+            "cmd_rotate_paper_db": cmd_rotate_paper_db,
+        },
+        ibkr_broker_cls=IBKRBroker,
+    )

@@ -131,17 +131,13 @@ class TestRiskManager:
         order = self.risk.approve_signal(make_signal(), 100_000, 150.0, {})
         assert order is None
 
-    def test_signal_strength_above_one_clamped(self):
-        order_over = self.risk.approve_signal(make_signal(strength=5.0), 100_000, 150.0, {})
-        self.risk._peak_value = 100_000
-        order_one = self.risk.approve_signal(make_signal(strength=1.0), 100_000, 150.0, {})
-        assert order_over is not None and order_one is not None
-        assert order_over.qty == order_one.qty  # clamped to 1.0
+    def test_signal_strength_above_one_rejected_at_model_boundary(self):
+        with pytest.raises(ValueError, match="Signal.strength"):
+            make_signal(strength=5.0)
 
-    def test_signal_strength_below_zero_produces_no_order(self):
-        order = self.risk.approve_signal(make_signal(strength=-1.0), 100_000, 150.0, {})
-        # strength clamped to 0.0 → risk_dollars = 0 → qty = 0 → None
-        assert order is None
+    def test_signal_strength_below_zero_rejected_at_model_boundary(self):
+        with pytest.raises(ValueError, match="Signal.strength"):
+            make_signal(strength=-1.0)
 
     def test_non_finite_inputs_produce_no_order(self):
         order_nan_price = self.risk.approve_signal(make_signal(), 100_000, float("nan"), {})

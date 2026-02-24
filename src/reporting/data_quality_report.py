@@ -8,9 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-def _connect(db_path: str) -> sqlite3.Connection:
-    return sqlite3.connect(db_path)
+from src.reporting.engine import ReportingEngine
 
 
 def _parse_ts(ts: Optional[str]) -> Optional[datetime]:
@@ -31,18 +29,7 @@ def _parse_ts(ts: Optional[str]) -> Optional[datetime]:
 
 
 def _load_market_bars(db_path: str) -> List[sqlite3.Row]:
-    with _connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        try:
-            return conn.execute("""
-                SELECT symbol, timestamp, open, high, low, close
-                FROM market_bars
-                ORDER BY symbol ASC, timestamp ASC
-                """).fetchall()
-        except sqlite3.OperationalError as exc:
-            if "no such table" in str(exc).lower() and "market_bars" in str(exc).lower():
-                return []
-            raise
+    return ReportingEngine(db_path).fetch_market_bars()
 
 
 def _compute_report(
