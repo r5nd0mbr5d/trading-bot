@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from config.settings import Settings
-from main import cmd_trial_batch
+from src.cli.runtime import cmd_trial_batch
 
 
 def _write_manifest(path: Path, name: str, strategy: str, output_dir: str) -> None:
@@ -51,7 +51,7 @@ def test_cmd_trial_batch_runs_manifests_and_reports(tmp_path: Path, monkeypatch)
         )
         return 0
 
-    monkeypatch.setattr("main.cmd_paper_trial", fake_trial)
+    monkeypatch.setattr("src.cli.runtime.cmd_paper_trial", fake_trial)
 
     report = cmd_trial_batch(
         Settings(),

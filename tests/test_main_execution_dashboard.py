@@ -1,7 +1,7 @@
 """Unit test for main execution dashboard command wrapper."""
 
 from config.settings import Settings
-from main import cmd_execution_dashboard
+from src.cli.runtime import cmd_execution_dashboard
 
 
 def test_cmd_execution_dashboard_invokes_export(monkeypatch):
@@ -21,7 +21,7 @@ def test_cmd_execution_dashboard_invokes_export(monkeypatch):
             },
         }
 
-    monkeypatch.setattr("main.export_execution_dashboard", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_execution_dashboard", fake_export)
 
     cmd_execution_dashboard(
         settings,

@@ -1,7 +1,7 @@
 """Unit test for main UK tax export command wrapper."""
 
 from config.settings import Settings
-from main import cmd_uk_tax_export
+from src.cli.runtime import cmd_uk_tax_export
 
 
 def test_cmd_uk_tax_export_invokes_export(monkeypatch, caplog):
@@ -24,7 +24,7 @@ def test_cmd_uk_tax_export_invokes_export(monkeypatch, caplog):
             "fx_notes": "x/fx_notes.csv",
         }
 
-    monkeypatch.setattr("main.export_uk_tax_reports", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_uk_tax_reports", fake_export)
 
     cmd_uk_tax_export(settings, "db.sqlite", "reports/uk_tax")
 

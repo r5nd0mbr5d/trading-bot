@@ -26,6 +26,7 @@ MODE_CHOICES = [
     "trial_batch",
     "execution_dashboard",
     "data_quality_report",
+    "daily_report",
     "promotion_checklist",
     "research_register_candidate",
     "research_train_xgboost",
@@ -62,6 +63,8 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("--output", default=None)
     parser.add_argument("--refresh-seconds", type=int, default=60)
     parser.add_argument("--summary-json", default=None)
+    parser.add_argument("--report-date", default=None)
+    parser.add_argument("--notify-email", default=None)
     parser.add_argument("--audit-db-path", default=None)
     parser.add_argument("--candidate-dir", default=None)
     parser.add_argument("--registry-db-path", default="trading.db")
@@ -320,6 +323,16 @@ def dispatch(
             quality_db_path,
             quality_output,
             dashboard_path="reports/execution_dashboard.html",
+        )
+
+    elif mode == "daily_report":
+        report_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
+        handlers["cmd_daily_report"](
+            settings,
+            report_db_path,
+            output_dir=args.output_dir or "reports/daily",
+            report_date=args.report_date,
+            notify_email=args.notify_email,
         )
 
     elif mode == "promotion_checklist":

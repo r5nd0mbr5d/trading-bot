@@ -6,7 +6,7 @@ import json
 import pytest
 
 from config.settings import Settings
-from main import cmd_research_register_candidate
+from src.cli.runtime import cmd_research_register_candidate
 from src.strategies.registry import StrategyRegistry
 
 

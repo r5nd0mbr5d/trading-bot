@@ -1,7 +1,7 @@
 """Unit tests for main data_quality_report wrapper."""
 
 from config.settings import Settings
-from main import cmd_data_quality_report
+from src.cli.runtime import cmd_data_quality_report
 
 
 def test_cmd_data_quality_report_invokes_export(monkeypatch):
@@ -18,7 +18,7 @@ def test_cmd_data_quality_report_invokes_export(monkeypatch):
             "report": {"symbols_checked": 2},
         }
 
-    monkeypatch.setattr("main.export_data_quality_report", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_data_quality_report", fake_export)
 
     cmd_data_quality_report(
         settings,

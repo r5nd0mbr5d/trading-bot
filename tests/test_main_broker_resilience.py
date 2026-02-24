@@ -29,7 +29,7 @@ def test_broker_operation_retries_then_recovers(monkeypatch, tmp_path):
     settings.broker.outage_consecutive_failure_limit = 3
 
     sleeps = []
-    monkeypatch.setattr("main.time.sleep", lambda seconds: sleeps.append(seconds))
+    monkeypatch.setattr("src.execution.resilience.time.sleep", lambda seconds: sleeps.append(seconds))
 
     state = {"consecutive_failures": 2}
     events = []

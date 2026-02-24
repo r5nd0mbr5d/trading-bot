@@ -3,7 +3,7 @@
 import json
 
 from config.settings import Settings
-from main import cmd_paper_reconcile
+from src.cli.runtime import cmd_paper_reconcile
 
 
 def test_cmd_paper_reconcile_invokes_export(tmp_path, monkeypatch):
@@ -37,7 +37,7 @@ def test_cmd_paper_reconcile_invokes_export(tmp_path, monkeypatch):
             },
         }
 
-    monkeypatch.setattr("main.export_paper_reconciliation", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_paper_reconciliation", fake_export)
 
     drift_count = cmd_paper_reconcile(
         settings,
@@ -83,7 +83,7 @@ def test_cmd_paper_reconcile_unwraps_summary_payload(tmp_path, monkeypatch):
             },
         }
 
-    monkeypatch.setattr("main.export_paper_reconciliation", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_paper_reconciliation", fake_export)
 
     drift_count = cmd_paper_reconcile(
         settings,

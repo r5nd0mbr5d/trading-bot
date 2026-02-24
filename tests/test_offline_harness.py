@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from config.settings import Settings
-from main import apply_runtime_profile, resolve_runtime_db_path
+from src.cli.runtime import apply_runtime_profile, resolve_runtime_db_path
 
 _ROOT = Path(__file__).resolve().parents[1]
 _SCRIPT = _ROOT / "scripts" / "offline_harness.py"

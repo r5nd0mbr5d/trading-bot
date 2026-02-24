@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from config.settings import Settings
-from main import cmd_rotate_paper_db
+from src.cli.runtime import cmd_rotate_paper_db
 
 
 def test_rotate_paper_db_moves_file(tmp_path):

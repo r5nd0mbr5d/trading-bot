@@ -1724,7 +1724,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 44: Complete `main.py` Final Slimming — Close RFC-001
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: HIGH — closes the largest open technical debt item (TD-001/TD-002)
 **Intended Agent**: Copilot
 **ADR Ref**: ADR-013 | **RFC Ref**: RFC-001 (closes on completion)
@@ -1741,6 +1741,12 @@ black --check src/ tests/ backtest/ --line-length 100
 - `python -m pytest tests/ -v` all pass (currently 436)
 
 **Estimated Effort**: 4–6 hours
+
+**Completion Notes (Feb 25, 2026):**
+- `main.py` slimmed to entrypoint-only wiring (55 lines)
+- Runtime handlers moved to `src/cli/runtime.py`
+- Test coupling removed (`tests/*` imports from `main.py`: 15 → 0)
+- Full regression after completion: `python -m pytest tests/ -v` → **436 passed**
 
 ---
 
@@ -1775,7 +1781,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 47: Daily P&L Notification Report
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: LOW — Tier 2 paper trading enhancement
 **Intended Agent**: Copilot
 **Execution Prompt**: Implement a daily end-of-session P&L summary that runs automatically at 16:05 UTC (5 minutes after LSE close). It should read the audit log for the current trading day, compute: fills, P&L proxy (mark-to-close), open positions, Sharpe (running), max intraday drawdown, and any guardrail firings. Output to: (1) `reports/daily/YYYY-MM-DD.json` (structured); (2) console stdout. Optionally, if `NOTIFY_EMAIL` is set in `.env`, send the summary as a plain-text email via `smtplib`. Add tests for the report computation (mock the DB). Do not hardcode dates or symbols.
@@ -1787,10 +1793,17 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 2–4 hours
 
+**Completion Notes (Feb 25, 2026):**
+- Added `src/audit/daily_report.py` with `DailyReportGenerator`
+- Added `daily_report` CLI mode and args in `src/cli/arguments.py`
+- Wired runtime handler `cmd_daily_report` in `src/cli/runtime.py`
+- Added `tests/test_daily_report.py`
+- Full regression after completion: `python -m pytest tests/ -v` → **445 passed**
+
 ---
 
 ### Step 48: OBV and Stochastic Oscillator Indicators
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: LOW — Tier 2 indicator expansion (listed in CLAUDE.md "Upcoming")
 **Intended Agent**: Copilot
 **Execution Prompt**: Add two new technical indicators using the existing `ta` library: (1) On-Balance Volume (OBV) — a volume-accumulation momentum indicator; (2) Stochastic Oscillator (%K/%D) — an overbought/oversold oscillator. For each: create a standalone strategy in `src/strategies/<name>.py` inheriting `BaseStrategy`; implement `generate_signal()` with appropriate overbought/oversold thresholds (configurable via `config/settings.py`); set `min_bars_required()` to the indicator's lookback period; register in `main.py` STRATEGIES dict; add tests in `tests/test_strategies.py` following the pattern of `test_rsi_momentum.py`. The MA crossover (`src/strategies/ma_crossover.py`) is the canonical example.
@@ -1802,6 +1815,14 @@ black --check src/ tests/ backtest/ --line-length 100
 - `tests/test_strategies.py` — new test cases
 
 **Estimated Effort**: 3–5 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added `src/strategies/obv_momentum.py` (`OBVMomentumStrategy`)
+- Added `src/strategies/stochastic_oscillator.py` (`StochasticOscillatorStrategy`)
+- Added `OBVConfig` and `StochasticConfig` in `config/settings.py`
+- Registered both strategies in runtime strategy registry
+- Added strategy tests in `tests/test_strategies.py`
+- Full regression after completion: `python -m pytest tests/ -v` → **442 passed**
 
 ---
 

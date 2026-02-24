@@ -3,7 +3,7 @@
 import pytest
 
 from config.settings import Settings
-from main import resolve_runtime_db_path
+from src.cli.runtime import resolve_runtime_db_path
 
 
 def test_resolve_runtime_db_path_uses_mode_specific_urls():

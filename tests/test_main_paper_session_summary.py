@@ -1,7 +1,7 @@
 """Unit test for main paper session summary command wrapper."""
 
 from config.settings import Settings
-from main import cmd_paper_session_summary
+from src.cli.runtime import cmd_paper_session_summary
 
 
 def test_cmd_paper_session_summary_invokes_export(monkeypatch):
@@ -30,7 +30,7 @@ def test_cmd_paper_session_summary_invokes_export(monkeypatch):
             "csv_path": "reports/paper_session_summary.csv",
         }
 
-    monkeypatch.setattr("main.export_paper_session_summary", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_paper_session_summary", fake_export)
 
     cmd_paper_session_summary(settings, "db.sqlite", "reports/session")
 

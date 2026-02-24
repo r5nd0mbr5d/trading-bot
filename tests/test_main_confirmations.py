@@ -2,7 +2,7 @@
 
 import pytest
 
-from main import _require_explicit_confirmation
+from src.cli.runtime import _require_explicit_confirmation
 
 
 def test_paper_trial_confirmation_missing_raises(capsys):

@@ -66,7 +66,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         RUNTIME LAYER                               │
 │                                                                     │
-│  main.py CLI (956 lines — reduced, still refactor target via RFC-001)│
+│  main.py CLI (55 lines — entrypoint-only wiring)                     │
 │    │                                                                 │
 │    ├─ MarketDataFeed ──► HistoricalDataProvider (Protocol)          │
 │    │        ├─ YFinanceProvider       ✅ Implemented                │
@@ -79,6 +79,8 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 │    │        ├─ RSIMomentumStrategy    ✅                            │
 │    │        ├─ MACDCrossoverStrategy  ✅                            │
 │    │        ├─ BollingerBandsStrategy ✅                            │
+│    │        ├─ OBVMomentumStrategy    ✅ (Step 48)                  │
+│    │        ├─ StochasticOscillator   ✅ (Step 48)                  │
 │    │        └─ ADXFilterStrategy      ✅ (wrapper)                  │
 │    │                                                                 │
 │    ├─ RiskManager.approve_signal()   ✅ ONLY path Signal → Order    │
@@ -93,6 +95,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 │    │        └─ PaperBroker            ✅ Backtest only              │
 │    │                                                                 │
 │    ├─ AuditLogger (async queue → SQLite audit_log)  ✅             │
+│    ├─ DailyReportGenerator (JSON + optional email) ✅ (Step 47)    │
 │    └─ PortfolioTracker + FX normalisation (GBP base) ✅            │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
@@ -351,9 +354,9 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 ---
 
 ### ADR-013: Trading Loop Extraction Architecture
-**Status:** ACCEPTED (partial — RFC-001 still open for final slimming)
+**Status:** ACCEPTED
 **Date:** 2026-02-25
-**Ref:** Steps 37–43 (COMPLETED), RFC-001 (IN PROGRESS)
+**Ref:** Steps 37–44 (COMPLETED), RFC-001 (CLOSED)
 
 **Context:** `main.py` grew to 1,938 lines with a 981-line `cmd_paper` function and 280-line `on_bar` closure capturing 10+ outer-scope variables. Steps 37–43 decomposed this into extracted modules.
 
@@ -369,11 +372,9 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 **Consequences:**
 - ✅ Each `TradingLoopHandler` method is independently unit-testable
 - ✅ Broker retry logic sits in the execution layer, not the CLI
-- ✅ 436 tests passing post-extraction (no regressions)
-- ❌ `main.py` reduced to 1,077 lines — still above the ≤150 target (RFC-001 open)
-- ❌ 15 test files still import from `main.py` (TD-002 unresolved)
-
-**Completion Criterion:** RFC-001 closes when `main.py` reaches ≤150 lines and test imports are decoupled. See Step 44.
+- ✅ `main.py` slimmed to 55-line entrypoint-only wiring (target ≤150 met)
+- ✅ Test import decoupling complete (`tests/*` imports from `main.py`: 0)
+- ✅ 436 tests passing post-extraction and final slimming (no regressions)
 
 ---
 
@@ -385,20 +386,20 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 ---
 
 ### RFC-001: Extract Trading Loop from `main.py`
-**Status:** IN PROGRESS
+**Status:** CLOSED
 **Date:** 2026-02-24
-**Target Backlog Steps:** 37–43 (code extraction done); Step 44 (final slimming)
+**Target Backlog Steps:** 37–44
 **Author:** Structural review (Feb 24, 2026)
 
-**Problem:** `main.py` was 1,938 lines. Steps 37–43 created the extraction layer (loop.py, stream_events.py, resilience.py, arguments.py) but did not reduce main.py to the target size — it stands at **1,077 lines** with 15 test files still importing it.
+**Problem:** `main.py` was 1,938 lines. Steps 37–43 created the extraction layer (loop.py, stream_events.py, resilience.py, arguments.py); Step 44 completed final slimming and test decoupling.
 
 **Proposed Change:**
 - ✅ Create `src/trading/loop.py` with `TradingLoopHandler` — DONE
 - ✅ Create `src/trading/stream_events.py` — DONE
 - ✅ Move `_run_broker_operation` to `src/execution/resilience.py` — DONE
 - ✅ Move `ArgumentParser` to `src/cli/arguments.py` — DONE
-- ⏳ Delete remaining inlined logic from `main.py` so it contains only wiring (≤150 lines) — Step 44
-- ⏳ Update 15 test files to import from `src/` modules rather than `main.py` — Step 44
+- ✅ Delete remaining inlined logic from `main.py` so it contains only wiring (≤150 lines) — DONE (Step 44)
+- ✅ Update tests to import from `src/` modules rather than `main.py` — DONE (Step 44)
 
 **Acceptance Criteria:**
 - `main.py` ≤ 150 lines
@@ -407,8 +408,11 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - No regressions in paper trading behaviour
 
 **Verified Metrics (Feb 25, 2026):**
-- `main.py` line count: **1,077** (target ≤150 — ❌ not yet met)
-- Test files importing `main.py`: **15** (target 0 — ❌ not yet met)
+- `main.py` line count: **55** (target ≤150 — ✅ met)
+- Test files importing `main.py`: **0** (target 0 — ✅ met)
+- Full regression suite: **436 passed**
+
+**Completion Note (Feb 25, 2026):** Step 44 completed; `main.py` is entrypoint-only and test coupling to `main.py` is removed.
 
 ---
 
@@ -484,8 +488,8 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 
 | ID | Description | Severity | Backlog Step | Notes |
 |---|---|---|---|---|
-| **TD-001** | `main.py` oversized — 1,077 lines (target ≤150) | HIGH | Step 44 | Extraction modules created (Steps 37–43); main.py inline code not yet deleted; verified Feb 25, 2026 |
-| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 44 | Tests should import `src/` modules directly; verified Feb 25, 2026 — count unchanged at 15 |
+| **TD-001** | `main.py` oversized — 1,077 lines (target ≤150) | HIGH (RESOLVED) | Step 44 | Resolved Feb 25, 2026 — `main.py` reduced to 55 lines |
+| **TD-002** | 15 test files importing from `main.py` | HIGH (RESOLVED) | Step 44 | Resolved Feb 25, 2026 — tests import from `src/` modules; count now 0 |
 | **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | LOW (RESOLVED) | Step 40 | Resolved Feb 24, 2026 |
 | **TD-004** | `Signal.strength` not validated at construction | LOW (RESOLVED) | Step 41 | Resolved Feb 24, 2026 |
 | **TD-005** | Missing `research/__init__.py` | LOW (RESOLVED) | Step 39 | Resolved Feb 24, 2026 |
@@ -560,6 +564,29 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - TD-006 and TD-007 marked RESOLVED; TD-010 added (Step 1A burn-in not signed off)
 - Steps 44–49 added to IMPLEMENTATION_BACKLOG (new items: main.py final slimming, walk-forward harness, daemon, daily report, indicators, REST API)
 - §9 Operational Milestones added to this document
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Step 44 completed end-to-end:
+    - extracted runtime handlers to `src/cli/runtime.py`
+    - slimmed `main.py` to entrypoint-only wiring (55 lines)
+    - decoupled tests from `main.py` imports (15 → 0)
+    - updated monkeypatch targets to runtime/resilience modules
+- Validation:
+    - `python -m pytest tests/ -v` → **436 passed**
+- Governance updates:
+    - RFC-001 CLOSED
+    - TD-001 and TD-002 marked RESOLVED
+    - ADR-013 updated to fully accepted completion state
+- Step 48 completed:
+    - added `OBVMomentumStrategy` and `StochasticOscillatorStrategy`
+    - added `OBVConfig` / `StochasticConfig` and runtime registration
+    - strategy tests expanded
+    - validation: `python -m pytest tests/ -v` → **442 passed**
+- Step 47 completed:
+    - added `DailyReportGenerator` in `src/audit/daily_report.py`
+    - added `daily_report` CLI mode (`src/cli/arguments.py` + `src/cli/runtime.py`)
+    - added `tests/test_daily_report.py`
+    - validation: `python -m pytest tests/ -v` → **445 passed**
 
 ---
 

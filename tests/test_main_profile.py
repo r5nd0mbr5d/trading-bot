@@ -1,7 +1,7 @@
 """Unit tests for CLI runtime profiles."""
 
 from config.settings import Settings
-from main import apply_runtime_profile
+from src.cli.runtime import apply_runtime_profile
 
 
 def test_apply_runtime_profile_uk_paper_sets_ibkr_defaults():

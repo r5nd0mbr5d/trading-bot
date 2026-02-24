@@ -9,7 +9,9 @@ from src.data.models import Bar, SignalType
 from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
+from src.strategies.obv_momentum import OBVMomentumStrategy
 from src.strategies.rsi_momentum import RSIMomentumStrategy
+from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
 
 
 def make_bar(symbol: str, close: float, i: int = 0) -> Bar:
@@ -208,3 +210,73 @@ class TestMACDCrossoverStrategy:
             assert "macd" in sig.metadata
             assert "signal_line" in sig.metadata
             assert "histogram" in sig.metadata
+
+
+# ── OBV Momentum ─────────────────────────────────────────────────────────────
+
+
+class TestOBVMomentumStrategy:
+
+    def setup_method(self):
+        settings = Settings()
+        settings.obv.fast_period = 3
+        settings.obv.slow_period = 5
+        self.strategy = OBVMomentumStrategy(settings)
+
+    def test_no_signal_before_min_bars(self):
+        for i in range(self.strategy.min_bars_required() - 1):
+            sig = self.strategy.on_bar(make_bar("AAPL", 100 + i, i))
+        assert sig is None
+
+    def test_signal_generation_does_not_error(self):
+        prices = [10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 12]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        assert sig is None or sig.signal_type in (
+            SignalType.LONG,
+            SignalType.CLOSE,
+            SignalType.HOLD,
+        )
+
+    def test_metadata_contains_obv_values_when_signal_emitted(self):
+        prices = [10, 9, 8, 7, 6, 7, 8, 9, 10, 12, 14]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        if sig is not None:
+            assert "obv" in sig.metadata
+            assert "obv_fast" in sig.metadata
+            assert "obv_slow" in sig.metadata
+
+
+# ── Stochastic Oscillator ───────────────────────────────────────────────────
+
+
+class TestStochasticOscillatorStrategy:
+
+    def setup_method(self):
+        settings = Settings()
+        settings.stochastic.k_period = 5
+        settings.stochastic.d_period = 3
+        settings.stochastic.smooth_window = 3
+        settings.stochastic.oversold = 20.0
+        settings.stochastic.overbought = 80.0
+        self.strategy = StochasticOscillatorStrategy(settings)
+
+    def test_no_signal_before_min_bars(self):
+        for i in range(self.strategy.min_bars_required() - 1):
+            sig = self.strategy.on_bar(make_bar("AAPL", 100 + i, i))
+        assert sig is None
+
+    def test_signal_generation_does_not_error(self):
+        prices = [100, 95, 92, 90, 88, 90, 93, 96, 99, 102, 104, 101, 98, 95]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        assert sig is None or sig.signal_type in (
+            SignalType.LONG,
+            SignalType.CLOSE,
+            SignalType.HOLD,
+        )
+
+    def test_metadata_contains_stochastic_values_when_signal_emitted(self):
+        prices = [100, 96, 93, 91, 89, 90, 94, 98, 103, 106, 104, 101, 97, 94]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        if sig is not None:
+            assert "stoch_k" in sig.metadata
+            assert "stoch_d" in sig.metadata

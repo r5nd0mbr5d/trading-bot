@@ -30,7 +30,7 @@ class DataConfig:
 
 @dataclass
 class StrategyConfig:
-    name: str = "ma_crossover"         # ma_crossover | rsi_momentum
+    name: str = "ma_crossover"         # ma_crossover | rsi_momentum | obv_momentum | stochastic_oscillator
     # Moving Average Crossover
     fast_period: int = 20
     slow_period: int = 50
@@ -47,6 +47,25 @@ class StrategyConfig:
     use_adx_filter: bool = False
     adx_period: int = 14
     adx_threshold: float = 25.0
+
+
+@dataclass
+class OBVConfig:
+    """On-Balance Volume momentum strategy parameters."""
+
+    fast_period: int = 10
+    slow_period: int = 20
+
+
+@dataclass
+class StochasticConfig:
+    """Stochastic oscillator strategy parameters."""
+
+    k_period: int = 14
+    d_period: int = 3
+    smooth_window: int = 3
+    oversold: float = 20.0
+    overbought: float = 80.0
 
 
 @dataclass
@@ -161,6 +180,8 @@ class BrokerConfig:
 class Settings:
     data: DataConfig = field(default_factory=DataConfig)
     strategy: StrategyConfig = field(default_factory=StrategyConfig)
+    obv: OBVConfig = field(default_factory=OBVConfig)
+    stochastic: StochasticConfig = field(default_factory=StochasticConfig)
     data_quality: DataQualityConfig = field(default_factory=DataQualityConfig)
     risk: RiskConfig = field(default_factory=RiskConfig)
     paper_guardrails: PaperGuardrailsConfig = field(default_factory=PaperGuardrailsConfig)

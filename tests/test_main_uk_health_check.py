@@ -3,7 +3,7 @@
 import json
 
 from config.settings import Settings
-from main import apply_runtime_profile, cmd_uk_health_check
+from src.cli.runtime import apply_runtime_profile, cmd_uk_health_check
 
 
 class _FakeIBKRBrokerOK:
@@ -44,7 +44,7 @@ def test_cmd_uk_health_check_returns_zero_when_ready(monkeypatch):
     settings = Settings()
     apply_runtime_profile(settings, "uk_paper")
 
-    monkeypatch.setattr("main.IBKRBroker", _FakeIBKRBrokerOK)
+    monkeypatch.setattr("src.cli.runtime.IBKRBroker", _FakeIBKRBrokerOK)
 
     errors = cmd_uk_health_check(settings, with_data_check=False)
     assert errors == 0
@@ -54,7 +54,7 @@ def test_cmd_uk_health_check_reports_error_when_ibkr_down(monkeypatch):
     settings = Settings()
     apply_runtime_profile(settings, "uk_paper")
 
-    monkeypatch.setattr("main.IBKRBroker", _FakeIBKRBrokerDown)
+    monkeypatch.setattr("src.cli.runtime.IBKRBroker", _FakeIBKRBrokerDown)
 
     errors = cmd_uk_health_check(settings, with_data_check=False)
     assert errors >= 1
@@ -64,7 +64,7 @@ def test_cmd_uk_health_check_json_output(monkeypatch, capsys):
     settings = Settings()
     apply_runtime_profile(settings, "uk_paper")
 
-    monkeypatch.setattr("main.IBKRBroker", _FakeIBKRBrokerOK)
+    monkeypatch.setattr("src.cli.runtime.IBKRBroker", _FakeIBKRBrokerOK)
 
     errors = cmd_uk_health_check(settings, with_data_check=False, json_output=True)
     assert errors == 0

@@ -1,7 +1,7 @@
 """Unit test for main promotion checklist command wrapper."""
 
 from config.settings import Settings
-from main import cmd_promotion_checklist
+from src.cli.runtime import cmd_promotion_checklist
 
 
 def test_cmd_promotion_checklist_invokes_export(monkeypatch):
@@ -18,7 +18,7 @@ def test_cmd_promotion_checklist_invokes_export(monkeypatch):
             "decision": "NOT_READY",
         }
 
-    monkeypatch.setattr("main.export_promotion_checklist", fake_export)
+    monkeypatch.setattr("src.cli.runtime.export_promotion_checklist", fake_export)
 
     cmd_promotion_checklist(
         settings,
@@ -47,8 +47,8 @@ def test_cmd_promotion_checklist_emits_audit(monkeypatch):
         captured["decision"] = decision
         captured["output_path"] = output_path
 
-    monkeypatch.setattr("main.export_promotion_checklist", fake_export)
-    monkeypatch.setattr("main._log_promotion_checklist_event", fake_log)
+    monkeypatch.setattr("src.cli.runtime.export_promotion_checklist", fake_export)
+    monkeypatch.setattr("src.cli.runtime._log_promotion_checklist_event", fake_log)
 
     cmd_promotion_checklist(
         settings,
