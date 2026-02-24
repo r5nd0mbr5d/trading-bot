@@ -1,7 +1,23 @@
 # Architecture Decisions — AQ1–AQ9 Integrated Resolution
 
+> **⚠️ SUPERSEDED — Read `PROJECT_DESIGN.md` §3 instead.**
+>
+> The nine decisions in this document (AQ1–AQ9) have been migrated to
+> `PROJECT_DESIGN.md` as ADR-001 through ADR-009, with additional ADR-010 to ADR-012
+> added since. `PROJECT_DESIGN.md` is now the single authoritative source for all
+> architectural decision records (ADRs).
+>
+> This file is kept as a **detailed implementation rationale reference** — it contains
+> comparative analysis tables and alternative considerations that are not duplicated in
+> the LPDD. Consult it when you need the full context behind a decision, but treat
+> `PROJECT_DESIGN.md §3` as the canonical record.
+>
+> **For new ADRs:** Add them to `PROJECT_DESIGN.md §3`, not here.
+
+---
+
 **Author:** Claude Opus (principal architect review) | **Date:** 2026-02-24
-**Status:** APPROVED — canonical architectural baseline for this repository
+**Status:** SUPERSEDED BY `PROJECT_DESIGN.md §3` — kept as implementation detail reference
 **Scope:** CO-5 resolution — one integrated pass covering all nine outstanding design questions
 
 > **Context constraints**: This document operates under the project's hard invariants:

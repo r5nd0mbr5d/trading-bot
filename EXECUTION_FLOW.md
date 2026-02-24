@@ -1,5 +1,17 @@
 # Execution Flow Architecture
 
+> **ℹ️ Architecture snapshot note:** The high-level architecture diagram and key module
+> relationships are maintained in `PROJECT_DESIGN.md §2` (Architecture Snapshot), which
+> is updated when major structural changes occur. This file remains the **detailed
+> execution flow reference** for code navigation, debugging, and onboarding — it is not
+> superseded by the LPDD, only complemented by it.
+>
+> If you find a discrepancy between the flows here and `PROJECT_DESIGN.md §2`, treat
+> `PROJECT_DESIGN.md §2` as the canonical description of current state and update this
+> file to match.
+
+---
+
 **Purpose**: Map the startup and runtime sequences for each bot mode to understand control flow, dependencies, and decision points.
 
 **Quick Start**: Choose your mode below:

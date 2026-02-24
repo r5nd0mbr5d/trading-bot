@@ -14,8 +14,21 @@ Other docs below are references. Check the backlog first when deciding what to w
 
 ## 📖 Documentation Files
 
+### 0. **PROJECT_DESIGN.md** — LLM Project Design Document (LPDD)
+**Read before any design or structural work.** The single authoritative source for *why* the project is built the way it is.
+- Architecture Decision Records (ADRs 001–012) — all major decisions with context, rationale, and consequences
+- Active RFCs (RFC-001–003) — proposed changes not yet implemented
+- Technical Debt Register — known issues with backlog step links
+- Evolution Log — append-only record of major changes
+- Hard constraints that cannot be changed without a new ADR
+- Key document map
+
+**Use for:** Understanding *why* things are the way they are; raising new design proposals; recording decisions
+
+---
+
 ### 1. **CLAUDE.md** — Architecture Context
-**Read this first.** Session context and autonomous decision-making guide.
+**Read this first for every session.** Session context and autonomous decision-making guide.
 - Project purpose & three core pillars
 - Current tech stack
 - Where things live (file structure)
@@ -43,22 +56,10 @@ Other docs below are references. Check the backlog first when deciding what to w
 
 ---
 
-### 3. **PROJECT_ROADMAP.md** — Comprehensive 8-Week Roadmap
-**Detailed implementation roadmap** with all phases, tasks, and success criteria.
-
-**Contains:**
-- Executive summary (completion % by pillar)
-- Pillar 1: Data collection (data pipeline, EDA, validation)
-- Pillar 2: Strategy development (indicators, registry, new strategies, ML)
-- Pillar 3: Live trading (infrastructure, risk, reporting, learning loop)
-- Testing & documentation requirements
-- Deployment checklist
-- Timeline summary (weeks 1-8+)
-- Decision framework (deploy criteria)
-- Quick start (next 30 days)
-- Resources (books, papers, libraries)
-
-**Length:** ~750 lines | **Use for:** Weekly planning & progress tracking
+### 3. **PROJECT_ROADMAP.md** ~~— Comprehensive 8-Week Roadmap~~
+> ⚠️ **ARCHIVED** — moved to `archive/PROJECT_ROADMAP.md`. Tasks superseded by
+> **IMPLEMENTATION_BACKLOG.md** (authoritative task queue) and
+> **PROJECT_DESIGN.md** (architectural decisions and evolution log).
 
 ---
 
@@ -346,7 +347,18 @@ Would contain:
 
 ---
 
-### 27. **External Resources** — Third-Party References
+### 27. **.github/copilot-instructions.md** — GitHub Copilot Workspace Instructions
+**Auto-read by GitHub Copilot** in VS Code. Distils the key rules from CLAUDE.md and
+PROJECT_DESIGN.md into a format Copilot consumes as workspace context.
+
+**Contains:** Reading order, hard invariants, architecture table, code style summary,
+LPDD update conventions (when to add ADR / RFC / Evolution Log entry), what NOT to do
+
+**Update:** When CLAUDE.md invariants or LPDD conventions change materially.
+
+---
+
+### 28. **External Resources** — Third-Party References
 
 **IBKR Campus (QuantConnect / IBKR Quant)**
 
@@ -362,41 +374,40 @@ Would contain:
 - LEAN-CLI (local coding) requires paid tier ($60/mo) — cloud-only backtest is free
 - `ibkr_python_ws` is IBKR's official async Python API; evaluate before any major `IBKRBroker` refactor
 - Step 36 uses QuantConnect free cloud for cross-validation of MA Crossover + RSI vs Step 1 results
-- See `ARCHITECTURE_DECISIONS.md` for LEAN migration decision rationale
+- See `PROJECT_DESIGN.md §3` (ADR-012) for LEAN migration decision rationale; `docs/ARCHITECTURE_DECISIONS.md` has the detailed comparative analysis
 
 ---
 
 ## 🎯 How to Use These Documents
 
 ### As a Developer (Adding Features)
-1. Read **CLAUDE.md** → understand architecture
-2. Review **DATA_MODELS.md** → understand data types
-3. Check **IMPLEMENTATION_BACKLOG.md** → see which prompt/task to work on
-4. Check **PROJECT_ROADMAP.md** for your phase → see tasks & success criteria
+1. Read **PROJECT_DESIGN.md** → understand architectural decisions and active RFCs
+2. Read **CLAUDE.md** → understand session context and invariants
+3. Review **DATA_MODELS.md** → understand data types
+4. Check **IMPLEMENTATION_BACKLOG.md** → see which task to work on and priority
 5. Use **DEVELOPMENT_GUIDE.md** for patterns → follow conventions
-6. Reference **PROJECT_STATUS.md** → track progress
 
 ### As a Project Manager (Weekly Planning)
 1. Check **IMPLEMENTATION_BACKLOG.md** → select this week's task (sort by Priority)
-2. Check **PROJECT_STATUS.md** → see current progress snapshot (verify latest exact counts in backlog)
-3. Review **PROJECT_ROADMAP.md** → plan next week's tasks
-4. Verify test suite in **CLAUDE.md** → all passing?
-5. Check backtest results → performance on track?
-6. Use **TRIAL_MANIFEST.md** → run preset trials for validation
+2. Review **PROJECT_DESIGN.md §6 Evolution Log** → recent changes
+3. Verify test suite → all passing?
+4. Check backtest results → performance on track?
+5. Use **TRIAL_MANIFEST.md** → run preset trials for validation
 
 ### As an Architect (Design Decisions)
-1. Start with **PROJECT_ROADMAP.md** → understand all phases
+1. Start with **PROJECT_DESIGN.md** → ADRs, RFCs, debt register, hard constraints
 2. Check **IMPLEMENTATION_BACKLOG.md** → see dependencies between tasks
 3. Review **DATA_MODELS.md** → schema & data flow
 4. Check **DEVELOPMENT_GUIDE.md** → testing/documentation standards
-5. Reference **CLAUDE.md** for current decisions → revision history?
+5. For new decisions: add ADR to **PROJECT_DESIGN.md §3**
 
 ### As a New Team Member (Onboarding)
-1. Read **CLAUDE.md** first (30 mins)
-2. Skim **IMPLEMENTATION_BACKLOG.md** (20 mins)
-3. Review **DEVELOPMENT_GUIDE.md** > Pillar of interest (30 mins)
-4. Deep dive code + docstrings (2-4 hours)
-5. Run tests locally `pytest tests/ -v` (5 mins)
+1. Read **PROJECT_DESIGN.md** first (20 mins) — understand *why*
+2. Read **CLAUDE.md** (20 mins) — understand *what* and *how to run*
+3. Skim **IMPLEMENTATION_BACKLOG.md** (15 mins) — understand *what's next*
+4. Review **DEVELOPMENT_GUIDE.md** > Pillar of interest (30 mins)
+5. Deep dive code + docstrings (2-4 hours)
+6. Run tests locally `pytest tests/ -v` (5 mins)
 
 ---
 
@@ -404,10 +415,10 @@ Would contain:
 
 | Document | Purpose | Length | Read First? | Update Freq |
 |----------|---------|--------|-------------|-------------|
+| PROJECT_DESIGN.md | LPDD — ADRs, RFCs, debt, history | 600+ | ✅ Yes (design work) | Per ADR/RFC |
 | CLAUDE.md | Architecture context | 500 | ✅ Yes | Per feature |
 | DEVELOPMENT_GUIDE.md | Development patterns | 800 | ⭐ Core | Per phase |
 | IMPLEMENTATION_BACKLOG.md | Outstanding tasks & prompts | 400+ | 📋 Task selection | Per completion |
-| PROJECT_ROADMAP.md | Implementation roadmap | 750 | ⭐ Core | Weekly |
 | DATA_MODELS.md | Data types & schema | 400 | 📖 Reference | Per schema change |
 | UK_OPERATIONS.md | UK runtime & tax export | 280 | 🇬🇧 Operational | Per release |
 | TRIAL_MANIFEST.md | Paper trial configuration | 350 | 📋 Runbook | Per update |
@@ -628,8 +639,9 @@ Would contain:
 
 ---
 
-**Last Updated:** February 23, 2026
-**Total Documentation:** ~7,500 lines (22 docs; 5 archived)
-**Test Coverage:** 317+ passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
+**Last Updated:** February 24, 2026
+**Total Documentation:** ~8,500 lines (24 active docs; 11 archived)
+**Test Coverage:** 405+ passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
 **Status:** Foundation ~75% complete → UK paper-trading + promotion framework + research track specs all operational
+**LPDD:** `PROJECT_DESIGN.md` is now the primary architectural authority — see it for ADRs, RFCs, and evolution log
 
