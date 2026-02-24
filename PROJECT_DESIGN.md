@@ -386,6 +386,7 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 - ✅ `src/execution/resilience.py` extracted and wired
 - ✅ `src/cli/arguments.py` extraction completed
 - ⚠️ Remaining: final `main.py` reduction and test import decoupling from `main.py` (15 test files still import `main.py`, re-validated in latest Feb 24 sweep)
+- 🔎 Latest verification snapshot: `main.py` line count remains 956; `tests/*` imports from `main.py` remain 15 (status unchanged)
 
 ---
 
@@ -438,8 +439,8 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 | ID | Description | Severity | Backlog Step | Notes |
 |---|---|---|---|---|
-| **TD-001** | `main.py` remains oversized (956 lines) | HIGH | Steps 37–43 | Reduced from 1,938 lines; additional extraction still required |
-| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly (re-validated Feb 24, 2026; unchanged in latest sweep) |
+| **TD-001** | `main.py` remains oversized (956 lines) | HIGH | Steps 37–43 | Reduced from 1,938 lines; additional extraction still required (latest verification: unchanged at 956 lines) |
+| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly (re-validated Feb 24, 2026; latest verification unchanged at 15 files) |
 | **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | LOW (RESOLVED) | Step 40 | Resolved Feb 24, 2026 |
 | **TD-004** | `Signal.strength` not validated at construction | LOW (RESOLVED) | Step 41 | Resolved Feb 24, 2026 |
 | **TD-005** | Missing `research/__init__.py` | LOW (RESOLVED) | Step 39 | Resolved Feb 24, 2026 |
@@ -493,6 +494,8 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
     - Updated ADR-010 wording, RFC-001 acceptance/progress text, and TD-002 note to remove stale 18-file reference
 - Follow-up re-validation:
     - Re-ran `tests/*` import scan; coupling count remains 15 and RFC-001/TD-002 status is unchanged
+- Additional LPDD verification pass:
+    - Re-checked `main.py` and test coupling metrics; values remain `956` lines and `15` test imports from `main.py` (no RFC/debt status change)
 
 ---
 
