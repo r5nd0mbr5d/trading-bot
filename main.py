@@ -33,6 +33,7 @@ from src.audit.session_summary import export_paper_session_summary
 from src.audit.uk_tax_export import export_uk_tax_reports
 from src.data.feeds import MarketDataFeed
 from src.execution.ibkr_broker import IBKRBroker
+from src.execution.resilience import run_broker_operation
 from src.monitoring.execution_trend import update_execution_trend
 from src.promotions.checklist import export_promotion_checklist
 from src.reporting.data_quality_report import export_data_quality_report
@@ -190,102 +191,6 @@ def _require_explicit_confirmation(
     if normalized == "paper_trial" and not confirm_paper_trial:
         print("ERROR: --confirm-paper-trial is required for paper_trial mode.")
         raise SystemExit(2)
-
-
-def _run_broker_operation(
-    settings: Settings,
-    operation_name: str,
-    operation: Callable[[], Any],
-    *,
-    retry_state: dict[str, int],
-    kill_switch: KillSwitch,
-    enqueue_audit: Callable[..., None],
-    symbol: str | None = None,
-    strategy: str | None = None,
-) -> Any:
-    attempts = max(int(getattr(settings.broker, "outage_retry_attempts", 3) or 1), 1)
-    if bool(getattr(settings.broker, "outage_skip_retries", False)):
-        attempts = 1
-    base_delay = max(float(getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.0), 0.0)
-    max_delay = max(float(getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 0.0), 0.0)
-    jitter = max(float(getattr(settings.broker, "outage_backoff_jitter_seconds", 0.1) or 0.0), 0.0)
-    failure_limit = max(int(getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 1), 1)
-
-    last_exc: Exception | None = None
-    for attempt in range(1, attempts + 1):
-        try:
-            result = operation()
-            if attempt > 1:
-                enqueue_audit(
-                    "BROKER_RECOVERED",
-                    {
-                        "operation": operation_name,
-                        "attempt": attempt,
-                    },
-                    symbol=symbol,
-                    strategy=strategy,
-                    severity="warning",
-                )
-            retry_state["consecutive_failures"] = 0
-            return result
-        except Exception as exc:
-            last_exc = exc
-            should_retry = attempt < attempts
-            delay = 0.0
-            if should_retry and base_delay > 0:
-                delay = min(max_delay, base_delay * (2 ** (attempt - 1)))
-                if jitter > 0:
-                    delay += random.uniform(0.0, jitter)
-                delay = max(delay, 0.0)
-
-            enqueue_audit(
-                "BROKER_TRANSIENT_ERROR" if should_retry else "BROKER_TERMINAL_ERROR",
-                {
-                    "operation": operation_name,
-                    "attempt": attempt,
-                    "max_attempts": attempts,
-                    "retry_in_seconds": round(delay, 6),
-                    "error": str(exc),
-                },
-                symbol=symbol,
-                strategy=strategy,
-                severity="error",
-            )
-            logger.warning(
-                "Broker operation failed (%s) attempt %s/%s: %s",
-                operation_name,
-                attempt,
-                attempts,
-                exc,
-            )
-
-            if should_retry and delay > 0:
-                time.sleep(delay)
-
-    retry_state["consecutive_failures"] = retry_state.get("consecutive_failures", 0) + 1
-    consecutive_failures = retry_state["consecutive_failures"]
-    if consecutive_failures >= failure_limit:
-        reason = (
-            f"broker_outage_resilience: operation={operation_name}, "
-            f"consecutive_failures={consecutive_failures}, limit={failure_limit}"
-        )
-        kill_switch.trigger(reason)
-        enqueue_audit(
-            "BROKER_CIRCUIT_BREAKER_HALT",
-            {
-                "operation": operation_name,
-                "consecutive_failures": consecutive_failures,
-                "failure_limit": failure_limit,
-                "last_error": str(last_exc) if last_exc else "unknown",
-            },
-            symbol=symbol,
-            strategy=strategy,
-            severity="critical",
-        )
-
-    raise RuntimeError(
-        f"Broker operation failed after {attempts} attempt(s): {operation_name}: {last_exc}"
-    )
 
 
 def apply_runtime_profile(settings: Settings, profile: str) -> None:
@@ -960,6 +865,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
     from src.execution.ibkr_broker import IBKRBroker
     from src.portfolio.tracker import PortfolioTracker
     from src.risk.data_quality import DataQualityGuard
+    from src.trading.loop import TradingLoopHandler
 
     runtime_mode = "paper" if settings.broker.paper_trading else "live"
     _ensure_trading_mode_matches(settings, runtime_mode, context="paper_live")
@@ -1100,7 +1006,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         f"Polling every 300s. Ctrl+C to stop."
     )
 
-    prev_portfolio_value = _run_broker_operation(
+    prev_portfolio_value = run_broker_operation(
         settings,
         "get_portfolio_value",
         broker.get_portfolio_value,
@@ -1170,7 +1076,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
             )
             price = bar.close
             try:
-                positions = _run_broker_operation(
+                positions = run_broker_operation(
                     settings,
                     "get_positions",
                     broker.get_positions,
@@ -1180,7 +1086,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                     symbol=signal.symbol,
                     strategy=signal.strategy_name,
                 )
-                portfolio_value = _run_broker_operation(
+                portfolio_value = run_broker_operation(
                     settings,
                     "get_portfolio_value",
                     broker.get_portfolio_value,
@@ -1218,7 +1124,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                     strategy=signal.strategy_name,
                 )
                 try:
-                    filled = _run_broker_operation(
+                    filled = run_broker_operation(
                         settings,
                         "submit_order",
                         lambda: broker.submit_order(order),
@@ -1290,7 +1196,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
 
         # Update VaR tracker with today's portfolio return
         try:
-            current_value = _run_broker_operation(
+            current_value = run_broker_operation(
                 settings,
                 "get_portfolio_value",
                 broker.get_portfolio_value,
@@ -1312,7 +1218,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         cash_currency = settings.base_currency
         if settings.broker.provider.lower() == "ibkr":
             try:
-                positions = _run_broker_operation(
+                positions = run_broker_operation(
                     settings,
                     "get_positions",
                     broker.get_positions,
@@ -1330,7 +1236,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                 for sym in positions.keys()
             }
             cash_currency = (
-                _run_broker_operation(
+                run_broker_operation(
                     settings,
                     "get_account_base_currency",
                     broker.get_account_base_currency,
@@ -1344,7 +1250,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
             )
             snap = tracker.snapshot(
                 positions,
-                _run_broker_operation(
+                run_broker_operation(
                     settings,
                     "get_cash",
                     broker.get_cash,
@@ -1361,7 +1267,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
             )
         else:
             snap = tracker.snapshot(
-                _run_broker_operation(
+                run_broker_operation(
                     settings,
                     "get_positions",
                     broker.get_positions,
@@ -1371,7 +1277,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                     symbol=bar.symbol,
                     strategy=settings.strategy.name,
                 ),
-                _run_broker_operation(
+                run_broker_operation(
                     settings,
                     "get_cash",
                     broker.get_cash,

@@ -3,7 +3,7 @@
 import pytest
 
 from config.settings import Settings
-from main import _run_broker_operation
+from src.execution.resilience import run_broker_operation
 from src.risk.kill_switch import KillSwitch
 
 
@@ -43,7 +43,7 @@ def test_broker_operation_retries_then_recovers(monkeypatch, tmp_path):
             raise RuntimeError("transient outage")
         return {"ok": True}
 
-    result = _run_broker_operation(
+    result = run_broker_operation(
         settings,
         "get_positions",
         flaky_op,
@@ -81,7 +81,7 @@ def test_broker_operation_terminal_failure_triggers_halt(tmp_path):
         raise RuntimeError("broker down")
 
     with pytest.raises(RuntimeError, match="Broker operation failed"):
-        _run_broker_operation(
+        run_broker_operation(
             settings,
             "submit_order",
             always_fail,
@@ -115,7 +115,7 @@ def test_broker_operation_halts_after_consecutive_failures(tmp_path):
         raise RuntimeError("still down")
 
     with pytest.raises(RuntimeError):
-        _run_broker_operation(
+        run_broker_operation(
             settings,
             "get_cash",
             fail_once_per_call,
@@ -128,7 +128,7 @@ def test_broker_operation_halts_after_consecutive_failures(tmp_path):
     assert kill_switch.is_active() is False
 
     with pytest.raises(RuntimeError):
-        _run_broker_operation(
+        run_broker_operation(
             settings,
             "get_cash",
             fail_once_per_call,
