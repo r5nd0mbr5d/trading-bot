@@ -2,11 +2,13 @@ param(
     [string]$Profile = "uk_paper",
     [int]$Runs = 3,
     [int]$PaperDurationSeconds = 1800,
+    [int]$FunctionalDurationSeconds = 180,
     [int]$MinFilledOrders = 5,
     [string]$OutputRoot = "reports/uk_tax/step1a_burnin",
     [switch]$AppendBacklogEvidence,
     [string]$BacklogPath = "IMPLEMENTATION_BACKLOG.md",
     [switch]$AllowOutsideWindow,
+    [switch]$NonQualifyingTestMode,
     [switch]$ClearKillSwitchBeforeEachRun
 )
 
@@ -25,13 +27,41 @@ function Test-InWindow {
 function Invoke-StepCommand {
     param(
         [string]$Label,
-        [string[]]$Args,
+        [string[]]$CommandArgs,
         [string]$LogPath
     )
 
-    Write-Host "`n[$Label] python $($Args -join ' ')"
-    & python @Args 2>&1 | Tee-Object -FilePath $LogPath
-    $exitCode = $LASTEXITCODE
+    Write-Host "`n[$Label] python $($CommandArgs -join ' ')"
+
+    $stderrPath = "$LogPath.stderr"
+    if (Test-Path $LogPath) {
+        Remove-Item -Force $LogPath
+    }
+    if (Test-Path $stderrPath) {
+        Remove-Item -Force $stderrPath
+    }
+
+    $startParams = @{
+        FilePath = "python"
+        ArgumentList = $CommandArgs
+        NoNewWindow = $true
+        Wait = $true
+        PassThru = $true
+        RedirectStandardOutput = $LogPath
+        RedirectStandardError = $stderrPath
+    }
+    $process = Start-Process @startParams
+
+    if (Test-Path $stderrPath) {
+        Get-Content -Path $stderrPath | Add-Content -Path $LogPath
+        Remove-Item -Force $stderrPath
+    }
+
+    if (Test-Path $LogPath) {
+        Get-Content -Path $LogPath
+    }
+
+    $exitCode = $process.ExitCode
 
     if ($exitCode -ne 0) {
         throw "$Label failed with exit code $exitCode (see $LogPath)"
@@ -61,6 +91,10 @@ function Export-BrokerSnapshot {
     $snapshotCode = @'
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd()))
+
 from config.settings import Settings
 from main import apply_runtime_profile
 from src.execution.ibkr_broker import IBKRBroker
@@ -102,14 +136,35 @@ with open(path, "w", encoding="utf-8") as handle:
     json.dump(payload, handle, indent=2)
 '@
 
-    python -c $snapshotCode $SnapshotPath $ProfileName
-    if ($LASTEXITCODE -ne 0) {
-        throw "Broker snapshot export failed (see $SnapshotPath)"
+    $tempPy = [System.IO.Path]::Combine(
+        [System.IO.Path]::GetTempPath(),
+        "step1a_snapshot_" + [System.Guid]::NewGuid().ToString("N") + ".py"
+    )
+    Set-Content -Path $tempPy -Value $snapshotCode -Encoding UTF8
+    try {
+        & python $tempPy $SnapshotPath $ProfileName
+        if ($LASTEXITCODE -ne 0) {
+            throw "Broker snapshot export failed (see $SnapshotPath)"
+        }
+    }
+    finally {
+        if (Test-Path $tempPy) {
+            Remove-Item -Force $tempPy
+        }
     }
 }
 
 if ($Runs -lt 1) {
     throw "Runs must be >= 1"
+}
+
+if ($FunctionalDurationSeconds -lt 30) {
+    throw "FunctionalDurationSeconds must be >= 30"
+}
+
+$effectivePaperDurationSeconds = $PaperDurationSeconds
+if ($NonQualifyingTestMode -and -not $PSBoundParameters.ContainsKey("PaperDurationSeconds")) {
+    $effectivePaperDurationSeconds = $FunctionalDurationSeconds
 }
 
 $sessionUtc = Get-UtcNow
@@ -120,6 +175,10 @@ New-Item -ItemType Directory -Path $sessionDir -Force | Out-Null
 Write-Host "Step 1A burn-in session: $sessionId"
 Write-Host "Output directory: $sessionDir"
 Write-Host "Required window: 08:00-16:00 UTC"
+if ($NonQualifyingTestMode) {
+    Write-Host "Mode: NON-QUALIFYING TEST (window gate bypassed; sign-off remains false)"
+    Write-Host "Effective duration (seconds): $effectivePaperDurationSeconds"
+}
 
 $runResults = @()
 $allPassed = $true
@@ -135,7 +194,7 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
     Write-Host "UTC start: $($runStartUtc.ToString("yyyy-MM-dd HH:mm:ss"))"
     Write-Host "In-window: $windowOk"
 
-    if (-not $windowOk -and -not $AllowOutsideWindow) {
+    if (-not $windowOk -and -not $AllowOutsideWindow -and -not $NonQualifyingTestMode) {
         $result = [PSCustomObject]@{
             run = $runIndex
             utc_start = $runStartUtc.ToString("o")
@@ -177,30 +236,30 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
 
         Export-BrokerSnapshot -ProfileName $Profile -SnapshotPath $snapshotPrePath
 
-        Invoke-StepCommand -Label "1/5 Health check" -LogPath $healthLog -Args @(
+        Invoke-StepCommand -Label "1/5 Health check" -LogPath $healthLog -CommandArgs @(
             "main.py", "uk_health_check", "--profile", $Profile, "--strict-health"
         )
 
-        Invoke-StepCommand -Label "2/5 Paper trial" -LogPath $trialLog -Args @(
+        Invoke-StepCommand -Label "2/5 Paper trial" -LogPath $trialLog -CommandArgs @(
             "main.py",
             "paper_trial",
             "--confirm-paper-trial",
             "--profile",
             $Profile,
             "--paper-duration-seconds",
-            "$PaperDurationSeconds",
+            "$effectivePaperDurationSeconds",
             "--skip-rotate"
         )
 
-        Invoke-StepCommand -Label "3/5 Paper session summary" -LogPath $summaryLog -Args @(
+        Invoke-StepCommand -Label "3/5 Paper session summary" -LogPath $summaryLog -CommandArgs @(
             "main.py", "paper_session_summary", "--profile", $Profile, "--output-dir", $runDir
         )
 
-        Invoke-StepCommand -Label "4/5 UK tax export" -LogPath $taxLog -Args @(
+        Invoke-StepCommand -Label "4/5 UK tax export" -LogPath $taxLog -CommandArgs @(
             "main.py", "uk_tax_export", "--profile", $Profile, "--output-dir", $runDir
         )
 
-        Invoke-StepCommand -Label "5/5 Strict reconcile" -LogPath $reconcileLog -Args @(
+        Invoke-StepCommand -Label "5/5 Strict reconcile" -LogPath $reconcileLog -CommandArgs @(
             "main.py",
             "paper_reconcile",
             "--profile",
@@ -240,16 +299,31 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
         $eventLoopErrorSeen = Select-String -Path $trialLog -Pattern "This event loop is already running" -SimpleMatch -Quiet
         $clientIdErrorSeen = Select-String -Path $trialLog -Pattern "client id is already in use" -SimpleMatch -Quiet
 
+        $preSnapshotConnected = ($snapshotPre.ok -eq $true)
+        $postSnapshotConnected = ($snapshotPost.ok -eq $true)
         $preSnapshotNonZero = ($snapshotPre.ok -eq $true -and [double]$snapshotPre.cash -gt 0 -and [double]$snapshotPre.portfolio_value -gt 0)
         $postSnapshotNonZero = ($snapshotPost.ok -eq $true -and [double]$snapshotPost.cash -gt 0 -and [double]$snapshotPost.portfolio_value -gt 0)
 
-        $gateFilled = ($filledOrderCount -ge $MinFilledOrders)
+        $effectiveMinFilledOrders = $MinFilledOrders
+        if ($NonQualifyingTestMode) {
+            $effectiveMinFilledOrders = 0
+        }
+
+        $gateFilled = ($filledOrderCount -ge $effectiveMinFilledOrders)
         $gateDrift = ($driftFlagCount -eq 0)
         $gateNoLoopError = (-not $eventLoopErrorSeen)
         $gateNoClientIdError = (-not $clientIdErrorSeen)
         $gateSnapshots = ($preSnapshotNonZero -and $postSnapshotNonZero)
+        if ($NonQualifyingTestMode) {
+            $gateSnapshots = ($preSnapshotConnected -and $postSnapshotConnected)
+        }
 
-        $runPassed = ($windowOk -and $allArtifactsPresent -and $gateFilled -and $gateDrift -and $gateNoLoopError -and $gateNoClientIdError -and $gateSnapshots)
+        $windowGateForRun = $windowOk
+        if ($NonQualifyingTestMode) {
+            $windowGateForRun = $true
+        }
+
+        $runPassed = ($windowGateForRun -and $allArtifactsPresent -and $gateFilled -and $gateDrift -and $gateNoLoopError -and $gateNoClientIdError -and $gateSnapshots)
 
         if (-not $runPassed) {
             $failureReason = "criteria_not_met"
@@ -261,13 +335,15 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             in_window = $windowOk
             commands_passed = $true
             filled_order_count = $filledOrderCount
-            min_filled_orders_required = $MinFilledOrders
+            min_filled_orders_required = $effectiveMinFilledOrders
             drift_flag_count = $driftFlagCount
             event_loop_error_seen = $eventLoopErrorSeen
             client_id_in_use_error_seen = $clientIdErrorSeen
             broker_snapshot_pre = $snapshotPre
             broker_snapshot_post = $snapshotPost
+            broker_snapshot_connected_ok = ($preSnapshotConnected -and $postSnapshotConnected)
             broker_snapshot_nonzero_ok = $gateSnapshots
+            non_qualifying_test_mode = [bool]$NonQualifyingTestMode
             artifacts = $artifactChecks
             all_artifacts_present = $allArtifactsPresent
             passed = $runPassed
@@ -313,7 +389,7 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
 }
 
 $completedRuns = $runResults.Count
-$passedRuns = ($runResults | Where-Object { $_.passed -eq $true }).Count
+$passedRuns = @($runResults | Where-Object { $_.passed -eq $true }).Count
 $sessionPassed = ($allPassed -and $completedRuns -eq $Runs -and $passedRuns -eq $Runs)
 
 $report = [ordered]@{
@@ -321,13 +397,14 @@ $report = [ordered]@{
     profile = $Profile
     generated_at_utc = (Get-UtcNow).ToString("o")
     required_window_utc = "08:00-16:00"
+    non_qualifying_test_mode = [bool]$NonQualifyingTestMode
     runs_required = $Runs
     runs_completed = $completedRuns
     runs_passed = $passedRuns
-    paper_duration_seconds = $PaperDurationSeconds
-    min_filled_orders_required = $MinFilledOrders
+    paper_duration_seconds = $effectivePaperDurationSeconds
+    min_filled_orders_required = $(if ($NonQualifyingTestMode) { 0 } else { $MinFilledOrders })
     session_passed = $sessionPassed
-    signoff_ready = $sessionPassed
+    signoff_ready = $(if ($NonQualifyingTestMode) { $false } else { $sessionPassed })
     output_dir = $sessionDir
     run_results = $runResults
 }
@@ -343,7 +420,7 @@ if ($AppendBacklogEvidence) {
         throw "Append evidence script not found: $appendScript"
     }
     & $appendScript -ReportPath $latestPath -BacklogPath $BacklogPath
-    if ($LASTEXITCODE -ne 0) {
+    if (-not $?) {
         throw "Failed to append Step 1A evidence to backlog"
     }
 }
