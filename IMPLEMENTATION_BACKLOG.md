@@ -6,10 +6,11 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 52 (7 Prompts + 44 Next Steps + Code Style Governance)
-**Completed**: 48 (Prompts 1â€“7 + Steps 1â€“28 except 1A + Steps 29â€“31, 34, 36, 37â€“43)
+**Total Items**: 58 (7 Prompts + 50 Next Steps + Code Style Governance)
+**Completed**: 48 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 37–43)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 3 (Steps 32â€“33 + QuantConnect cross-validation)
+**Not Started**: 9 (Steps 32–33, 35-gap, QuantConnect cross-validation, Steps 44–49)
+**Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
 
 **Special Note** (Feb 25, 2026 00:50 UTC):
 - âœ… **Refactoring Progress**:
@@ -1713,6 +1714,110 @@ black --check src/ tests/ backtest/ --line-length 100
 - âœ… Replaced inline parser/dispatch block in `main.py` with extracted CLI module usage
 - âœ… Preserved CLI behavior parity across paper/live/trial/research modes
 - âœ… Regression: focused CLI tests passing + full suite passing (`436 passed`)
+
+---
+
+---
+
+## Steps 44–49: New Items (Added Feb 25, 2026)
+
+---
+
+### Step 44: Complete `main.py` Final Slimming — Close RFC-001
+**Status**: NOT STARTED
+**Priority**: HIGH — closes the largest open technical debt item (TD-001/TD-002)
+**Intended Agent**: Copilot
+**ADR Ref**: ADR-013 | **RFC Ref**: RFC-001 (closes on completion)
+**Execution Prompt**: `main.py` was reduced from 1,938 lines to 1,077 lines by extracting `src/trading/loop.py`, `src/trading/stream_events.py`, `src/execution/resilience.py`, and `src/cli/arguments.py` in Steps 37–43. However, the extracted modules are not yet fully wired — `main.py` still contains duplicated inline logic that should be deleted now that the modules exist. Goal: reduce `main.py` to ≤150 lines (entry point only: settings load, argument parse, dispatch). Then update all 15 test files that `import main` or `from main import ...` to instead import from the canonical `src/` modules. Run the full test suite after each file change to catch regressions. Do not add new functionality — this is a pure deletion/rewiring task.
+
+**Scope**:
+- `main.py` — delete all inlined logic now covered by `src/trading/loop.py`, `src/cli/arguments.py` etc.; keep only entry-point wiring
+- `tests/*.py` — replace `import main` / `from main import X` with `from src.trading.loop import TradingLoopHandler` etc.
+- Update RFC-001 status to CLOSED and append to `PROJECT_DESIGN.md §6 Evolution Log`
+
+**Acceptance Criteria**:
+- `wc -l main.py` ≤ 150
+- `grep -r "from main import\|import main" tests/` returns 0 results
+- `python -m pytest tests/ -v` all pass (currently 436)
+
+**Estimated Effort**: 4–6 hours
+
+---
+
+### Step 45: Walk-Forward Optimization Harness
+**Status**: NOT STARTED
+**Priority**: MEDIUM — mentioned in CLAUDE.md as "in progress" but no implementation step exists
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement a walk-forward validation harness for strategy parameter optimization. The harness should: (1) split a date range into N expanding or rolling windows; (2) on each window, run an in-sample parameter grid search using the backtest engine; (3) record the best parameters per window; (4) run out-of-sample backtest on the next window using in-sample best parameters; (5) aggregate per-window results and compute Sharpe, return, max drawdown, and overfitting ratio. Integrate with the existing `BacktestEngine` — do not duplicate its bar-replay logic. Write tests for the harness that use a mock strategy. Store results in `backtest/walk_forward_results.json`. Follow the spec in `research/specs/VALIDATION_PROTOCOL.md`.
+
+**Scope**:
+- `backtest/walk_forward.py` — `WalkForwardHarness` class
+- `tests/test_walk_forward.py` — unit tests with mock strategy
+- `config/settings.py` — `WalkForwardConfig` dataclass (n_splits, in_sample_ratio, param_grid)
+
+**Estimated Effort**: 6–8 hours
+
+---
+
+### Step 46: 24/5 Paper Trading Daemon
+**Status**: NOT STARTED
+**Priority**: MEDIUM — required for continuous paper trial monitoring (Tier 2)
+**Intended Agent**: Copilot
+**Execution Prompt**: Create a systemd-style daemon wrapper for continuous paper trading during UK market hours. The daemon should: (1) start automatically at system boot or scheduled time; (2) check if current time is within LSE market hours (08:00–16:00 UTC, Mon–Fri); (3) if in-window, launch `python main.py paper --profile uk_paper` in a subprocess; (4) if outside window, sleep until next open; (5) restart on crash with exponential backoff (max 3 retries before alerting); (6) write structured logs to `logs/daemon.log` with ISO timestamps. Provide a `scripts/daemon.py` entry point and a `scripts/daemon_start.sh` shell launcher. Do not use `systemd` directly — keep it portable. Tests should mock the subprocess and time checks.
+
+**Scope**:
+- `scripts/daemon.py` — `PaperDaemon` class
+- `scripts/daemon_start.sh` — shell launcher
+- `tests/test_daemon.py` — unit tests
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 47: Daily P&L Notification Report
+**Status**: NOT STARTED
+**Priority**: LOW — Tier 2 paper trading enhancement
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement a daily end-of-session P&L summary that runs automatically at 16:05 UTC (5 minutes after LSE close). It should read the audit log for the current trading day, compute: fills, P&L proxy (mark-to-close), open positions, Sharpe (running), max intraday drawdown, and any guardrail firings. Output to: (1) `reports/daily/YYYY-MM-DD.json` (structured); (2) console stdout. Optionally, if `NOTIFY_EMAIL` is set in `.env`, send the summary as a plain-text email via `smtplib`. Add tests for the report computation (mock the DB). Do not hardcode dates or symbols.
+
+**Scope**:
+- `src/audit/daily_report.py` — `DailyReportGenerator` class
+- `main.py` / `src/cli/arguments.py` — `daily_report` CLI subcommand
+- `tests/test_daily_report.py`
+
+**Estimated Effort**: 2–4 hours
+
+---
+
+### Step 48: OBV and Stochastic Oscillator Indicators
+**Status**: NOT STARTED
+**Priority**: LOW — Tier 2 indicator expansion (listed in CLAUDE.md "Upcoming")
+**Intended Agent**: Copilot
+**Execution Prompt**: Add two new technical indicators using the existing `ta` library: (1) On-Balance Volume (OBV) — a volume-accumulation momentum indicator; (2) Stochastic Oscillator (%K/%D) — an overbought/oversold oscillator. For each: create a standalone strategy in `src/strategies/<name>.py` inheriting `BaseStrategy`; implement `generate_signal()` with appropriate overbought/oversold thresholds (configurable via `config/settings.py`); set `min_bars_required()` to the indicator's lookback period; register in `main.py` STRATEGIES dict; add tests in `tests/test_strategies.py` following the pattern of `test_rsi_momentum.py`. The MA crossover (`src/strategies/ma_crossover.py`) is the canonical example.
+
+**Scope**:
+- `src/strategies/obv_momentum.py`
+- `src/strategies/stochastic_oscillator.py`
+- `config/settings.py` — OBVConfig, StochasticConfig dataclasses
+- `tests/test_strategies.py` — new test cases
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 49: REST API Dashboard Scaffold (FastAPI)
+**Status**: NOT STARTED
+**Priority**: LOW — Tier 3 (Enterprise)
+**Intended Agent**: Copilot (after Step 46 and Step 47 are complete)
+**Execution Prompt**: Scaffold a FastAPI REST API that exposes read-only endpoints over the trading bot's SQLite databases. Endpoints needed: `GET /status` (kill switch state, last heartbeat, active strategy); `GET /positions` (current open positions + P&L); `GET /signals` (last N signals from audit log); `GET /orders` (last N orders + fill status); `GET /metrics` (Sharpe, return, max DD from latest session). The API must be read-only — no write operations. Use `uvicorn` for serving. Add a `scripts/api_server.py` entry point. Write integration tests using `httpx` and `TestClient`. The API should not import `main.py` — it reads directly from the SQLite databases via `src/` modules.
+
+**Scope**:
+- `src/api/` — new package with `app.py`, `routes/`, `schemas/`
+- `scripts/api_server.py` — uvicorn entry point
+- `tests/test_api.py` — integration tests with `TestClient`
+- `requirements.txt` — add `fastapi`, `uvicorn`, `httpx`
+
+**Estimated Effort**: 6–10 hours
 
 ---
 

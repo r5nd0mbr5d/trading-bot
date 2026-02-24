@@ -1,7 +1,7 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.0
-**Last Updated:** Feb 24, 2026
+**Version:** 1.1
+**Last Updated:** Feb 25, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
 > This is the canonical design document for the trading bot project.
@@ -350,6 +350,33 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 ---
 
+### ADR-013: Trading Loop Extraction Architecture
+**Status:** ACCEPTED (partial — RFC-001 still open for final slimming)
+**Date:** 2026-02-25
+**Ref:** Steps 37–43 (COMPLETED), RFC-001 (IN PROGRESS)
+
+**Context:** `main.py` grew to 1,938 lines with a 981-line `cmd_paper` function and 280-line `on_bar` closure capturing 10+ outer-scope variables. Steps 37–43 decomposed this into extracted modules.
+
+**Decision:** Introduce a layered extraction:
+```
+src/trading/loop.py         — TradingLoopHandler class; on_bar as methods
+src/trading/stream_events.py — heartbeat / error stream callbacks
+src/execution/resilience.py  — run_broker_operation retry wrapper
+src/cli/arguments.py         — ArgumentParser + dispatch table
+```
+`main.py` remains the entry point but delegates to these modules.
+
+**Consequences:**
+- ✅ Each `TradingLoopHandler` method is independently unit-testable
+- ✅ Broker retry logic sits in the execution layer, not the CLI
+- ✅ 436 tests passing post-extraction (no regressions)
+- ❌ `main.py` reduced to 1,077 lines — still above the ≤150 target (RFC-001 open)
+- ❌ 15 test files still import from `main.py` (TD-002 unresolved)
+
+**Completion Criterion:** RFC-001 closes when `main.py` reaches ≤150 lines and test imports are decoupled. See Step 44.
+
+---
+
 ## §4 Active RFCs (Change Proposals)
 
 > RFCs are proposals that have not yet been fully implemented. They become ADRs once accepted and completed.
@@ -360,33 +387,28 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 ### RFC-001: Extract Trading Loop from `main.py`
 **Status:** IN PROGRESS
 **Date:** 2026-02-24
-**Target Backlog Steps:** 37, 38, 43
+**Target Backlog Steps:** 37–43 (code extraction done); Step 44 (final slimming)
 **Author:** Structural review (Feb 24, 2026)
 
-**Problem:** `main.py` remains oversized (956 lines) and still anchors too much runtime orchestration. Core extraction has landed, but full entrypoint slimming and test decoupling are incomplete.
+**Problem:** `main.py` was 1,938 lines. Steps 37–43 created the extraction layer (loop.py, stream_events.py, resilience.py, arguments.py) but did not reduce main.py to the target size — it stands at **1,077 lines** with 15 test files still importing it.
 
 **Proposed Change:**
-- Create `src/trading/loop.py` with `TradingLoopHandler` class
-- Methods: `on_bar()`, `_check_data_quality()`, `_generate_signal()`, `_gate_risk()`, `_submit_order()`, `_snapshot_portfolio()`
-- Create `src/trading/stream_events.py` for `on_stream_heartbeat` / `on_stream_error`
-- Move `_run_broker_operation` to `src/execution/resilience.py` (Step 38)
-- Move `ArgumentParser` to `src/cli/arguments.py` (Step 43, after Step 37)
+- ✅ Create `src/trading/loop.py` with `TradingLoopHandler` — DONE
+- ✅ Create `src/trading/stream_events.py` — DONE
+- ✅ Move `_run_broker_operation` to `src/execution/resilience.py` — DONE
+- ✅ Move `ArgumentParser` to `src/cli/arguments.py` — DONE
+- ⏳ Delete remaining inlined logic from `main.py` so it contains only wiring (≤150 lines) — Step 44
+- ⏳ Update 15 test files to import from `src/` modules rather than `main.py` — Step 44
 
 **Acceptance Criteria:**
 - `main.py` ≤ 150 lines
 - Each `TradingLoopHandler` method independently unit-testable
-- All 405+ tests pass; remaining tests updated to import from new module paths
+- All 436+ tests pass; tests import from `src/` not `main.py`
 - No regressions in paper trading behaviour
 
-**Implementation Order:** Step 38 (quick, no conflicts) → Step 39 (trivial) → Step 37 (main extraction) → Step 43 (CLI cleanup)
-
-**Progress Update (Feb 24, 2026):**
-- ✅ `src/trading/loop.py` extracted with `TradingLoopHandler`
-- ✅ `src/trading/stream_events.py` extracted
-- ✅ `src/execution/resilience.py` extracted and wired
-- ✅ `src/cli/arguments.py` extraction completed
-- ⚠️ Remaining: final `main.py` reduction and test import decoupling from `main.py` (15 test files still import `main.py`, re-validated in latest Feb 24 sweep)
-- 🔎 Latest verification snapshot: `main.py` line count remains 956; `tests/*` imports from `main.py` remain 15 (status unchanged)
+**Verified Metrics (Feb 25, 2026):**
+- `main.py` line count: **1,077** (target ≤150 — ❌ not yet met)
+- Test files importing `main.py`: **15** (target 0 — ❌ not yet met)
 
 ---
 
@@ -432,6 +454,29 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 ---
 
+### RFC-004: MO-2 Completion — In-Window Paper Session Sign-Off
+**Status:** PROPOSED
+**Date:** 2026-02-25
+**Target:** MO-2 (Operational Milestone)
+
+**Problem:** MO-2 requires 3 consecutive in-window paper sessions (08:00–16:00 UTC, LSE market hours) with real fills. Step 1A burn-in is running but has only achieved `non_qualifying_test_mode=true`, `signoff_ready=false` — likely because sessions run outside market hours and therefore produce no live fills.
+
+**Proposed Change:**
+- Run 3 consecutive in-window paper sessions during LSE market hours (Mon–Fri, 08:00–16:00 UTC)
+- Each session must produce at least 1 filled order
+- Capture `step1a_burnin_latest.json` artefacts with `signoff_ready=true` for each run
+- Link artefact paths in the Evidence Log under MO-2
+
+**Acceptance Criteria:**
+- `runs_passed ≥ 3` in burn-in tracker
+- `signoff_ready=true` for each of the 3 runs
+- `non_qualifying_test_mode=false` for all 3 runs
+- Artefacts committed to `reports/burnin/` with ISO timestamps
+
+**Operator note:** This requires the bot operator to schedule runs during LSE market hours. It cannot be automated end-to-end by an LLM. See `UK_OPERATIONS.md` for the operational runbook.
+
+---
+
 ## §5 Technical Debt Register
 
 > Known issues that are accepted as debt with a plan to address them.
@@ -439,15 +484,16 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 | ID | Description | Severity | Backlog Step | Notes |
 |---|---|---|---|---|
-| **TD-001** | `main.py` remains oversized (956 lines) | HIGH | Steps 37–43 | Reduced from 1,938 lines; additional extraction still required (latest verification: unchanged at 956 lines) |
-| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly (re-validated Feb 24, 2026; latest verification unchanged at 15 files) |
+| **TD-001** | `main.py` oversized — 1,077 lines (target ≤150) | HIGH | Step 44 | Extraction modules created (Steps 37–43); main.py inline code not yet deleted; verified Feb 25, 2026 |
+| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 44 | Tests should import `src/` modules directly; verified Feb 25, 2026 — count unchanged at 15 |
 | **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | LOW (RESOLVED) | Step 40 | Resolved Feb 24, 2026 |
 | **TD-004** | `Signal.strength` not validated at construction | LOW (RESOLVED) | Step 41 | Resolved Feb 24, 2026 |
 | **TD-005** | Missing `research/__init__.py` | LOW (RESOLVED) | Step 39 | Resolved Feb 24, 2026 |
-| **TD-006** | No persistent market data cache | HIGH | Step 34 | In-memory only; Alpha Vantage 25 req/day quota exhausted in one session |
-| **TD-007** | Reporting modules are function-bags, not classes | LOW | Step 42 | `execution_dashboard.py`, `broker_reconciliation.py`, `session_summary.py` each open independent SQLite connections |
-| **TD-008** | `approve_signal()` is 240 lines with no decomposition | LOW | Future | Each risk gate is a nested block; testable only as a whole; not blocking |
+| **TD-006** | No persistent market data cache | LOW (RESOLVED) | Step 34 | Resolved Feb 24, 2026 — SQLite + Parquet hybrid cache implemented |
+| **TD-007** | Reporting modules function-bag pattern | LOW (RESOLVED) | Step 42 | Resolved Feb 24, 2026 — `ReportingEngine` shared class implemented |
+| **TD-008** | `approve_signal()` is 240 lines with no decomposition | LOW | Future | Each risk gate is a nested block; testable only as a whole; not blocking current phase |
 | **TD-009** | `ibkr_python_ws` not yet evaluated as `ib_insync` replacement | LOW | ADR-011 | Deferred until `ib_insync` shows incompatibility with a TWS API version |
+| **TD-010** | Step 1A burn-in not yet signed off | HIGH | MO-2 / RFC-004 | Latest artefact: `signoff_ready=false`, `non_qualifying_test_mode=true` — runs are outside market hours |
 
 ---
 
@@ -502,6 +548,19 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
     - RFC-001 / TD-001 / TD-002 remain open with unchanged metrics (`main.py` = `956` lines; `tests/*` importing `main.py` = `15`)
     - MO-2 remains open; latest Step 1A artifact is non-qualifying (`non_qualifying_test_mode=true`, `signoff_ready=false`)
 
+**[2026-02-25] Session (Claude Sonnet 4.6)**
+- LPDD archive pass: 6 redundant docs moved to `archive/` (PROJECT_ROADMAP, STEP1_DIAGNOSIS, SESSION_SUMMARY_STALEDATA_INVESTIGATION, PROJECT_REVIEW_COMPLETE, TASK_MATRIX_DAILY, EXECUTION_FLOW_REVIEW)
+- `.github/copilot-instructions.md` created — Copilot workspace instructions referencing LPDD system
+- `docs/ARCHITECTURE_DECISIONS.md` demoted to detail reference; LPDD (§3) is now canonical ADR source
+- `EXECUTION_FLOW.md` annotated with architecture snapshot note pointing to §2
+- `DOCUMENTATION_INDEX.md` updated: Copilot instructions as Doc 27, PROJECT_ROADMAP archived, How-to-Use guides updated to lead with LPDD
+- LPDD verified metrics: `main.py` = **1,077 lines**; test imports from `main.py` = **15** (RFC-001 not closed)
+- ADR-013 added (trading loop extraction — partial; RFC-001 still open)
+- RFC-004 added (MO-2 completion — PROPOSED)
+- TD-006 and TD-007 marked RESOLVED; TD-010 added (Step 1A burn-in not signed off)
+- Steps 44–49 added to IMPLEMENTATION_BACKLOG (new items: main.py final slimming, walk-forward harness, daemon, daily report, indicators, REST API)
+- §9 Operational Milestones added to this document
+
 ---
 
 ## §7 Hard Constraints (Never Break Without an ADR)
@@ -536,9 +595,33 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | `CLAUDE.md` | Session context, quick-reference invariants, LLM instructions | Every session |
 | `IMPLEMENTATION_BACKLOG.md` | What to build next, prompts, step-by-step tasks | When picking up a task |
 | `.python-style-guide.md` | How to write code (16 sections, gotchas, patterns) | Before writing non-trivial code |
-| `docs/ARCHITECTURE_DECISIONS.md` | Full AQ1–AQ9 decisions with rationale, architecture diagram, milestone plan | When working on a structural component |
+| `.github/copilot-instructions.md` | GitHub Copilot workspace instructions (LPDD-aware) | Auto-read by Copilot |
+| `docs/ARCHITECTURE_DECISIONS.md` | Full AQ1–AQ9 decisions with rationale — detail reference | When you need full rationale behind ADR-001–009 |
 | `docs/DATA_PROVIDERS_REFERENCE.md` | All 10 data providers, prompts, free tier limits | When working on data or research steps |
 | `docs/MASSIVE_API_REFERENCE.md` | Massive/Polygon REST, WebSocket, Flat Files reference | Steps 29–31 |
-| `DOCUMENTATION_INDEX.md` | Index of all 25 docs | When looking for a specific reference |
+| `DOCUMENTATION_INDEX.md` | Index of all 28 docs | When looking for a specific reference |
 | `research/README.md` | Research track pipeline, CLI, troubleshooting | Research steps |
 | `research/specs/ML_BASELINE_SPEC.md` | XGBoost/LSTM governance spec | Steps 25, 32 |
+
+---
+
+## §9 Operational Milestones Tracker
+
+> Milestones that require human/operator action and cannot be automated by an LLM.
+> These are distinct from backlog steps (which are code/documentation changes).
+> Update status and evidence links here when milestones are achieved.
+
+| ID | Milestone | Status | Evidence Required |
+|---|---|---|---|
+| **MO-1** | Step 1 signed off — architecture proven end-to-end via daily backtest | ✅ CLOSED (Feb 24, 2026) | 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90% |
+| **MO-2** | 3 consecutive in-window paper sessions with fills | ⏳ OPEN | `reports/burnin/` artefacts with `signoff_ready=true` × 3 |
+| **MO-3** | Vendor credentials for historical tick backfills (e.g. Massive API key) | ⏳ OPEN | `.env` populated; test fetch successful |
+| **MO-4** | Live/backfill commands executed for target symbols; manifests retained | ⏳ OPEN | Backfill manifests in `research/data/` with date/symbol evidence |
+| **MO-5** | Final human review of promotion-gate evidence checklists before Gate A | ⏳ OPEN | Signed promotion checklist JSON with reviewer name + date |
+| **MO-6** | Human approval of risk/governance closeout filings | ⏳ OPEN | Dated sign-off in `reports/promotions/` |
+| **MO-7** | Complete R1/R2 residuals + R3 runtime evidence in `RESEARCH_PROMOTION_POLICY.md` | ⏳ OPEN | Dated artefact links in research spec |
+| **MO-8** | Production-run sign-off referenced by `FEATURE_LABEL_SPEC.md` (experiment outputs + reviewer trace) | ⏳ OPEN | Real experiment outputs committed with reviewer/date |
+
+**Critical path:** MO-2 blocks promotion to live trading. MO-3/MO-4 gate full research pipeline. MO-5/MO-6 are the final human sign-off layer before Gate B (live). MO-7/MO-8 are research-specific governance requirements.
+
+**Current blocker (Feb 25, 2026):** MO-2 Step 1A burn-in artefacts show `non_qualifying_test_mode=true` — sessions are running outside LSE market hours. Operator must schedule 3 runs during 08:00–16:00 UTC, Mon–Fri. See RFC-004 and `UK_OPERATIONS.md`.
