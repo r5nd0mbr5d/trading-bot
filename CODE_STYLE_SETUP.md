@@ -182,6 +182,11 @@ Or inline in code: `# pylint: disable=missing-docstring`
 - **PEP 20 (Zen of Python):** `python -c "import this"`
 - **Pylint:** https://www.pylint.org/
 - **Pre-commit:** https://pre-commit.com/
+- **The Hitchhiker's Guide to Python:** https://python-docs.readthedocs.io/en/latest/index.html
+  - [Code Style](https://python-docs.readthedocs.io/en/latest/writing/style.html) — idioms, PEP 8, explicit code
+  - [Structuring Your Project](https://python-docs.readthedocs.io/en/latest/writing/structure.html) — modules, packages, OOP vs functional
+  - [Common Gotchas](https://python-docs.readthedocs.io/en/latest/writing/gotchas.html) — mutable defaults, late binding closures
+  - [Testing Your Code](https://python-docs.readthedocs.io/en/latest/writing/tests.html) — pytest, Hypothesis, mock
 
 ---
 

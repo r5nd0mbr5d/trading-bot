@@ -1,0 +1,533 @@
+2026-02-24 21:19:05,601 [INFO] __main__: [OK] Broker provider is IBKR
+2026-02-24 21:19:05,602 [INFO] __main__: [OK] Market timezone is Europe/London
+2026-02-24 21:19:05,603 [INFO] __main__: [OK] Base currency is GBP
+2026-02-24 21:19:05,604 [INFO] __main__: [OK] Detected UK symbols: HSBA.L, VOD.L, BP.L, BARC.L, SHEL.L
+2026-02-24 21:19:05,605 [INFO] __main__: [OK] DB isolation paths set (paper=trading_paper.db, live=trading_live.db, test=trading_test.db)
+2026-02-24 21:19:05,641 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-24 21:19:05,643 [INFO] ib_insync.client: Connected
+2026-02-24 21:19:05,646 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-24 21:19:05,647 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-24 21:19:05,647 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-24 21:19:05,647 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-24 21:19:05,648 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-24 21:19:05,648 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-24 21:19:05,648 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-24 21:19:05,648 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-24 21:19:05,648 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-24 21:19:05,649 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-24 21:19:05,649 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-24 21:19:05,649 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-24 21:19:05,649 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-24 21:19:05,649 [INFO] ib_insync.client: API connection ready
+2026-02-24 21:19:05,651 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-24 21:19:05,651 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.587825)
+2026-02-24 21:19:05,652 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878841)
+2026-02-24 21:19:05,753 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.59246875, marketValue=9.18, averageCost=7.587825, unrealizedPNL=-5.99, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:05,753 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=12.9005556, marketValue=129.01, averageCost=13.81023, unrealizedPNL=-9.1, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:05,753 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16195405, marketValue=801.75, averageCost=1.1878841, unrealizedPNL=-17.89, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:05,758 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d44b1.01.01', time=datetime.datetime(2026, 2, 24, 12, 27, 28, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=3.0, price=1281.6, permId=1633852961, clientId=1, orderId=4, liquidation=0, cumQty=3.0, avgPrice=1281.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,758 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d45c8.01.01', time=datetime.datetime(2026, 2, 24, 13, 29, 16, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.3, permId=1633852967, clientId=1, orderId=38, liquidation=0, cumQty=1.0, avgPrice=456.3, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,759 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d464b.01.01', time=datetime.datetime(2026, 2, 24, 14, 11, 45, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.7, permId=793619604, clientId=1, orderId=72, liquidation=0, cumQty=1.0, avgPrice=456.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,759 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4670.01.01', time=datetime.datetime(2026, 2, 24, 14, 16, 46, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=153.0, price=117.6, permId=793619605, clientId=1, orderId=81, liquidation=0, cumQty=153.0, avgPrice=117.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,759 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d468f.01.01', time=datetime.datetime(2026, 2, 24, 14, 21, 49, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=6.0, price=1284.8, permId=793619606, clientId=1, orderId=96, liquidation=0, cumQty=6.0, avgPrice=1284.8, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,760 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d481d.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 26, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=1292.4, permId=793619627, clientId=1, orderId=151, liquidation=0, cumQty=1.0, avgPrice=1292.4, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,760 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4820.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 57, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=504.0, price=116.7, permId=793619628, clientId=1, orderId=158, liquidation=0, cumQty=504.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,760 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d492b.01.01', time=datetime.datetime(2026, 2, 24, 15, 35, 9, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=33.0, price=116.7, permId=793619657, clientId=1, orderId=198, liquidation=0, cumQty=33.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:05,760 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d44b1.01.01', commission=3.19224, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,760 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d45c8.01.01', commission=3.022815, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,761 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d464b.01.01', commission=3.022835, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,761 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4670.01.01', commission=3.89964, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,761 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d468f.01.01', commission=3.38544, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,761 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d481d.01.01', commission=3.06462, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,761 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4820.01.01', commission=5.94084, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,762 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d492b.01.01', commission=3.192555, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:05,762 [INFO] ib_insync.ib: Synchronization complete
+2026-02-24 21:19:05,762 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-24 21:19:05,762 [INFO] __main__: [OK] IBKR connection established
+2026-02-24 21:19:05,762 [INFO] __main__: [OK] IBKR account detected: DUQ117408 (paper)
+2026-02-24 21:19:05,763 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 119 B sent in 8 messages, 25.1 kB received in 436 messages, session time 122 ms.
+2026-02-24 21:19:05,763 [INFO] ib_insync.client: Disconnecting
+2026-02-24 21:19:05,763 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-24 21:19:05,763 [INFO] __main__: UK health check complete: no blocking errors
+2026-02-24 21:19:06,271 [INFO] ib_insync.client: Disconnected.
+2026-02-24 21:19:06,271 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-24 21:19:06,272 [INFO] ib_insync.client: Connected
+2026-02-24 21:19:06,285 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-24 21:19:06,287 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-24 21:19:06,287 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-24 21:19:06,287 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-24 21:19:06,287 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-24 21:19:06,288 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-24 21:19:06,289 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-24 21:19:06,289 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-24 21:19:06,289 [INFO] ib_insync.client: API connection ready
+2026-02-24 21:19:06,291 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-24 21:19:06,291 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.587825)
+2026-02-24 21:19:06,291 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878841)
+2026-02-24 21:19:06,393 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.59246875, marketValue=9.18, averageCost=7.587825, unrealizedPNL=-5.99, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:06,393 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=12.9005556, marketValue=129.01, averageCost=13.81023, unrealizedPNL=-9.1, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:06,393 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16195405, marketValue=801.75, averageCost=1.1878841, unrealizedPNL=-17.89, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:19:06,396 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d44b1.01.01', time=datetime.datetime(2026, 2, 24, 12, 27, 28, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=3.0, price=1281.6, permId=1633852961, clientId=1, orderId=4, liquidation=0, cumQty=3.0, avgPrice=1281.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,397 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d45c8.01.01', time=datetime.datetime(2026, 2, 24, 13, 29, 16, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.3, permId=1633852967, clientId=1, orderId=38, liquidation=0, cumQty=1.0, avgPrice=456.3, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,397 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d464b.01.01', time=datetime.datetime(2026, 2, 24, 14, 11, 45, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.7, permId=793619604, clientId=1, orderId=72, liquidation=0, cumQty=1.0, avgPrice=456.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,397 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4670.01.01', time=datetime.datetime(2026, 2, 24, 14, 16, 46, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=153.0, price=117.6, permId=793619605, clientId=1, orderId=81, liquidation=0, cumQty=153.0, avgPrice=117.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,397 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d468f.01.01', time=datetime.datetime(2026, 2, 24, 14, 21, 49, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=6.0, price=1284.8, permId=793619606, clientId=1, orderId=96, liquidation=0, cumQty=6.0, avgPrice=1284.8, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,398 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d481d.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 26, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=1292.4, permId=793619627, clientId=1, orderId=151, liquidation=0, cumQty=1.0, avgPrice=1292.4, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,398 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4820.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 57, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=504.0, price=116.7, permId=793619628, clientId=1, orderId=158, liquidation=0, cumQty=504.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,398 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d492b.01.01', time=datetime.datetime(2026, 2, 24, 15, 35, 9, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=33.0, price=116.7, permId=793619657, clientId=1, orderId=198, liquidation=0, cumQty=33.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:19:06,398 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d44b1.01.01', commission=3.19224, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,399 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d45c8.01.01', commission=3.022815, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,399 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d464b.01.01', commission=3.022835, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,399 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4670.01.01', commission=3.89964, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,399 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d468f.01.01', commission=3.38544, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,399 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d481d.01.01', commission=3.06462, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,400 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4820.01.01', commission=5.94084, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,400 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d492b.01.01', commission=3.192555, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:19:06,400 [INFO] ib_insync.ib: Synchronization complete
+2026-02-24 21:19:06,400 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-24 21:19:06,400 [INFO] __main__: Starting timed paper trial for 60s
+2026-02-24 21:19:06,404 [INFO] __main__: IBKR account detected: DUQ117408 (paper)
+2026-02-24 21:19:06,406 [INFO] __main__: Runtime DB (paper): trading_paper.db
+2026-02-24 21:19:06,412 [INFO] src.trading.loop: Pre-warming strategy with recent 5-day history…
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:07,688 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:07,688 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:07,688 [WARNING] src.trading.loop:   HSBA.L: pre-warm failed — No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:08,238 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:08,239 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:08,239 [WARNING] src.trading.loop:   VOD.L: pre-warm failed — No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:08,821 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:08,822 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:08,822 [WARNING] src.trading.loop:   BP.L: pre-warm failed — No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:09,386 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:09,387 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:09,387 [WARNING] src.trading.loop:   BARC.L: pre-warm failed — No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:10,027 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:10,027 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:10,027 [WARNING] src.trading.loop:   SHEL.L: pre-warm failed — No data returned for SHEL.L. Check provider availability and date range.
+2026-02-24 21:19:10,028 [INFO] __main__: Paper trading started. Min bars required: 16. Polling every 300s. Ctrl+C to stop.
+2026-02-24 21:19:10,128 [INFO] src.trading.loop: Initial portfolio value: $999,967.02
+2026-02-24 21:19:10,129 [INFO] src.data.feeds: Stream started for ['HSBA.L', 'VOD.L', 'BP.L', 'BARC.L', 'SHEL.L'] (poll every 300s)
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:10,484 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:10,484 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:10,485 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:10,824 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:10,825 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:10,825 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:11,184 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:11,184 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:11,185 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:11,539 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:11,539 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:11,540 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:11,895 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:11,896 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:11,896 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:12,519 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:12,519 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:12,520 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:12,862 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:12,862 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:12,862 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:13,220 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:13,221 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:13,221 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:13,579 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:13,579 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:13,579 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:13,944 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:13,944 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:13,945 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:14,822 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:14,822 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:14,822 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:15,165 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:15,166 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:15,166 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:15,528 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:15,528 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:15,529 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:15,886 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:15,886 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:15,886 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:16,242 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:16,243 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:16,243 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:17,624 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:17,624 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:17,625 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:17,967 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:17,967 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:17,968 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:18,328 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:18,328 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:18,328 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:18,687 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:18,687 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:18,687 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:19,042 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:19,043 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:19,043 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:21,394 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:21,395 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:21,395 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:21,736 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:21,737 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:21,737 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:22,093 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:22,094 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:22,094 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:22,449 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:22,450 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:22,450 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:22,808 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:22,809 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:22,809 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:25,179 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:25,179 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:25,179 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:25,521 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:25,521 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:25,521 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:25,875 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:25,875 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:25,876 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:26,249 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:26,250 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:26,250 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:26,602 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:26,603 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:26,603 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:28,972 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:28,973 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:28,973 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:29,312 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:29,313 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:29,313 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:29,669 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:29,670 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:29,670 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:30,027 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:30,028 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:30,028 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:30,382 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:30,383 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:30,383 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:32,753 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:32,754 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:32,754 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:33,099 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:33,099 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:33,099 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:33,455 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:33,456 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:33,456 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:33,820 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:33,820 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:33,821 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:34,179 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:34,180 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:34,180 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:36,551 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:36,551 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:36,551 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:36,893 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:36,893 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:36,893 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:37,249 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:37,249 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:37,250 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:37,605 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:37,606 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:37,606 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:37,960 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:37,960 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:37,960 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:40,320 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:40,320 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:40,320 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:40,662 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:40,663 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:40,663 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:41,019 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:41,019 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:41,019 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:41,382 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:41,382 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:41,382 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:41,738 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:41,739 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:41,739 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:44,102 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:44,102 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:44,102 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:44,472 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:44,472 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:44,473 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:44,861 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:44,862 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:44,862 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:45,230 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:45,230 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:45,230 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:45,586 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:45,587 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:45,587 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:47,958 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:47,959 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:47,959 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:48,306 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:48,306 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:48,307 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:48,677 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:48,678 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:48,678 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:49,045 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:49,045 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:49,045 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:49,423 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:49,423 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:49,423 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:51,786 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:51,787 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:51,787 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:52,133 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:52,134 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:52,134 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:52,507 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:52,508 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:52,508 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:52,876 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:52,876 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:52,877 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:53,246 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:53,246 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:53,247 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:55,615 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:55,616 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:55,616 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:55,965 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:55,965 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:55,965 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:56,327 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:56,328 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:56,328 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:56,702 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:56,702 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:56,703 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:57,075 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:57,075 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:57,075 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:59,445 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:59,446 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:59,446 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:19:59,792 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:19:59,793 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:19:59,793 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:00,161 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:00,161 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:00,161 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:00,532 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:00,532 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:00,533 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:00,893 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:00,893 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:00,894 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:03,266 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:03,266 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:03,266 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:03,610 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:03,610 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:03,610 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:03,974 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:03,975 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:03,975 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:04,341 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:04,341 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:04,341 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:20:04,713 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:20:04,714 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:20:04,714 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+2026-02-24 21:20:06,419 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 713 B sent in 9 messages, 37.5 kB received in 721 messages, session time 60.1 s.
+2026-02-24 21:20:06,419 [INFO] ib_insync.client: Disconnecting
+2026-02-24 21:20:06,420 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-24 21:20:06,420 [INFO] ib_insync.client: Disconnected.
+2026-02-24 21:20:06,420 [INFO] __main__: Paper trial duration reached (60s); stopping session
+2026-02-24 21:20:06,423 [INFO] __main__: Paper session summary export completed
+2026-02-24 21:20:06,423 [INFO] __main__:   json: reports\uk_tax\paper_session_summary.json
+2026-02-24 21:20:06,423 [INFO] __main__:   csv: reports\uk_tax\paper_session_summary.csv
+2026-02-24 21:20:06,424 [INFO] __main__:   fills=0/8 fill_rate=0.00% win_rate=0.00% pnl_gbp=0.00

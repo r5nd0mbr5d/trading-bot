@@ -1,0 +1,25 @@
+﻿{
+    "step":  "1A",
+    "profile":  "\\",
+    "generated_at_utc":  "2026-02-24T21:11:31.4021093Z",
+    "required_window_utc":  "08:00-16:00",
+    "non_qualifying_test_mode":  false,
+    "runs_required":  3,
+    "runs_completed":  1,
+    "runs_passed":  0,
+    "paper_duration_seconds":  1800,
+    "min_filled_orders_required":  5,
+    "session_passed":  false,
+    "signoff_ready":  false,
+    "output_dir":  "reports\\uk_tax\\step1a_burnin\\session_20260224_211131",
+    "run_results":  [
+                        {
+                            "run":  1,
+                            "utc_start":  "2026-02-24T21:11:31.3931051Z",
+                            "in_window":  false,
+                            "passed":  false,
+                            "reason":  "outside_allowed_window",
+                            "run_dir":  "reports\\uk_tax\\step1a_burnin\\session_20260224_211131\\run_1"
+                        }
+                    ]
+}

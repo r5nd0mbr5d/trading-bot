@@ -1,7 +1,7 @@
 {
   "db_path": "trading_paper.db",
   "base_currency": "GBP",
-  "event_count": 334,
+  "event_count": 205,
   "signal_count": 14,
   "order_attempt_count": 8,
   "filled_order_count": 0,
@@ -13,7 +13,7 @@
   "realized_pnl": 0,
   "profit_factor": 0.0,
   "first_event_ts": "2026-02-23T17:38:31.481110+00:00",
-  "last_event_ts": "2026-02-24T21:20:06.414229+00:00",
+  "last_event_ts": "2026-02-24T21:16:47.823129+00:00",
   "fx_converted_fill_count": 0,
   "fx_fallback_count": 0,
   "fx_missing_pairs": [],

@@ -53,7 +53,9 @@ No real money is used unless the user explicitly enables production mode with fu
 
 ## Code Style & Standards
 
-**See:** [.python-style-guide.md](.python-style-guide.md) — **Auto-loaded for all LLM sessions**
+**Full style guide:** [.python-style-guide.md](.python-style-guide.md) — read this before writing any non-trivial code.
+
+**MANDATORY for any LLM starting a coding task:** Read `.python-style-guide.md` in full before writing new modules or making structural changes. The summary below covers the most critical rules; the file has complete examples, gotchas, and checklists.
 
 **Enforcement (automatic on commit):**
 - `black` — Code formatting (line length: 100)
@@ -62,16 +64,44 @@ No real money is used unless the user explicitly enables production mode with fu
 - `isort` — Import ordering
 - Pre-commit hooks enforce on every `git commit` (bypass: `git commit --no-verify`)
 
-**Key Conventions (tl;dr):**
+**Key Conventions — must follow without exception:**
+
+*Signatures & types:*
 - Type hints on all public functions
 - NumPy-style docstrings (Args, Returns, Raises)
-- Explicit > implicit (prefer clear signatures over `*args`/`**kwargs`)
-- All timestamps UTC-aware
+- Explicit > implicit — clear signatures, no bare `*args`/`**kwargs`
+- All timestamps UTC-aware (`pd.to_datetime(..., utc=True)`)
 - Private methods/attributes prefixed with `_`
-- Single exit point (prefer early returns on errors)
+
+*Architecture invariants:*
+- `RiskManager.approve_signal()` is the **ONLY** path from Signal to Order
+- `BacktestEngine` uses `PaperBroker` — never `AlpacaBroker` or `IBKRBroker`
 - Strategy inheritance: `class MyStrategy(BaseStrategy)`
 - Provider inheritance: `class MyProvider(BaseProvider)`
-- RiskManager.approve_signal() is ONLY path to orders
+- Never import from `main.py` in tests — import from the source module directly
+
+*Common Python gotchas — enforce on every PR:*
+- **No mutable default arguments** — use `None` sentinel, create inside function
+  ```python
+  # BAD:  def fn(items=[])
+  # GOOD: def fn(items=None) → if items is None: items = []
+  ```
+- **No late-binding closures over mutable state** — capture values via default args or class attributes, never rely on shared outer-scope variables
+- **No circular imports** — if two modules depend on each other, extract the shared contract to `src/data/models.py`
+- **No module-level mutable state** — pass objects through constructors, not globals
+- **Keep `__init__.py` minimal** — empty or single docstring; no logic
+
+*Design:*
+- **Prefer pure functions** (data in → data out, no side effects) for transformations, indicators, and reporting. Reserve classes for objects with long-lived state (brokers, risk manager, strategies).
+- **Do not reuse variable names for different types** within a function
+- **Boolean tests:** use `if x:` / `if x is None:` — never `if x == True:` / `if x == None:`
+- **String building:** use `''.join(parts)` — never `+=` in a loop
+- **Throwaway variables:** use `_` for unused loop/unpack values
+
+*Architecture anti-patterns to avoid (by name):*
+- **Spaghetti code** — deeply nested closures/conditionals (see `main.py:on_bar` — target of Step 37)
+- **Hidden coupling** — test files importing from `main.py` (target of Steps 37–43)
+- **Global state abuse** — module-level mutable objects shared across calls
 
 **Setup (first time only):**
 ```bash
@@ -85,8 +115,6 @@ black --check src/ tests/  # See violations
 black src/ tests/          # Auto-fix all formatting
 pylint src/ --rcfile=.pylintrc
 ```
-
-**For any LLM working here:** This guide is in CLAUDE.md + `.python-style-guide.md` (auto-enforced by tooling), so write new code to spec from start.
 
 ## Architecture — where things live
 

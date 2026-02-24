@@ -1,16 +1,6 @@
 {
-  "generated_at": "2026-02-24T15:16:53.147246+00:00",
+  "generated_at": "2026-02-24T21:20:06.424231+00:00",
   "history": [
-    {
-      "session_ts": "2026-02-24T10:26:13.515636+00:00",
-      "fill_rate": 0.0,
-      "avg_slippage_pct": 0.0
-    },
-    {
-      "session_ts": "2026-02-24T12:43:29.090504+00:00",
-      "fill_rate": 0.0,
-      "avg_slippage_pct": 0.0
-    },
     {
       "session_ts": "2026-02-24T13:33:46.723555+00:00",
       "fill_rate": 0.0,
@@ -23,6 +13,16 @@
     },
     {
       "session_ts": "2026-02-24T15:16:53.138742+00:00",
+      "fill_rate": 0.0,
+      "avg_slippage_pct": 0.0
+    },
+    {
+      "session_ts": "2026-02-24T21:16:47.823129+00:00",
+      "fill_rate": 0.0,
+      "avg_slippage_pct": 0.0
+    },
+    {
+      "session_ts": "2026-02-24T21:20:06.414229+00:00",
       "fill_rate": 0.0,
       "avg_slippage_pct": 0.0
     }

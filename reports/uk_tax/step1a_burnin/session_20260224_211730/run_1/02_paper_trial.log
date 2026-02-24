@@ -1,0 +1,232 @@
+2026-02-24 21:17:35,538 [INFO] __main__: [OK] Broker provider is IBKR
+2026-02-24 21:17:35,539 [INFO] __main__: [OK] Market timezone is Europe/London
+2026-02-24 21:17:35,540 [INFO] __main__: [OK] Base currency is GBP
+2026-02-24 21:17:35,541 [INFO] __main__: [OK] Detected UK symbols: HSBA.L, VOD.L, BP.L, BARC.L, SHEL.L
+2026-02-24 21:17:35,542 [INFO] __main__: [OK] DB isolation paths set (paper=trading_paper.db, live=trading_live.db, test=trading_test.db)
+2026-02-24 21:17:35,579 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-24 21:17:35,581 [INFO] ib_insync.client: Connected
+2026-02-24 21:17:35,585 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-24 21:17:35,586 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-24 21:17:35,586 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-24 21:17:35,586 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-24 21:17:35,586 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-24 21:17:35,586 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-24 21:17:35,587 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-24 21:17:35,588 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-24 21:17:35,588 [INFO] ib_insync.client: API connection ready
+2026-02-24 21:17:35,589 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-24 21:17:35,589 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.587825)
+2026-02-24 21:17:35,590 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878841)
+2026-02-24 21:17:35,691 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.59246875, marketValue=9.18, averageCost=7.587825, unrealizedPNL=-5.99, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:35,691 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=12.9005556, marketValue=129.01, averageCost=13.81023, unrealizedPNL=-9.1, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:35,691 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16195405, marketValue=801.75, averageCost=1.1878841, unrealizedPNL=-17.89, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:35,696 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d44b1.01.01', time=datetime.datetime(2026, 2, 24, 12, 27, 28, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=3.0, price=1281.6, permId=1633852961, clientId=1, orderId=4, liquidation=0, cumQty=3.0, avgPrice=1281.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,697 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d45c8.01.01', time=datetime.datetime(2026, 2, 24, 13, 29, 16, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.3, permId=1633852967, clientId=1, orderId=38, liquidation=0, cumQty=1.0, avgPrice=456.3, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,697 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d464b.01.01', time=datetime.datetime(2026, 2, 24, 14, 11, 45, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.7, permId=793619604, clientId=1, orderId=72, liquidation=0, cumQty=1.0, avgPrice=456.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,697 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4670.01.01', time=datetime.datetime(2026, 2, 24, 14, 16, 46, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=153.0, price=117.6, permId=793619605, clientId=1, orderId=81, liquidation=0, cumQty=153.0, avgPrice=117.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,697 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d468f.01.01', time=datetime.datetime(2026, 2, 24, 14, 21, 49, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=6.0, price=1284.8, permId=793619606, clientId=1, orderId=96, liquidation=0, cumQty=6.0, avgPrice=1284.8, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,698 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d481d.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 26, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=1292.4, permId=793619627, clientId=1, orderId=151, liquidation=0, cumQty=1.0, avgPrice=1292.4, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,698 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4820.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 57, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=504.0, price=116.7, permId=793619628, clientId=1, orderId=158, liquidation=0, cumQty=504.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,698 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d492b.01.01', time=datetime.datetime(2026, 2, 24, 15, 35, 9, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=33.0, price=116.7, permId=793619657, clientId=1, orderId=198, liquidation=0, cumQty=33.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:35,699 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d44b1.01.01', commission=3.19224, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,699 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d45c8.01.01', commission=3.022815, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,699 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d464b.01.01', commission=3.022835, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,699 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4670.01.01', commission=3.89964, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,700 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d468f.01.01', commission=3.38544, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,700 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d481d.01.01', commission=3.06462, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,700 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4820.01.01', commission=5.94084, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,700 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d492b.01.01', commission=3.192555, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:35,700 [INFO] ib_insync.ib: Synchronization complete
+2026-02-24 21:17:35,701 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-24 21:17:35,701 [INFO] __main__: [OK] IBKR connection established
+2026-02-24 21:17:35,701 [INFO] __main__: [OK] IBKR account detected: DUQ117408 (paper)
+2026-02-24 21:17:35,701 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 119 B sent in 8 messages, 25.1 kB received in 436 messages, session time 122 ms.
+2026-02-24 21:17:35,701 [INFO] ib_insync.client: Disconnecting
+2026-02-24 21:17:35,702 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-24 21:17:35,702 [INFO] __main__: UK health check complete: no blocking errors
+2026-02-24 21:17:36,212 [INFO] ib_insync.client: Disconnected.
+2026-02-24 21:17:36,213 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-24 21:17:36,213 [INFO] ib_insync.client: Connected
+2026-02-24 21:17:36,216 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-24 21:17:36,217 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-24 21:17:36,217 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-24 21:17:36,217 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-24 21:17:36,218 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-24 21:17:36,218 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-24 21:17:36,218 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-24 21:17:36,218 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-24 21:17:36,218 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-24 21:17:36,218 [INFO] ib_insync.client: API connection ready
+2026-02-24 21:17:36,219 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-24 21:17:36,219 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-24 21:17:36,219 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-24 21:17:36,219 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-24 21:17:36,220 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-24 21:17:36,221 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.587825)
+2026-02-24 21:17:36,221 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878841)
+2026-02-24 21:17:36,522 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.59246875, marketValue=9.18, averageCost=7.587825, unrealizedPNL=-5.99, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:36,522 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=12.9005556, marketValue=129.01, averageCost=13.81023, unrealizedPNL=-9.1, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:36,522 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16195405, marketValue=801.75, averageCost=1.1878841, unrealizedPNL=-17.89, realizedPNL=0.0, account='DUQ117408')
+2026-02-24 21:17:36,622 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d44b1.01.01', time=datetime.datetime(2026, 2, 24, 12, 27, 28, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=3.0, price=1281.6, permId=1633852961, clientId=1, orderId=4, liquidation=0, cumQty=3.0, avgPrice=1281.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,623 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d45c8.01.01', time=datetime.datetime(2026, 2, 24, 13, 29, 16, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.3, permId=1633852967, clientId=1, orderId=38, liquidation=0, cumQty=1.0, avgPrice=456.3, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,623 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d464b.01.01', time=datetime.datetime(2026, 2, 24, 14, 11, 45, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=456.7, permId=793619604, clientId=1, orderId=72, liquidation=0, cumQty=1.0, avgPrice=456.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,624 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4670.01.01', time=datetime.datetime(2026, 2, 24, 14, 16, 46, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=153.0, price=117.6, permId=793619605, clientId=1, orderId=81, liquidation=0, cumQty=153.0, avgPrice=117.6, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,624 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d468f.01.01', time=datetime.datetime(2026, 2, 24, 14, 21, 49, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=6.0, price=1284.8, permId=793619606, clientId=1, orderId=96, liquidation=0, cumQty=6.0, avgPrice=1284.8, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,624 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d481d.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 26, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=1.0, price=1292.4, permId=793619627, clientId=1, orderId=151, liquidation=0, cumQty=1.0, avgPrice=1292.4, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,625 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d4820.01.01', time=datetime.datetime(2026, 2, 24, 15, 2, 57, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=504.0, price=116.7, permId=793619628, clientId=1, orderId=158, liquidation=0, cumQty=504.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,625 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699d492b.01.01', time=datetime.datetime(2026, 2, 24, 15, 35, 9, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=33.0, price=116.7, permId=793619657, clientId=1, orderId=198, liquidation=0, cumQty=33.0, avgPrice=116.7, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-24 21:17:36,625 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d44b1.01.01', commission=3.19224, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,625 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d45c8.01.01', commission=3.022815, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,625 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d464b.01.01', commission=3.022835, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,626 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4670.01.01', commission=3.89964, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,626 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d468f.01.01', commission=3.38544, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,626 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d481d.01.01', commission=3.06462, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,626 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d4820.01.01', commission=5.94084, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,626 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699d492b.01.01', commission=3.192555, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-24 21:17:36,627 [INFO] ib_insync.ib: Synchronization complete
+2026-02-24 21:17:36,627 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-24 21:17:36,627 [INFO] __main__: Starting timed paper trial for 60s
+2026-02-24 21:17:36,631 [INFO] __main__: IBKR account detected: DUQ117408 (paper)
+2026-02-24 21:17:36,633 [INFO] __main__: Runtime DB (paper): trading_paper.db
+2026-02-24 21:17:36,639 [INFO] src.trading.loop: Pre-warming strategy with recent 5-day history…
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:38,067 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:38,067 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:38,068 [WARNING] src.trading.loop:   HSBA.L: pre-warm failed — No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:38,627 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:38,628 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:38,628 [WARNING] src.trading.loop:   VOD.L: pre-warm failed — No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:39,203 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:39,204 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:39,204 [WARNING] src.trading.loop:   BP.L: pre-warm failed — No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:39,787 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:39,788 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:39,788 [WARNING] src.trading.loop:   BARC.L: pre-warm failed — No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:40,500 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:40,501 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:40,501 [WARNING] src.trading.loop:   SHEL.L: pre-warm failed — No data returned for SHEL.L. Check provider availability and date range.
+2026-02-24 21:17:40,501 [INFO] __main__: Paper trading started. Min bars required: 16. Polling every 300s. Ctrl+C to stop.
+2026-02-24 21:17:40,605 [INFO] src.trading.loop: Initial portfolio value: $999,967.02
+2026-02-24 21:17:40,605 [INFO] src.data.feeds: Stream started for ['HSBA.L', 'VOD.L', 'BP.L', 'BARC.L', 'SHEL.L'] (poll every 300s)
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:40,968 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:40,968 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:40,968 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:41,319 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:41,319 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:41,319 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:41,683 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:41,683 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:41,684 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:42,047 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:42,047 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:42,048 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:42,412 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:42,413 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:42,413 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:43,050 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:43,050 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:43,050 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:43,409 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:43,409 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:43,410 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:43,783 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:43,783 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:43,783 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:44,158 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:44,159 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:44,159 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:44,568 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:44,569 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:44,569 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:45,449 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:45,450 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:45,450 [ERROR] src.data.feeds: Stream error for HSBA.L: No data returned for HSBA.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:45,797 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:45,798 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:45,798 [ERROR] src.data.feeds: Stream error for VOD.L: No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:46,162 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:46,163 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:46,163 [ERROR] src.data.feeds: Stream error for BP.L: No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:46,537 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:46,537 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:46,537 [ERROR] src.data.feeds: Stream error for BARC.L: No data returned for BARC.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-24 21:17:46,914 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-24 21:17:46,914 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-24 21:17:46,915 [ERROR] src.data.feeds: Stream error for SHEL.L: No data returned for SHEL.L. Check provider availability and date range.
+2026-02-24 21:17:46,919 [CRITICAL] src.risk.kill_switch: KILL SWITCH TRIGGERED: stream_failure_limit_reached: 3
+2026-02-24 21:17:46,958 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 713 B sent in 9 messages, 36.4 kB received in 693 messages, session time 10.7 s.
+2026-02-24 21:17:46,958 [INFO] ib_insync.client: Disconnecting
+2026-02-24 21:17:46,958 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-24 21:17:46,958 [INFO] ib_insync.client: Disconnected.
+Traceback (most recent call last):
+  File "C:\Users\rando\Projects\trading-bot\main.py", line 1053, in <module>
+    dispatch(
+  File "C:\Users\rando\Projects\trading-bot\src\cli\arguments.py", line 275, in dispatch
+    exit_code = handlers["cmd_paper_trial"](
+  File "C:\Users\rando\Projects\trading-bot\main.py", line 596, in cmd_paper_trial
+    asyncio.run(
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\site-packages\nest_asyncio.py", line 30, in run
+    return loop.run_until_complete(task)
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\site-packages\nest_asyncio.py", line 98, in run_until_complete
+    return f.result()
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 201, in result
+    raise self._exception
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 232, in __step
+    result = coro.send(None)
+  File "C:\Users\rando\Projects\trading-bot\main.py", line 547, in _run_paper_for_duration
+    await asyncio.wait_for(
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 447, in wait_for
+    return fut.result()
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 201, in result
+    raise self._exception
+  File "C:\Users\rando\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 234, in __step
+    result = coro.throw(exc)
+  File "C:\Users\rando\Projects\trading-bot\main.py", line 1012, in cmd_paper
+    await feed.stream(
+  File "C:\Users\rando\Projects\trading-bot\src\data\feeds.py", line 478, in stream
+    raise RuntimeError(
+RuntimeError: stream_failure_limit_reached: 3 >= 3
