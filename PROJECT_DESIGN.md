@@ -312,7 +312,7 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 
 **Consequences (projected):**
 - ✅ `on_bar` becomes independently testable as class methods
-- ✅ 18 test files decouple from `main.py` private functions
+- ✅ Remaining test imports decouple from `main.py` private functions
 - ✅ Broker retry logic moves to the correct layer
 - ❌ Large refactor — must be done with full test suite passing at each step
 
@@ -375,7 +375,7 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 **Acceptance Criteria:**
 - `main.py` ≤ 150 lines
 - Each `TradingLoopHandler` method independently unit-testable
-- All 405+ tests pass; 18 test files updated to import from new module paths
+- All 405+ tests pass; remaining tests updated to import from new module paths
 - No regressions in paper trading behaviour
 
 **Implementation Order:** Step 38 (quick, no conflicts) → Step 39 (trivial) → Step 37 (main extraction) → Step 43 (CLI cleanup)
@@ -385,7 +385,7 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 - ✅ `src/trading/stream_events.py` extracted
 - ✅ `src/execution/resilience.py` extracted and wired
 - ✅ `src/cli/arguments.py` extraction completed
-- ⚠️ Remaining: final `main.py` reduction and test import decoupling from `main.py`
+- ⚠️ Remaining: final `main.py` reduction and test import decoupling from `main.py` (15 test files still import `main.py`)
 
 ---
 
@@ -439,7 +439,7 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
 | ID | Description | Severity | Backlog Step | Notes |
 |---|---|---|---|---|
 | **TD-001** | `main.py` remains oversized (956 lines) | HIGH | Steps 37–43 | Reduced from 1,938 lines; additional extraction still required |
-| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly |
+| **TD-002** | 15 test files importing from `main.py` | HIGH | Step 37 follow-on | Hidden coupling remains; tests should import source modules directly (re-validated Feb 24, 2026) |
 | **TD-003** | `IBKRBroker` does not inherit `BrokerBase` | LOW (RESOLVED) | Step 40 | Resolved Feb 24, 2026 |
 | **TD-004** | `Signal.strength` not validated at construction | LOW (RESOLVED) | Step 41 | Resolved Feb 24, 2026 |
 | **TD-005** | Missing `research/__init__.py` | LOW (RESOLVED) | Step 39 | Resolved Feb 24, 2026 |
@@ -488,6 +488,9 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
     - RFC-003 closed (model-level invariant enforcement landed)
     - TD-003/TD-004/TD-005 marked resolved
     - RFC-001 kept in progress (main.py still above target size; test import decoupling pending)
+- LPDD consistency sweep:
+    - Re-validated test coupling count (`tests/*` imports from `main.py`: 15)
+    - Updated ADR-010 wording, RFC-001 acceptance/progress text, and TD-002 note to remove stale 18-file reference
 
 ---
 
