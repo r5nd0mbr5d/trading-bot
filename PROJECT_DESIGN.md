@@ -1,6 +1,6 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** Feb 25, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
@@ -60,7 +60,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 
 ## §2 Architecture Snapshot
 
-### Verified Current State (Feb 24, 2026)
+### Verified Current State (Feb 25, 2026)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -124,10 +124,12 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Step 1 sign-off, Feb 24 2026)
-- Test suite: **405 tests passing**
+### Key Metrics (Feb 25, 2026 — post Steps 44/47/48)
+- Test suite: **445 tests passing**
+- `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
+- Test files importing `main.py`: **0** (target 0 ✅)
+- Strategies registered: 7 (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic)
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
-- Filled order criterion (Step 1): ✅ 26 trades >> 5 minimum
 
 ---
 
@@ -298,28 +300,15 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ---
 
 ### ADR-010: `main.py` Refactor Target Architecture
-**Status:** PROPOSED → See RFC-001
+**Status:** SUPERSEDED BY ADR-013
 **Date:** 2026-02-24
-**Ref:** Steps 37, 38, 43
+**Superseded:** 2026-02-25 (Steps 37–44 completed; see ADR-013)
 
-**Context:** `main.py` has grown to 1,938 lines with 0 classes, 27 internal imports, and a 981-line `cmd_paper` function containing a 280-line `on_bar` closure. This is a known god module (see structural review, Feb 24 2026).
+**Context:** `main.py` had grown to 1,938 lines. This ADR proposed the extraction strategy.
 
-**Decision (proposed):** Extract into:
-```
-main.py                     (~150 lines — entry point only)
-src/trading/loop.py         (TradingLoopHandler class — on_bar as methods)
-src/trading/stream_events.py (heartbeat / error callbacks)
-src/execution/resilience.py (_run_broker_operation)
-src/cli/arguments.py        (ArgumentParser + dispatch)
-```
+**Decision:** Extracted into layered modules (see ADR-013 for full record). Implementation complete Feb 25, 2026.
 
-**Consequences (projected):**
-- ✅ `on_bar` becomes independently testable as class methods
-- ✅ Remaining test imports decouple from `main.py` private functions
-- ✅ Broker retry logic moves to the correct layer
-- ❌ Large refactor — must be done with full test suite passing at each step
-
-**Acceptance Criteria:** `main.py` ≤ 150 lines; all 405+ tests pass; no regressions.
+**Outcome:** `main.py` = 62 lines; 0 test imports from `main.py`; 445 tests passing. RFC-001 CLOSED.
 
 ---
 
@@ -375,6 +364,25 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - ✅ `main.py` slimmed to 55-line entrypoint-only wiring (target ≤150 met)
 - ✅ Test import decoupling complete (`tests/*` imports from `main.py`: 0)
 - ✅ 436 tests passing post-extraction and final slimming (no regressions)
+
+---
+
+### ADR-014: Single-Strategy-Per-Run Composition (Ensemble Deferred)
+**Status:** ACCEPTED
+**Date:** 2026-02-25
+
+**Context:** With 7 strategies now registered (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic), the question arises: should the paper runtime run one strategy or all simultaneously?
+
+**Decision:** Single-strategy-per-run for paper and live modes. The CLI `--strategy` flag selects which strategy to activate. Multi-strategy ensemble voting is deferred to Tier 3 (Step future-ensemble) and requires passing at least one strategy through Gate B (live) first.
+
+**Consequences:**
+- ✅ Simple mental model — one strategy, one set of signals, traceable audit trail
+- ✅ No cross-strategy correlation amplification risk during validation phase
+- ✅ Clean promotion path: one strategy → paper → live, independently verified
+- ❌ No diversification benefit during paper phase — acceptable: diversity is a live-trading concern
+- ❌ Running 7 strategies requires 7 separate paper sessions — acceptable until ensemble infrastructure is built
+
+**Alternatives Considered:** Ensemble voting (average signal strengths, majority vote) — deferred; multi-strategy position book — deferred. Both require correlation-based position limits (Step 51) to be implemented first.
 
 ---
 
@@ -498,6 +506,10 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 | **TD-008** | `approve_signal()` is 240 lines with no decomposition | LOW | Future | Each risk gate is a nested block; testable only as a whole; not blocking current phase |
 | **TD-009** | `ibkr_python_ws` not yet evaluated as `ib_insync` replacement | LOW | ADR-011 | Deferred until `ib_insync` shows incompatibility with a TWS API version |
 | **TD-010** | Step 1A burn-in not yet signed off | HIGH | MO-2 / RFC-004 | Latest artefact: `signoff_ready=false`, `non_qualifying_test_mode=true` — runs are outside market hours |
+| **TD-011** | No correlation-based position limits | MEDIUM | Step 51 | RiskManager gates individual positions but cannot detect correlated concentration across FTSE 100 sectors |
+| **TD-012** | No ATR volatility-scaled stops | LOW | Step 50 | Fixed % stop-loss only; strategies cannot dynamically scale stops to current volatility regime |
+| **TD-013** | Slippage model is fixed basis points only | LOW | Step 52 | Real-world LSE slippage is bid-ask spread × volume-weighted impact; current model understates costs on illiquid names |
+| **TD-014** | No test coverage threshold enforced | LOW | Step 53 | Enterprise checklist requires 90%+ coverage; no `pytest-cov` in CI; current coverage unknown |
 
 ---
 
@@ -564,6 +576,17 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - TD-006 and TD-007 marked RESOLVED; TD-010 added (Step 1A burn-in not signed off)
 - Steps 44–49 added to IMPLEMENTATION_BACKLOG (new items: main.py final slimming, walk-forward harness, daemon, daily report, indicators, REST API)
 - §9 Operational Milestones added to this document
+
+**[2026-02-25] LPDD Review (Claude Sonnet 4.6)**
+- Verified post-Copilot state: 445 tests passing; `main.py` = 62 lines; 0 test imports from `main.py`
+- §2 Architecture Snapshot updated to Feb 25, 2026 with verified metrics
+- ADR-010 superseded by ADR-013 (execution complete)
+- ADR-014 added: Single-strategy-per-run composition (ensemble deferred to Tier 3)
+- TD-011 added: No correlation-based position limits (Step 51)
+- TD-012 added: No ATR volatility-scaled stops (Step 50)
+- TD-013 added: Slippage model is fixed basis points only (Step 52)
+- TD-014 added: No test coverage threshold enforced (Step 53)
+- Steps 50–53 added to IMPLEMENTATION_BACKLOG (ATR stops, correlation limits, slippage model, coverage gate)
 
 **[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
 - Step 44 completed end-to-end:

@@ -6,11 +6,12 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 58 (7 Prompts + 50 Next Steps + Code Style Governance)
-**Completed**: 48 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 37–43)
+**Total Items**: 62 (7 Prompts + 54 Next Steps + Code Style Governance)
+**Completed**: 51 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 37–44, 47–48)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 9 (Steps 32–33, 35-gap, QuantConnect cross-validation, Steps 44–49)
+**Not Started**: 10 (Steps 32–33, 35-gap, QuantConnect cross-validation, Steps 45–46, 49–53)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
+**Test suite**: 445 passing | **main.py**: 62 lines | **Test imports from main**: 0
 
 **Special Note** (Feb 25, 2026 00:50 UTC):
 - âœ… **Refactoring Progress**:
@@ -1839,6 +1840,69 @@ black --check src/ tests/ backtest/ --line-length 100
 - `requirements.txt` — add `fastapi`, `uvicorn`, `httpx`
 
 **Estimated Effort**: 6–10 hours
+
+---
+
+### Step 50: ATR Volatility-Scaled Stops Strategy
+**Status**: NOT STARTED
+**Priority**: MEDIUM — TD-012; mentioned in CLAUDE.md "Upcoming (Tier 2)" | **ADR Ref**: ADR-014
+**Intended Agent**: Copilot
+**Execution Prompt**: Add ATR (Average True Range) as a volatility-scaled stop strategy. Create `src/strategies/atr_stops.py` inheriting `BaseStrategy`. The strategy should: (1) compute ATR over a configurable period (default 14 bars) using the `ta` library; (2) generate BUY signals when price closes above a moving average with low ATR (low volatility expansion = potential trend start); (3) set stop-loss at `entry_price − N × ATR` where N is configurable (default 2.0); (4) integrate with the existing `Signal.metadata` dict to carry `atr_value` and `stop_price` for downstream use. Add `ATRConfig` dataclass to `config/settings.py`. Register in STRATEGIES dict. Add tests following `test_rsi_momentum.py` pattern. The MA crossover is the canonical example.
+
+**Scope**:
+- `src/strategies/atr_stops.py` — `ATRStopsStrategy`
+- `config/settings.py` — `ATRConfig`
+- `tests/test_strategies.py` — new test cases
+
+**Estimated Effort**: 2–4 hours
+
+---
+
+### Step 51: Correlation-Based Position Limits
+**Status**: NOT STARTED
+**Priority**: MEDIUM — TD-011; required before multi-strategy ensemble (ADR-014) | **ADR Ref**: ADR-014
+**Intended Agent**: Copilot
+**Execution Prompt**: Extend `RiskManager.approve_signal()` with a correlation gate. The gate should: (1) load a pre-computed correlation matrix from `config/settings.py` (or a configurable JSON file); (2) for each pending signal, check whether the signal's symbol is correlated (|r| > threshold, default 0.7) with any currently open position; (3) if so, scale down the signal strength or reject it; (4) add audit log entry with reason `CORRELATION_LIMIT` when a signal is scaled or rejected. The correlation matrix does not need to be computed dynamically — a static matrix from a periodic backtest run is sufficient. Add `CorrelationConfig` dataclass to `config/settings.py`. Tests in `tests/test_risk_correlation.py`.
+
+**Scope**:
+- `src/risk/manager.py` — new `_check_correlation_limit()` private method
+- `config/settings.py` — `CorrelationConfig` (matrix_path, threshold)
+- `config/uk_correlations.json` — example static correlation matrix for UK universe
+- `tests/test_risk_correlation.py`
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 52: Realistic Slippage + Commission Model
+**Status**: NOT STARTED
+**Priority**: MEDIUM — TD-013; required for accurate pre-live performance estimates
+**Intended Agent**: Copilot
+**Execution Prompt**: Improve the slippage and commission model in `backtest/engine.py` and `config/settings.py`. Currently, slippage is a fixed basis-point spread applied uniformly. Replace with: (1) a volume-weighted spread model — `slippage = spread_bps × (order_size / avg_daily_volume)`; (2) a tiered commission model matching IBKR UK rates (0.05% min £1.70 per trade); (3) a market impact model for orders above 1% of ADV — penalise with an additional `impact_bps × sqrt(order_size / ADV)`. Add `SlippageConfig` dataclass to `config/settings.py`. Expose these as configurable presets (e.g. `"optimistic"`, `"realistic"`, `"pessimistic"`) for scenario analysis. Add regression tests confirming that higher slippage produces lower net returns in backtest.
+
+**Scope**:
+- `backtest/engine.py` — updated fill logic
+- `src/execution/slippage.py` — `SlippageModel` class
+- `config/settings.py` — `SlippageConfig`
+- `tests/test_slippage.py`
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 53: Test Coverage Gate (90%+ Target)
+**Status**: NOT STARTED
+**Priority**: LOW — TD-014; enterprise checklist requirement
+**Intended Agent**: Copilot
+**Execution Prompt**: Add test coverage reporting and a minimum threshold gate. (1) Add `pytest-cov` to `requirements.txt`; (2) create a `pytest.ini` or `pyproject.toml` configuration that enforces `--cov=src --cov-fail-under=90`; (3) run `python -m pytest tests/ --cov=src --cov-report=term-missing` and report the per-module coverage gaps; (4) for any module below 80%, write new unit tests to close the most critical gaps; (5) ensure the CI (pre-commit or GitHub Actions) will fail if coverage drops below 90%. Do not write trivial tests that test nothing meaningful — coverage should come from testing real behaviour. Report the baseline coverage before and after.
+
+**Scope**:
+- `requirements.txt` — add `pytest-cov`
+- `pytest.ini` or `pyproject.toml` — coverage config with `fail-under=90`
+- `tests/` — additional tests where coverage gaps are found
+- `.github/workflows/ci.yml` (optional) — enforce in CI
+
+**Estimated Effort**: 4–6 hours
 
 ---
 
