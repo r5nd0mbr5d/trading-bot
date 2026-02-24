@@ -45,7 +45,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 3. Paper trading via Alpaca and live trading via IBKR
 
 ### Current Phase
-**Phase: Paper Trial Validation** — Step 1 backtest signed off (Feb 24, 2026). Awaiting MO-2: 3 consecutive in-window paper sessions with fills.
+**Phase: Paper Trial Validation** — Step 1 backtest signed off (Feb 24, 2026). Awaiting MO-2: 3 consecutive in-window paper sessions with fills. Latest Step 1A report remains non-qualifying (`signoff_ready=false`).
 
 ### Non-Goals
 - Real-time high-frequency trading (sub-second execution)
@@ -498,6 +498,9 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
     - Re-checked `main.py` and test coupling metrics; values remain `956` lines and `15` test imports from `main.py` (no RFC/debt status change)
 - Latest LPDD verification pass:
     - Re-ran debt metrics after design sync commits; `main.py` remains `956` lines and `tests/*` imports from `main.py` remain `15` (RFC-001/TD-001/TD-002 unchanged)
+- Queue-state sweep (all applicable open items):
+    - RFC-001 / TD-001 / TD-002 remain open with unchanged metrics (`main.py` = `956` lines; `tests/*` importing `main.py` = `15`)
+    - MO-2 remains open; latest Step 1A artifact is non-qualifying (`non_qualifying_test_mode=true`, `signoff_ready=false`)
 
 ---
 
