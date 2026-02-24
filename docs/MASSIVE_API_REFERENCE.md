@@ -181,6 +181,55 @@ All accept: `timespan`, `adjusted`, `window`, `series_type` (`close`/`open`/`hig
 
 ---
 
+#### News (✅ Free Tier)
+
+> **Free-tier endpoint** — available on the basic Polygon/Massive plan (5 calls/min).
+> Returns articles from all publishers (Benzinga, Reuters, Motley Fool, etc.).
+> **Includes pre-computed sentiment labels** per ticker in the `insights` field.
+> This is the recommended approach for Step 33 (no paid subscription required).
+
+| Endpoint | Method | Path |
+|----------|--------|------|
+| Ticker News | GET | `/v2/reference/news?ticker={ticker}&published_utc.gte={date}&limit=50` |
+
+**Response fields (per article):**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | Unique article ID |
+| `publisher.name` | string | e.g. `"Benzinga"`, `"Reuters"`, `"Motley Fool"` |
+| `title` | string | Article headline |
+| `description` | string | Article summary (1–3 sentences) |
+| `published_utc` | ISO 8601 | Publication timestamp (UTC) |
+| `tickers` | string[] | Tagged symbols (e.g. `["HSBA", "LLOY"]`) |
+| `article_url` | string | Full article URL |
+| `insights` | object[] | **Per-ticker sentiment labels** (see below) |
+
+**`insights[]` schema:**
+
+| Field | Values | Notes |
+|-------|--------|-------|
+| `ticker` | string | Symbol this insight applies to |
+| `sentiment` | `"positive"` / `"negative"` / `"neutral"` | Pre-computed label |
+| `sentiment_reasoning` | string | Short explanation of the label |
+
+**Example query (UK symbol, last 7 days):**
+```python
+import requests, os
+resp = requests.get(
+    "https://api.polygon.io/v2/reference/news",
+    params={"ticker": "HSBA", "published_utc.gte": "2026-02-18", "limit": 50},
+    headers={"Authorization": f"Bearer {os.environ['POLYGON_API_KEY']}"},
+)
+articles = resp.json()["results"]
+# Filter for Benzinga only:
+benzinga = [a for a in articles if a["publisher"]["name"] == "Benzinga"]
+```
+
+**Project note:** Use this endpoint for Step 33 (`research/data/news_features.py`). Benzinga partner endpoints (`/vX/reference/partners/benzinga/...`) require a paid subscription and add analyst ratings / structured earnings — not needed for a basic sentiment feature.
+
+---
+
 #### Market Operations
 
 | Endpoint | Method | Path |

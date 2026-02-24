@@ -17,7 +17,7 @@
 | 5 | **Alpaca (Data API)** | Real-time streaming | ⚠️ Scaffolded | `ALPACA_API_KEY` | Paid |
 | 6 | **Alpaca (Broker)** | Paper trading execution | ✅ Implemented | `ALPACA_API_KEY` / `ALPACA_SECRET_KEY` | Free (paper) |
 | 7 | **Interactive Brokers (IBKR)** | Paper + Live execution | ✅ Implemented | `IBKR_HOST` / `IBKR_PORT` / `IBKR_CLIENT_ID` | Free (paper) |
-| 8 | **Benzinga** | News + Analyst ratings | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
+| 8 | **Benzinga** | News + Analyst ratings | ⚠️ Available via Massive | `POLYGON_API_KEY` | Free (news via `/v2/reference/news`); Massive tier for partner endpoints |
 | 9 | **ETF Global** | ETF analytics + constituents | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
 | 10 | **TMX / Wall Street Horizon** | Corporate events calendar | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
 
@@ -146,7 +146,7 @@ The `.env` key `IEX_CLOUD_API_KEY` has been deleted.
 
 **Replacement coverage**:
 - OHLCV data → already covered by yfinance (free) and Massive/Polygon.io (paid)
-- Fundamentals (earnings, P/E) → Benzinga via Massive partner API (§2.8)
+- News sentiment → Benzinga articles via free `/v2/reference/news` (§2.8); paid partner API for earnings/ratings
 - Tick data → Massive REST + flat files
 
 No replacement provider registration is required — existing providers cover all prior IEX use cases.
@@ -222,27 +222,37 @@ No replacement provider registration is required — existing providers cover al
 
 ---
 
-### 2.8 Benzinga (via Massive Partner API)
+### 2.8 Benzinga (via Massive Partner API OR Free News Endpoint)
 
 **Full name**: Benzinga
 **Site**: https://www.benzinga.com | API via https://massive.com
-**API prefix**: `/vX/reference/partners/benzinga/`
+**API prefix (paid)**: `/vX/reference/partners/benzinga/`
+**API prefix (free)**: `/v2/reference/news` ✅ available on free Polygon tier
+
+> **Step 33 uses the free endpoint** — `GET /v2/reference/news?ticker={symbol}` returns
+> articles from all publishers including Benzinga, with pre-computed `insights[].sentiment`
+> labels ("positive" / "negative" / "neutral") per ticker. No paid subscription required.
+> Rate limit: 5 calls/min. See `docs/MASSIVE_API_REFERENCE.md` §2a for full details.
 
 **Proposed use**:
 - Real-time and historical financial news with ticker tagging
-- Analyst ratings, price target changes, rating actions
-- Earnings announcements (actual vs. estimate EPS and revenue)
-- Corporate guidance data
-- Sentiment signal for ML feature engineering
+- Analyst ratings, price target changes, rating actions (paid tier only)
+- Earnings announcements — actual vs. estimate EPS and revenue (paid tier only)
+- Corporate guidance data (paid tier only)
+- Sentiment signal for ML feature engineering ✅ **available on free tier**
 
-**Access**: Included in some Massive subscription tiers; no separate auth required
-**Auth env var**: `POLYGON_API_KEY` (same key, Massive routes the request)
+**Access**:
+- `/v2/reference/news` — Free Polygon tier (5 calls/min)
+- `/vX/reference/partners/benzinga/...` — Requires paid Massive subscription tier
+
+**Auth env var**: `POLYGON_API_KEY` (same key for both tiers)
 **Current status**: Available but not integrated into this project
 **Key endpoints**:
-- `GET /vX/reference/partners/benzinga/news` — real-time news
-- `GET /vX/reference/partners/benzinga/analyst-ratings` — ratings history
-- `GET /vX/reference/partners/benzinga/earnings` — EPS/revenue actuals
-- `GET /vX/reference/partners/benzinga/consensus-ratings` — aggregated consensus
+- `GET /v2/reference/news?ticker={symbol}` — news with sentiment (FREE) ✅
+- `GET /vX/reference/partners/benzinga/news` — real-time news (paid)
+- `GET /vX/reference/partners/benzinga/analyst-ratings` — ratings history (paid)
+- `GET /vX/reference/partners/benzinga/earnings` — EPS/revenue actuals (paid)
+- `GET /vX/reference/partners/benzinga/consensus-ratings` — aggregated consensus (paid)
 
 ---
 
@@ -392,7 +402,7 @@ The same data pipeline, feature set, and validation protocol applies.
 | Step 30 | Real-time WebSocket Feed | HIGH | 10–16 hrs | Replace yfinance polling; cache used for warm-up |
 | Step 31 | Flat File Bulk Ingestion | HIGH | 8–16 hrs | S3 → Parquet; feeds the cache |
 | Step 32 | LSTM/NN Baseline | HIGH | 16–32 hrs | After XGBoost passes R3 |
-| Step 33 | Benzinga News Integration | MEDIUM | 8–12 hrs | Requires Massive paid tier |
+| Step 33 | News Sentiment Integration | MEDIUM | 4–6 hrs | ✅ Free tier (`/v2/reference/news`) — no paid sub needed |
 | **New** | **Alpaca Data API Provider** | LOW | 3–5 hrs | Natural pairing if Alpaca is primary broker |
 | MO-2 | Step 1A burn-in (3 sessions) | CRITICAL | Manual | Live in-window paper sessions with fills |
 
@@ -464,16 +474,19 @@ These are ready-to-execute prompts for each outstanding provider/data task:
 
 ---
 
-**P-BENZ: Benzinga News/Sentiment Integration**
+**P-BENZ: News Sentiment Integration (Step 33)**
 > **Model**: Copilot
-> Implement `research/data/news_features.py` to fetch Benzinga news via the Massive partner API
-> (`GET /vX/reference/partners/benzinga/news?ticker={symbol}&published_utc.gte={from}`).
-> Auth: `Authorization: Bearer $POLYGON_API_KEY`. For each news article, compute:
-> a simple sentiment score (positive/negative/neutral word-count ratio), article count per day,
-> and earnings-proximity flag (within 3 days of earnings date from Benzinga earnings endpoint).
-> Output a per-symbol per-day sentiment DataFrame joinable to the main feature set by date.
-> Add to `research/specs/FEATURE_LABEL_SPEC.md` §3f as a new "News/Sentiment Features" family.
-> Tests: mock API response, sentiment computation correctness, date alignment.
+> Implement `research/data/news_features.py` to fetch news via the free Polygon endpoint
+> (`GET /v2/reference/news?ticker={symbol}&published_utc.gte={from}&limit=50`,
+> `Authorization: Bearer $POLYGON_API_KEY`). Use the pre-computed `insights[].sentiment`
+> labels ("positive" / "negative" / "neutral") — no manual NLP scoring needed.
+> Compute: daily sentiment score (mean of +1/0/−1 per article), daily article count,
+> and earnings-proximity flag (within 3 days of any earnings-tagged article).
+> Optionally filter to Benzinga articles via `publisher.name == "Benzinga"`.
+> Output a per-symbol per-day DataFrame joinable to the main feature set by date.
+> Add to `research/specs/FEATURE_LABEL_SPEC.md` §3 as "News/Sentiment Features" family.
+> Rate limit: 5 calls/min — use `time.sleep(12)` between tickers or MarketDataStore cache.
+> Tests: mock `insights` list, sentiment aggregation, date alignment, empty-response guard.
 
 ---
 
@@ -485,7 +498,7 @@ These are ready-to-execute prompts for each outstanding provider/data task:
 | LSTM/NN baseline | Claude Opus + Copilot | Architecture decisions need Opus; code gen by Copilot |
 | WebSocket real-time feed | Copilot | Async WebSocket + reconnect logic; clear spec |
 | Flat file S3 ingestion | Copilot | boto3 + Parquet; follows existing tick-download pattern |
-| Benzinga news integration | Copilot | REST fetch + simple NLP; moderate complexity |
+| News sentiment integration | Copilot | REST fetch + `insights[]` labels from free endpoint; straightforward |
 | Walk-forward LSTM evaluation | Claude Opus | Evaluation strategy decisions need reasoning |
 | Provider strategy review | Claude Opus | Trade-off analysis across providers / cost / reliability |
 
