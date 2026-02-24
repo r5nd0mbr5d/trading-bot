@@ -496,6 +496,8 @@ src/cli/arguments.py        (ArgumentParser + dispatch)
     - Re-ran `tests/*` import scan; coupling count remains 15 and RFC-001/TD-002 status is unchanged
 - Additional LPDD verification pass:
     - Re-checked `main.py` and test coupling metrics; values remain `956` lines and `15` test imports from `main.py` (no RFC/debt status change)
+- Latest LPDD verification pass:
+    - Re-ran debt metrics after design sync commits; `main.py` remains `956` lines and `tests/*` imports from `main.py` remain `15` (RFC-001/TD-001/TD-002 unchanged)
 
 ---
 
