@@ -1,0 +1,22 @@
+source_id: generative_adversarial_network_for_market_hourly_discrimination
+source_type: article
+title: Generative Adversarial Network for Market Hourly Discrimination
+url: https://mpra.ub.uni-muenchen.de/id/eprint/99846
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Generative Adversarial Networks (GANs); Luca Grilli, Domenico Santoro (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

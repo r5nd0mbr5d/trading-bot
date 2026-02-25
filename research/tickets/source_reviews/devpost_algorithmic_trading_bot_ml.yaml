@@ -1,0 +1,28 @@
+source_id: devpost_algorithmic_trading_bot_ml
+source_type: article
+title: Algorithmic Trading Bot using Machine Learning (Devpost)
+url: https://devpost.com/software/algorithmic-trading-bot-using-machine-learning
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 35
+  maintenance_health: 25
+  test_evidence: 10
+  risk_controls: 40
+  lpdd_invariant_fit: 55
+  operational_realism: 45
+
+notes:
+  final_verdict: Reject
+  review_scope: project showcase description + available build details
+  reusable_items:
+    - Lightweight articulation of reward-to-risk framing for strategy narratives
+  conflicts:
+    - Hackathon showcase format provides insufficient technical depth for reproducible adoption
+    - Limited verifiable protocol around costs, leakage controls, and stability testing
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject for implementation; use only as low-confidence ideation reference
+      intended_agent: Copilot

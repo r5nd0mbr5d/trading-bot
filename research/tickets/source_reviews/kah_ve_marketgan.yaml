@@ -1,0 +1,22 @@
+source_id: kah_ve_marketgan
+source_type: article
+title: kah-ve/MarketGAN
+url: https://github.com/kah-ve/MarketGAN
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories > Generative Adversarial Networks (GANs); Implementing a Generative Adversarial Network on the Stock Market
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

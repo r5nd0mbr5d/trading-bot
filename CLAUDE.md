@@ -5,10 +5,12 @@ It provides the architectural context needed to work autonomously.
 
 ## Document Reading Order (LLM Session Start)
 
-1. **`PROJECT_DESIGN.md`** — Read for design or structural work. Contains all ADRs (why things are built this way), active RFCs (proposed changes), technical debt register, and evolution log.
-2. **This file (`CLAUDE.md`)** — Session context, invariants, quick-reference conventions (you are here)
-3. **`IMPLEMENTATION_BACKLOG.md`** — What to build next and in what order
-4. **`.python-style-guide.md`** — How to write the code (read before writing any non-trivial code)
+1. **`SESSION_LOG.md`** (last 2–3 entries) — What happened recently; handoff notes from previous sessions
+2. **`SESSION_TOPOLOGY.md`** §5 — Identify your session type using the decision tree
+3. **`PROJECT_DESIGN.md`** — Read for design or structural work. Contains all ADRs (why things are built this way), active RFCs (proposed changes), technical debt register, and evolution log.
+4. **This file (`CLAUDE.md`)** — Session context, invariants, quick-reference conventions (you are here)
+5. **`IMPLEMENTATION_BACKLOG.md`** — What to build next and in what order
+6. **`.python-style-guide.md`** — How to write the code (read before writing any non-trivial code)
 
 ## Project purpose
 **Enterprise-grade algorithmic trading platform** for US equities with:

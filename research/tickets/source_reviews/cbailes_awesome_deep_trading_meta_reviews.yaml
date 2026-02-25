@@ -1,0 +1,28 @@
+source_id: cbailes_awesome_deep_trading_meta_reviews
+source_type: repo
+title: cbailes/awesome-deep-trading (Meta Analyses & Systematic Reviews subsection)
+url: https://github.com/cbailes/awesome-deep-trading?tab=readme-ov-file#meta-analyses--systematic-reviews
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 70
+  maintenance_health: 25
+  test_evidence: 10
+  risk_controls: 55
+  lpdd_invariant_fit: 85
+  operational_realism: 70
+
+notes:
+  final_verdict: Research first
+  review_scope: curation quality + meta-review subsection completeness + LPDD fit
+  reusable_items:
+    - Curated meta-survey entry point for evidence-led literature triage
+    - Paper-level taxonomy useful for research backlog decomposition
+  conflicts:
+    - Curated list is stale and not itself a validated methodology implementation
+  ticket_recommendations:
+    - step: 70
+      recommendation: Use as literature index only; evaluate each cited paper independently before roadmap impact
+      intended_agent: Copilot

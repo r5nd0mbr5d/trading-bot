@@ -1,0 +1,22 @@
+source_id: stock_market_prediction_on_high_frequency_data_using_generative_adversarial_nets
+source_type: article
+title: Stock Market Prediction on High-Frequency Data Using Generative Adversarial Nets
+url: https://doi.org/10.1155/2018/4907423
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > High Frequency; Xingyu Zhou, Zhisong Pan, Guyu Hu, Siqi Tang, Cheng Zhao (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

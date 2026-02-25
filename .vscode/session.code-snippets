@@ -1,0 +1,63 @@
+{
+  "Session Log Entry (Full)": {
+    "scope": "markdown",
+    "prefix": "slog",
+    "body": [
+      "## [${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE} ${CURRENT_HOUR}:${CURRENT_MINUTE} UTC] — ${1|IMPL,ARCH,RSRCH,OPS,DEBUG,REVIEW|} — ${2|Copilot,Claude Opus,Operator|}",
+      "",
+      "**Goal:** ${3:One-sentence description of session objective.}",
+      "",
+      "**Outcome:**",
+      "- ${4:What was accomplished}",
+      "",
+      "**Queue Changes:**",
+      "- Steps started: ${5:none}",
+      "- Steps completed: ${6:none}",
+      "- Steps blocked: ${7:none}",
+      "- MO-* updates: ${8:none}",
+      "",
+      "**Files Modified:**",
+      "- ${9:path/to/file} — ${10:what changed}",
+      "",
+      "**Test Baseline:** ${11:NNN} passing",
+      "",
+      "**Handoff Notes:**",
+      "> ${12:What should the next session know?}",
+      ""
+    ],
+    "description": "Full session log entry for SESSION_LOG.md (see SESSION_TOPOLOGY.md §4)"
+  },
+  "Session Log Entry (Short)": {
+    "scope": "markdown",
+    "prefix": "slog-short",
+    "body": [
+      "## [${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE} ${CURRENT_HOUR}:${CURRENT_MINUTE} UTC] — ${1|IMPL,ARCH,RSRCH,OPS,DEBUG,REVIEW|} — ${2|Copilot,Claude Opus,Operator|}",
+      "${3:Brief one-line summary.} Tests: ${4:NNN} passing.",
+      ""
+    ],
+    "description": "One-line session log entry for trivial sessions"
+  },
+  "Session Log Queue Changes": {
+    "scope": "markdown",
+    "prefix": "slog-queue",
+    "body": [
+      "**Queue Changes:**",
+      "- Steps started: ${1:none}",
+      "- Steps completed: ${2:none}",
+      "- Steps blocked: ${3:none}",
+      "- MO-* updates: ${4:none}",
+      ""
+    ],
+    "description": "Queue changes sub-section for session log entries"
+  },
+  "Session Type Header": {
+    "scope": "markdown",
+    "prefix": "stype",
+    "body": [
+      "**Session Type:** ${1|IMPL,ARCH,RSRCH,OPS,DEBUG,REVIEW|} (see SESSION_TOPOLOGY.md §2)",
+      "**Context Loaded:** ${2:list key files read}",
+      ""
+    ],
+    "description": "Session type identification header"
+  }
+}

@@ -1,0 +1,22 @@
+source_id: deep_residual_learning_for_portfolio_optimization_with_attention_and_switching_modules
+source_type: article
+title: Deep Residual Learning for Portfolio Optimization:With Attention and Switching Modules
+url: https://engineering.nyu.edu/sites/default/files/2019-03/NYU%20FRE%20Seminar-Jifei%20Wang%20%28slides%29.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Resources > Presentations; Jeff Wang, Ph.D., NYU
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

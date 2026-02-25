@@ -1,0 +1,22 @@
+source_id: practical_deep_reinforcement_learning_approach_for_stock_trading
+source_type: article
+title: Practical Deep Reinforcement Learning Approach for Stock Trading
+url: https://arxiv.org/pdf/1811.07522
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Zhuoran Xiong, Xiao-Yang Liu, Shan Zhong, Hongyang Yang, Anwar Walid (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

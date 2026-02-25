@@ -1,6 +1,6 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.4
+**Version:** 1.5
 **Last Updated:** Feb 25, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
@@ -9,10 +9,12 @@
 > Humans and LLMs alike should read this before making structural decisions.
 >
 > **Reading order for a new LLM session:**
-> 1. This file (`PROJECT_DESIGN.md`) — decisions, constraints, debt, history
-> 2. `CLAUDE.md` — session context, invariants, quick-reference conventions
-> 3. `IMPLEMENTATION_BACKLOG.md` — what to build next and in what order
-> 4. `.python-style-guide.md` — how to write the code
+> 1. `SESSION_LOG.md` (last 2–3 entries) — what happened recently; handoff notes
+> 2. `SESSION_TOPOLOGY.md` §5 — identify your session type
+> 3. This file (`PROJECT_DESIGN.md`) — decisions, constraints, debt, history
+> 4. `CLAUDE.md` — session context, invariants, quick-reference conventions
+> 5. `IMPLEMENTATION_BACKLOG.md` — what to build next and in what order
+> 6. `.python-style-guide.md` — how to write the code
 
 ---
 
@@ -126,7 +128,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ```
 
 ### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/46/47/48/49/50–56/58/59/60/61/63)
-- Test suite: **521 tests passing**
+- Test suite: **551 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
 - Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
@@ -399,7 +401,7 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 1. `CoinbaseBroker` uses `BTC-GBP` symbol format — matches yfinance natively, no normalisation overhead
 2. Coinbase UK Limited FCA-registered — more appropriate for a UK/GBP operator
 3. `BinanceBroker` already implemented (Step 58) — zero wasted work; becomes the fallback
-4. All 8 strategies are asset-class agnostic — OHLCV is OHLCV regardless of broker
+4. All strategy modules are asset-class agnostic — OHLCV is OHLCV regardless of broker
 5. `RiskManager.approve_signal()` gates everything — broker switch is transparent to risk layer
 6. Coinbase Advanced Trade API sandbox available for paper crypto testing
 
@@ -423,6 +425,67 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 **Reference:** zach1502 repo — LSTM feature patterns (Step 57), `skorch` PyTorch wrapper.
 
 **Implements:** Steps 54–58 ✅, Step 63 ✅
+
+---
+
+### ADR-016: Session Topology for LLM-Managed Sessions
+**Status:** ACCEPTED
+**Date:** 2026-02-25
+**Author:** Architecture review (Feb 25, 2026)
+
+**Context:** GitHub Copilot and Claude Opus sessions are stateless by default. Each new session re-reads the entire project from scratch, risking wasted context, repeated investigations, and contradicted decisions. The LPDD system provides structural documentation but no protocol for how sessions hand off state to each other.
+
+**Decision:** Introduce a two-file session management layer:
+1. `SESSION_TOPOLOGY.md` — defines 6 session types (IMPL, ARCH, RSRCH, OPS, DEBUG, REVIEW) with pre-read checklists, scope guards, context loading priorities, and an agent routing decision tree
+2. `SESSION_LOG.md` — append-only journal of session work with structured entries (goal, outcome, queue changes, files modified, test baseline, handoff notes)
+
+VS Code integration via `.vscode/session.code-snippets` (4 snippets: `slog`, `slog-short`, `slog-queue`, `stype`).
+
+The reading order in `.github/copilot-instructions.md` is updated to start with `SESSION_LOG.md` and `SESSION_TOPOLOGY.md` before the existing LPDD docs.
+
+**Rationale:**
+1. Session continuity — structured handoff notes prevent context loss between sessions
+2. Type-appropriate context loading — DEBUG sessions don’t need to read research specs; IMPL sessions don’t need full ADR history
+3. Scope guards — prevent session type drift (e.g., a DEBUG session accidentally making architectural decisions)
+4. Auditability — the session log provides a chronological record of all LLM interactions with the project
+
+**Consequences:**
+- Every session must append to `SESSION_LOG.md` before ending
+- `SESSION_LOG.md` rotates at 50 entries (archive older entries)
+- Reading order in copilot-instructions expanded from 4 to 6 items
+- No code changes — this is purely a process/documentation decision
+
+---
+
+### ADR-017: Multi-Agent Handoff Protocol + Custom Agent Roles
+**Status:** ACCEPTED
+**Date:** 2026-02-25
+**Author:** Architecture review (Feb 25, 2026)
+**Ref:** SESSION_TOPOLOGY.md §6b–§6d
+
+**Context:** The project uses multiple LLM agent types (Copilot Local, Claude Opus, Background agents) and operator sessions. ADR-016 established session types and routing but did not define how agents formally hand off to each other. VS Code now supports multi-agent session management (agent type selection, session list, parallel sessions) and custom agents via `.agent.md` files.
+
+**Decision:**
+1. **Handoff protocol** (SESSION_TOPOLOGY.md §6b): explicit handoff matrix defining when each session type hands off, what must be included, and what the receiving agent must produce.
+2. **Handoff packet template** (§6c): mandatory structured template for inter-agent handoffs (goal, done, remains, blockers, files, commands, evidence, test baseline).
+3. **Pre-handoff gate** (§6d): ARCH and REVIEW sessions must run `lpdd_consistency_check.py` before handing off.
+4. **Custom agent roles** (`.github/agents/*.agent.md`): three role-specific agents with scope guards:
+   - `lpdd-auditor.agent.md` — governance drift detection (REVIEW type, docs-only edits)
+   - `ops-runner.agent.md` — MO-* milestone execution (OPS type, scripts + evidence only)
+   - `research-reviewer.agent.md` — ML experiment and paper review (RSRCH type, research/ only)
+5. **VS Code workspace settings** (`.vscode/settings.json`): enable `chat.viewSessions.enabled`, `chat.agentsControl.enabled`, `chat.agent.enabled` for session audit trail and agent selection.
+
+**Rationale:**
+1. Formalized handoff prevents context loss when switching between agent types
+2. Role-specific agents enforce scope guards automatically via `.agent.md` instructions
+3. Pre-handoff gate catches governance drift before it propagates across session boundaries
+4. VS Code settings ensure multi-agent features are active for all developers
+
+**Consequences:**
+- All cross-type handoffs must include a handoff packet in SESSION_LOG.md
+- ARCH/REVIEW sessions gain an additional end-of-session gate (consistency check)
+- Three new `.agent.md` files to maintain alongside the main copilot-instructions
+- VS Code settings.json is now a tracked file in the repository
 
 ---
 
@@ -511,10 +574,11 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 **Date:** 2026-02-25
 **Target:** MO-2 (Operational Milestone)
 
-**Problem:** MO-2 requires 3 consecutive in-window paper sessions (08:00–16:00 UTC, LSE market hours) with real fills. Step 1A burn-in is running but has only achieved `non_qualifying_test_mode=true`, `signoff_ready=false` — likely because sessions run outside market hours and therefore produce no live fills.
+**Problem:** MO-2 requires 3 consecutive in-window paper sessions (08:00–16:00 UTC, LSE market hours) with real fills. Step 1A burn-in remains `signoff_ready=false`; current blockers are a mix of in-window execution constraints and symbol-data availability instability on 1-minute UK bars.
 
 **Proposed Change:**
 - Run 3 consecutive in-window paper sessions during LSE market hours (Mon–Fri, 08:00–16:00 UTC)
+- Keep symbol-data preflight gate enabled so low-availability runs fail fast before consuming full session time
 - Each session must produce at least 1 filled order
 - Capture `step1a_burnin_latest.json` artefacts with `signoff_ready=true` for each run
 - Link artefact paths in the Evidence Log under MO-2
@@ -523,9 +587,55 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - `runs_passed ≥ 3` in burn-in tracker
 - `signoff_ready=true` for each of the 3 runs
 - `non_qualifying_test_mode=false` for all 3 runs
-- Artefacts committed to `reports/burnin/` with ISO timestamps
+- Artefacts committed to `reports/uk_tax/step1a_burnin/` with ISO timestamps
 
-**Operator note:** This requires the bot operator to schedule runs during LSE market hours. It cannot be automated end-to-end by an LLM. See `UK_OPERATIONS.md` for the operational runbook.
+**Operator note:** This requires the bot operator to schedule runs during LSE market hours. It cannot be automated end-to-end by an LLM. Use `./scripts/run_mo2_end_to_end.ps1` with symbol preflight enabled (default) and inspect per-run `00_symbol_data_preflight.json`. For active-run decisioning, use `docs/MO2_LIVE_PROGRESS_PROMPT.md`. See `UK_OPERATIONS.md` for the operational runbook.
+
+---
+
+### RFC-005: YFinance Request-Type Retry Policy + Local Store Sizing Decision
+**Status:** PROPOSED
+**Date:** 2026-02-25
+**Target Backlog Step:** 73
+
+**Problem:** Intermittent yfinance false negatives can appear as empty/noisy responses for otherwise healthy symbols, especially on intraday windows. Current behavior has stream-cycle backoff but no explicit per-request retry policy by call type. Separately, local cache exists but no explicit sizing decision has been documented for sustained yfinance-first intraday retention.
+
+**Proposed Change:**
+- Add yfinance-only retry controls in config, scoped by request type:
+    - `period` calls (rolling windows)
+    - `start/end` calls (anchored windows)
+- Keep retry bounded with explicit max attempts and exponential backoff per call type
+- Add attempt/exhaustion observability in provider logs (symbol, interval, request type, attempt)
+- Produce a documented local-store sizing estimate and operational recommendation for UK universe retention
+
+**Acceptance Criteria:**
+- Retry controls are configurable and apply only to `YFinanceProvider`
+- Distinct retry behavior is enforced for `period` and `start/end` request paths
+- Tests cover success-after-retry and exhausted-retry behavior for both call types
+- A feasibility memo exists with assumptions, storage growth estimates, and go/no-go recommendation
+
+---
+
+### RFC-006: Step1A Auto Client-ID Collision Recovery Wrapper
+**Status:** ACCEPTED
+**Date:** 2026-02-25
+**Target Backlog Step:** 74
+
+**Problem:** Step 1A/MO-2 runs can fail intermittently when the selected IBKR API client ID is already in use (`error 326`). Manual operator retries with ad-hoc `IBKR_CLIENT_ID` changes are error-prone and reduce reproducibility.
+
+**Proposed Change:**
+- Add a dedicated Step1A wrapper that:
+    - sets candidate `IBKR_CLIENT_ID` values deterministically
+    - invokes the existing burn-in script unchanged
+    - retries only when collision evidence is detected in burn-in report output
+    - preserves non-collision failure semantics (no masking)
+
+**Acceptance Criteria:**
+- Wrapper forwards all Step1A burn-in parameters
+- Collision retries are bounded by max attempts and stop immediately on non-collision errors
+- Operator runbook points to wrapper as default command path for in-window runs
+
+**Completion Note (Feb 25, 2026):** Implemented as `scripts/run_step1a_burnin_auto_client.ps1`; backlog checklist updated to use wrapper command.
 
 ---
 
@@ -551,15 +661,97 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 | **TD-013** | Slippage model is fixed basis points only | LOW (RESOLVED) | Step 52 | Resolved Feb 24, 2026 — scenario-based spread/impact slippage and IBKR UK commission model added |
 | **TD-014** | No test coverage threshold enforced | LOW (RESOLVED) | Step 53 | Resolved Feb 24, 2026 — `pytest-cov` added with CI gate (`--cov=src --cov-fail-under=90`) and coverage reporting baseline established |
 | **TD-015** | ATR warm-up period not enforced in `min_bars_required()` | LOW | Step 50 / future | `ATRStopsStrategy.min_bars_required()` returns `atr_period` but ATR is sensitive to series start date — long lookback bars (2,000+) affect recent ATR values. `min_bars_required()` should enforce a minimum of 3× `atr_period` as burn-in. Noted by Robot Wealth / Longmore 2017 commenter. |
+| **TD-016** | LPDD queue/doc hygiene drift (stale snapshots + encoding noise) | LOW (RESOLVED) | Step 71 | Resolved Feb 25, 2026 — normalized authoritative queue block, aligned reading-order references, added LPDD sync checklist, and introduced `scripts/lpdd_consistency_check.py` with test coverage. |
+| **TD-017** | UK intraday symbol availability instability can block MO-2 fills | MEDIUM (RESOLVED) | Step 72 | Resolved Feb 25, 2026 — added symbol-universe health evaluation, strict paper-trial block by availability threshold, and optional deterministic remediation with audit visibility. |
+| **TD-018** | No request-type-specific yfinance retry policy; local cache sizing decision undocumented | MEDIUM | Step 73 / RFC-005 | Intermittent provider false negatives may cause avoidable run instability; design/implementation tracked under Step 73 with explicit feasibility note requirement. |
+| **TD-019** | Step1A runs rely on manual IBKR client-id selection, causing avoidable collision failures | MEDIUM (RESOLVED) | Step 74 / RFC-006 | Resolved Feb 25, 2026 — added auto client-id wrapper with bounded retry on collision evidence and non-collision fail-fast behavior. |
 
 ---
 
 ## §6 Evolution Log
 
+### [2026-02-25] Step 70 — External Literature Deep-Review Synthesis Pack
+- Full synthesis pack created in `research/tickets/external_literature_deep_review_2026-02.md`.
+- All required sources scored and verdicts mapped using Step 64 rubric.
+- No "adopt now" candidates; four "research first" sources identified for future research framing only.
+- Actionable recommendations: broker adapter conformance checks, integration maturity labels, release-provenance checklist, RL research caveats (all mapped to Copilot/ops subtasks or research notes).
+- All recommendations and rejections explicitly mapped to LPDD hard invariants; no roadmap or architecture changes made.
+- Validation: all required review inputs covered, meta-analyses included, YAML stubs generated for scored sources, and summary matrix included in synthesis pack.
+- No new tickets created; all recommendations are subtask-level or research-note only.
+
 > Append-only. Record major decisions, completions, and pivots in chronological order.
 > Format: `[Date] [Author] — [What changed and why]`
 
 ---
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Completed Step 73: yfinance request-type retry controls + local-store feasibility closeout:
+    - finalized settings-scoped yfinance retry policy (`period` vs `start/end`) and runtime provider wiring
+    - expanded retry coverage tests to include both request-type success-after-retry and retry-exhausted paths
+    - validated targeted provider/feed tests and full suite
+    - updated backlog queue state: Step 73 moved IN PROGRESS → COMPLETED
+
+**[2026-02-25] Session (Copilot / Claude Opus 4.6)**
+- Implemented multi-agent handoff protocol and custom agent roles (ADR-017):
+    - added SESSION_TOPOLOGY.md §6b (handoff matrix with 9 cross-type scenarios), §6c (handoff packet template), §6d (pre-handoff consistency gate)
+    - created 3 custom agent definitions: `.github/agents/lpdd-auditor.agent.md`, `ops-runner.agent.md`, `research-reviewer.agent.md`
+    - created `.vscode/settings.json` with `chat.viewSessions.enabled`, `chat.agentsControl.enabled`, `chat.agent.enabled`
+    - updated PROJECT_DESIGN.md §10 agent assignment matrix with custom agent roles table
+    - added ADR-017, Step 75 ticket, updated governance doc references
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Completed Step 74: added Step1A auto client-id collision recovery wrapper:
+    - new `scripts/run_step1a_burnin_auto_client.ps1` retries with incremented `IBKR_CLIENT_ID` values when collision evidence is detected
+    - preserves non-collision failures (no hidden retries) and restores original env state after run
+    - updated `IMPLEMENTATION_BACKLOG.md` in-window checklist to use wrapper command
+    - wired `scripts/run_step1a_market.ps1` to use the wrapper so window-guarded and MO-2 orchestrated runs inherit collision recovery
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Added RFC-006 and resolved TD-019 to formalize Step1A client-id collision mitigation in LPDD.
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Added IBKR TWS API hardening mapping into the operational Step 1A runbook (`IMPLEMENTATION_BACKLOG.md`):
+    - explicit pre-checks for TWS API settings and unique `IBKR_CLIENT_ID`
+    - clear distinction between informational startup farm messages (2104/2106/2158) and blocking errors (326/502/socket breaks)
+    - logging/triage guidance for failed in-window runs to improve MO-2 reliability and reproducibility
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Progressed open reliability item Step 73 (IN PROGRESS):
+    - implemented yfinance request-type retry controls (`period` vs `start/end`) via settings-driven policy
+    - wired market-feed provider construction to pass runtime retry config
+    - added retry-focused tests (`tests/test_data_providers.py`) and regression validation (`tests/test_data_feed.py`)
+    - added local-store sizing feasibility memo (`docs/YFINANCE_LOCAL_STORE_FEASIBILITY.md`)
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Added new LPDD-tracked reliability ticket for yfinance call handling and storage planning:
+    - RFC-005 (PROPOSED): request-type-specific yfinance retry policy + local store sizing decision
+    - TD-018 added to debt register and linked to Step 73
+- Backlog alignment: new Step 73 added in `IMPLEMENTATION_BACKLOG.md` and promoted to the actionable queue
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Added automatic symbol-data preflight gate for Step 1A / MO-2 paper runs:
+    - `scripts/run_step1a_burnin.ps1` now checks per-symbol intraday data availability before each run
+    - run blocks with `reason=symbol_data_preflight_failed` when availability ratio falls below threshold
+    - threshold and preflight controls are configurable via wrapper/orchestrator parameters
+- Wired parameter passthrough and reporting updates:
+    - `scripts/run_step1a_market.ps1`, `scripts/run_step1a_market_if_window.ps1`, `scripts/run_mo2_end_to_end.ps1`, and root `run_step1a_market_if_window.ps1`
+    - orchestration reports now include preflight gate configuration for traceability
+- Added follow-up implementation ticket:
+    - Step 72 — UK paper symbol-universe reliability hardening (auto-remediation policy + audit visibility)
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Reviewed external repositories/articles for practical fit against LPDD constraints (UK-first equities, paper-before-live, governance-first):
+    - `asavinov/intelligent-trading-bot`, `Mun-Min/ML_Trading_Bot`, `shayleaschreurs/Machine-Learning-Trading-Bot`, `CodeDestroyer19/Neural-Network-MT5-Trading-Bot`, `pskrunner14/trading-bot`, `owocki/pytrader`, `cbailes/awesome-deep-trading`, and listed blog/article sources
+- Outcome: retained selective process/workflow improvements; rejected runtime replacement ideas and unsupported high-return claims that conflict with evidence discipline
+- Added new backlog tickets from this review:
+    - Step 64 — External source triage + reproducibility scorecard
+    - Step 65 — Research claim-integrity gate (anti-hype checks)
+    - Step 66 — Pairs-trading benchmark baseline (UK universe)
+    - Step 67 — RL trading feasibility spike (**Needs Claude Opus Review**)
+    - Step 68 — Deep-sequence governance gate (**Needs Claude Opus Review**)
+    - Step 69 — Further Research: UK sentiment data utility validation
+- Follow-up backlog addition (deferred research request):
+    - Step 70 — Further Research: external literature deep-review synthesis pack (full pass over `awesome-deep-trading` meta/systematic-review list + prior run sources)
 
 **[2026-02-23] Session (Claude Sonnet 4.6)**
 - Completed Prompts 1–7, Steps 1–23 (paper trial automation, risk controls, UK guardrails, backtest engine, promotion framework)
@@ -783,6 +975,79 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
     - Copilot actionable queue: **0**
     - Remaining not-started work is Opus-gated (`32`, `57`, `62`) plus operator milestones (MO-2+)
 
+**[2026-02-25] Session Topology System (Claude Opus 4.6)**
+- ADR-016 added: Session Topology for LLM-Managed Sessions
+- Created `SESSION_TOPOLOGY.md` (v1.0) — 6 session types with pre-read checklists, scope guards, context loading priorities, routing decision tree, and continuity patterns
+- Created `SESSION_LOG.md` — append-only session journal with 3 seed entries from recent work
+- Created `.vscode/session.code-snippets` — 4 snippets (`slog`, `slog-short`, `slog-queue`, `stype`)
+- Updated `.github/copilot-instructions.md` — reading order expanded from 4 to 6 items; session protocol section added
+- Updated `DOCUMENTATION_INDEX.md` with new files
+- Updated `PROJECT_DESIGN.md` §8 Key Document Map with `SESSION_TOPOLOGY.md` and `SESSION_LOG.md`
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 64 Complete**
+- Completed Step 64 (External source triage + reproducibility scorecard)
+    - added rubric: `docs/SOURCE_REVIEW_RUBRIC.md`
+    - added template: `research/specs/SOURCE_REVIEW_TEMPLATE.md`
+    - added utility: `scripts/source_review.py` (weighted score + verdict mapping)
+    - added seed review artifact: `research/tickets/source_reviews/asavinov_intelligent_trading_bot.yaml`
+    - added tests: `tests/test_source_review.py`
+- Validation:
+    - `python -m pytest tests/test_source_review.py -q` → **7 passed**
+    - `python scripts/source_review.py research/tickets/source_reviews/asavinov_intelligent_trading_bot.yaml` → score **61.75**, verdict **Research first**
+- Added follow-up LPDD hygiene backlog ticket:
+    - Step 71 — queue consistency + encoding cleanup + LPDD consistency checker
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 71 Complete**
+- Completed Step 71 (LPDD process hygiene + queue consistency pass)
+    - normalized queue authority in `IMPLEMENTATION_BACKLOG.md` to the top `Copilot Task Queue` section
+    - removed stale duplicate queue snapshot block in active top-of-file section and clarified legacy-queue policy
+    - aligned session-topology-first reading-order references across `IMPLEMENTATION_BACKLOG.md`, `.github/copilot-instructions.md`, and `DOCUMENTATION_INDEX.md`
+    - fixed `IMPL_BACKLOG.md` typo references in `SESSION_TOPOLOGY.md` (`IMPLEMENTATION_BACKLOG.md`)
+    - added `SESSION_TOPOLOGY.md` §10 LPDD end-of-session sync checklist
+    - added `scripts/lpdd_consistency_check.py` + `tests/test_lpdd_consistency_check.py`
+- Validation:
+    - `python -m pytest tests/test_lpdd_consistency_check.py -q` → **4 passed**
+    - `python scripts/lpdd_consistency_check.py --root .` → **passed**
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 72 Complete**
+- Completed Step 72 (UK paper symbol-universe reliability hardening)
+    - added `src/data/symbol_health.py` with symbol availability evaluation and strict/remediation policy decisions
+    - added `Settings` controls for strict mode, availability threshold, min bars, preflight window, and remediation limits
+    - wired policy into `cmd_paper_trial()` startup so strict mode blocks low-availability runs before stream startup
+    - added `SYMBOL_UNIVERSE_REMEDIATED` audit event when remediation changes active symbols
+    - added tests: `tests/test_symbol_health.py` and runtime integration cases in `tests/test_main_paper_trial.py`
+- Validation:
+    - `python -m pytest tests/test_symbol_health.py tests/test_main_paper_trial.py -v` → **8 passed**
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 65 Complete**
+- Completed Step 65 (Research claim-integrity gate; anti-hype caution checks)
+    - updated `research/specs/RESEARCH_PROMOTION_POLICY.md` with required claim-integrity fields (OOS period, costs/slippage, max drawdown, turnover, tested variants)
+    - updated `research/specs/RESEARCH_SPEC.md` with claim-integrity discipline note
+    - extended `research/experiments/harness.py` promotion outputs with `claim_integrity`, `caution_flags`, and reviewer caution text
+    - added `high_return_claim_unverified` caution when annualized return > 100% and evidence is incomplete
+    - extended `tests/test_research_harness.py` for caution-trigger and clean-pass coverage
+- Validation:
+    - `python -m pytest tests/test_research_harness.py -q` → **6 passed**
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 66 Complete**
+- Completed Step 66 (Pairs-trading benchmark baseline)
+    - added `src/strategies/pairs_mean_reversion.py` with rolling z-score spread logic and max-holding-bar exits
+    - added pairs strategy config fields in `config/settings.py`
+    - registered runtime strategy key `pairs_mean_reversion` in `src/cli/runtime.py`
+    - added pairs strategy tests in `tests/test_strategies.py` (min bars, entry, max-holding exit)
+    - updated `research/specs/RESEARCH_SPEC.md` benchmark-comparison note for ML experiment discipline
+- Validation:
+    - `python -m pytest tests/test_strategies.py -q` → **30 passed**
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Step 69 Complete**
+- Completed Step 69 (UK sentiment data utility validation ticket)
+    - added `research/tickets/uk_sentiment_validation.md` with two candidate UK-compatible sentiment data paths
+    - added constrained offline experiment plan and explicit validation thresholds (`PR-AUC +0.02`, max drawdown deterioration `<=5%`)
+    - added recommendation template (`proceed` / `park` / `reject`)
+    - updated `research/specs/FEATURE_LABEL_SPEC.md` with optional Step 69 note (no runtime integration)
+- Operational review update:
+    - highlighted manual-execution scripts for live-window testing in `UK_OPERATIONS.md` §9b
+
 ---
 
 ## §7 Hard Constraints (Never Break Without an ADR)
@@ -817,6 +1082,8 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | `CLAUDE.md` | Session context, quick-reference invariants, LLM instructions | Every session |
 | `IMPLEMENTATION_BACKLOG.md` | What to build next, prompts, step-by-step tasks | When picking up a task |
 | `.python-style-guide.md` | How to write code (16 sections, gotchas, patterns) | Before writing non-trivial code |
+| `SESSION_TOPOLOGY.md` | Session types, context routing, handoff protocol | Start of every session (identify type) |
+| `SESSION_LOG.md` | Append-only session journal with structured handoff entries | Start of every session (read last 2–3) |
 | `.github/copilot-instructions.md` | GitHub Copilot workspace instructions (LPDD-aware) | Auto-read by Copilot |
 | `docs/ARCHITECTURE_DECISIONS.md` | Full AQ1–AQ9 decisions with rationale — detail reference | When you need full rationale behind ADR-001–009 |
 | `docs/DATA_PROVIDERS_REFERENCE.md` | All 10 data providers, prompts, free tier limits | When working on data or research steps |
@@ -856,6 +1123,7 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 > **GitHub Copilot** works autonomously from the IMPLEMENTATION_BACKLOG Copilot Task Queue.
 > **Claude Opus (this chat)** handles tasks requiring architectural judgment or research methodology decisions.
 > **Operator** handles milestones requiring human action.
+> **Custom agents** (`.github/agents/*.agent.md`) handle role-specific work with enforced scope guards (ADR-017).
 
 ### Assignment Rules
 
@@ -867,6 +1135,9 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | Adding a new broker (`BrokerBase` subclass) | **Copilot** | Pattern: follow `BinanceBroker` |
 | Adding a new strategy (`BaseStrategy` subclass) | **Copilot** | Pattern: follow `ma_crossover.py` |
 | Updating LPDD after step completion | **Copilot** | Mechanical; instructions in `copilot-instructions.md` |
+| LPDD consistency audit / governance drift check | **LPDD Auditor** (custom agent) | Scope-guarded to docs-only; runs consistency check |
+| Running MO-* paper trials and burn-in sessions | **Ops Runner** (custom agent) | Scope-guarded to scripts + evidence; no code edits |
+| ML experiment review / external paper assessment | **Research Reviewer** (custom agent) | Scope-guarded to research/; enforces claim-integrity |
 | Designing a new module interface from scratch | **Claude Opus** | Requires trade-off analysis |
 | ML architecture decisions (layers, loss, regularisation) | **Claude Opus** | Domain knowledge + project context required |
 | Research methodology (feature selection, target design, evaluation) | **Claude Opus** | High impact on model validity |
@@ -876,6 +1147,14 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | Scheduling paper sessions | **Operator** | Human action only |
 | Signing off promotion gate evidence | **Operator** | Human accountability required |
 | Populating `.env` with credentials | **Operator** | Security — never commit secrets |
+
+### Custom Agent Roles (ADR-017)
+
+| Agent File | Session Type | Scope | When to Use |
+|---|---|---|---|
+| `.github/agents/lpdd-auditor.agent.md` | REVIEW | Governance docs only (no code) | After multi-doc sessions, periodic hygiene, pre-release |
+| `.github/agents/ops-runner.agent.md` | OPS | Scripts + evidence (no code) | MO-2 burn-in, paper trials, IBKR health checks |
+| `.github/agents/research-reviewer.agent.md` | RSRCH | research/ only (no src/) | Experiment review, paper assessment, promotion gates |
 
 ### Currently Not-Started Step Assignments
 

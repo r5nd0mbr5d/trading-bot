@@ -1,0 +1,22 @@
+source_id: reinforcement_learning_based_portfolio_management_with_augmented_asset_movement_prediction
+source_type: article
+title: Reinforcement-Learning based Portfolio Management with Augmented Asset Movement Prediction States
+url: https://www.aaai.org/Papers/AAAI/2020GB/AAAI-YeY.4483.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Portfolio; Yunan Ye, Hengzhi Pei, Boxin Wang, Pin-Yu Chen, Yada Zhu, Jun Xiao, Bo Li (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

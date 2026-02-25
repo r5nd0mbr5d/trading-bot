@@ -33,7 +33,11 @@ class PaperDaemon:
     def _build_logger(log_path: str) -> logging.Logger:
         logger = logging.getLogger("paper_daemon")
         logger.setLevel(logging.INFO)
-        logger.handlers.clear()
+        for existing_handler in list(logger.handlers):
+            try:
+                existing_handler.close()
+            finally:
+                logger.removeHandler(existing_handler)
 
         path = Path(log_path)
         path.parent.mkdir(parents=True, exist_ok=True)

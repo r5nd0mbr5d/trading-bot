@@ -1,0 +1,22 @@
+source_id: can_deep_learning_predict_risky_retail_investors_a_case_study_in_financial_risk_behavior_f
+source_type: article
+title: Can Deep Learning Predict Risky Retail Investors? A Case Study in Financial Risk Behavior Forecasting
+url: https://www.researchgate.net/publication/329734839_Can_Deep_Learning_Predict_Risky_Retail_Investors_A_Case_Study_in_Financial_Risk_Behavior_Forecasting
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Behavioral Analysis; Yaodong Yang, Alisa Kolesnikova, Stefan Lessmann, Tiejun Ma, Ming-Chien Sung, Johnnie E.V. Johnson (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

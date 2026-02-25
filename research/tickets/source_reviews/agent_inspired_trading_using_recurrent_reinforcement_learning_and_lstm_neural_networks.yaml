@@ -1,0 +1,22 @@
+source_id: agent_inspired_trading_using_recurrent_reinforcement_learning_and_lstm_neural_networks
+source_type: article
+title: Agent Inspired Trading Using Recurrent Reinforcement Learning and LSTM Neural Networks
+url: https://arxiv.org/pdf/1707.07338.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; David W. Lu (2017)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

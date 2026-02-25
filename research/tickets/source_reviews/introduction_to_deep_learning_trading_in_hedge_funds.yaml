@@ -1,0 +1,22 @@
+source_id: introduction_to_deep_learning_trading_in_hedge_funds
+source_type: article
+title: Introduction to Deep Learning Trading in Hedge Funds
+url: https://www.toptal.com/deep-learning/deep-learning-trading-hedge-funds
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Resources > Further Reading; Neven Pičuljan
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

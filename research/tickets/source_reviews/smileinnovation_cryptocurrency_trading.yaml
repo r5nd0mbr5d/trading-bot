@@ -1,0 +1,28 @@
+source_id: smileinnovation_cryptocurrency_trading
+source_type: repo
+title: smileinnovation/cryptocurrency-trading
+url: https://github.com/smileinnovation/cryptocurrency-trading
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 40
+  maintenance_health: 10
+  test_evidence: 20
+  risk_controls: 25
+  lpdd_invariant_fit: 35
+  operational_realism: 20
+
+notes:
+  final_verdict: Reject
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - None identified with implementation-grade confidence
+  conflicts:
+    - Critical missing dataset and unimplemented core function block reproducibility
+    - Extremely stale environment assumptions and weak risk/evaluation controls
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject and exclude from shortlist; note as example of non-reproducible ML claims
+      intended_agent: Copilot

@@ -1,0 +1,22 @@
+source_id: generating_realistic_stock_market_order_streams
+source_type: article
+title: Generating Realistic Stock Market Order Streams
+url: https://openreview.net/pdf?id=rke41hC5Km
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories > Datasets > Simulation; Anonymous Authors (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,28 @@
+source_id: application_of_machine_learning_in_stock_trading_a_review
+source_type: article
+title: "Application of machine learning in stock trading: a review"
+url: http://dx.doi.org/10.14419/ijet.v7i2.33.15479
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 62
+  maintenance_health: 55
+  test_evidence: 30
+  risk_controls: 52
+  lpdd_invariant_fit: 72
+  operational_realism: 58
+
+notes:
+  final_verdict: Research first
+  review_scope: Papers > Meta Analyses & Systematic Reviews; Kok Sheng Tan, Rajasvaran Logeswaran (2018)
+  reusable_items:
+    - High-level taxonomy for ML model families and evaluation factors in stock forecasting literature
+  conflicts:
+    - Review-era evidence predates current market microstructure and modern validation expectations
+    - Limited direct mapping to LPDD execution/risk invariants without additional implementation gating
+  ticket_recommendations:
+    - step: 70
+      recommendation: Use as background taxonomy source only; require modern out-of-sample and cost-aware validation before adoption
+      intended_agent: Copilot

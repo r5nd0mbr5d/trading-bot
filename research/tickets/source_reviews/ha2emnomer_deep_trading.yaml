@@ -1,0 +1,22 @@
+source_id: ha2emnomer_deep_trading
+source_type: article
+title: ha2emnomer/Deep-Trading
+url: https://github.com/ha2emnomer/Deep-Trading
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Keras-based LSTM RNN
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

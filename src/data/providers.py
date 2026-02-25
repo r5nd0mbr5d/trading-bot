@@ -40,6 +40,44 @@ class HistoricalDataProvider(Protocol):
 class YFinanceProvider:
     """Default free data provider using yfinance."""
 
+    retry_enabled: bool = True
+    period_max_attempts: int = 1
+    period_backoff_base_seconds: float = 0.0
+    period_backoff_max_seconds: float = 0.0
+    start_end_max_attempts: int = 1
+    start_end_backoff_base_seconds: float = 0.0
+    start_end_backoff_max_seconds: float = 0.0
+
+    @staticmethod
+    def _request_type(start: str | None) -> str:
+        return "start_end" if start else "period"
+
+    def _retry_policy(self, request_type: str) -> tuple[int, float, float]:
+        if not self.retry_enabled:
+            return 1, 0.0, 0.0
+        if request_type == "start_end":
+            max_attempts = max(1, self.start_end_max_attempts)
+            return (
+                max_attempts,
+                max(0.0, self.start_end_backoff_base_seconds),
+                max(0.0, self.start_end_backoff_max_seconds),
+            )
+        max_attempts = max(1, self.period_max_attempts)
+        return (
+            max_attempts,
+            max(0.0, self.period_backoff_base_seconds),
+            max(0.0, self.period_backoff_max_seconds),
+        )
+
+    @staticmethod
+    def _retry_delay(attempt: int, base_seconds: float, max_seconds: float) -> float:
+        if base_seconds <= 0.0:
+            return 0.0
+        delay = base_seconds * (2 ** (attempt - 1))
+        if max_seconds > 0.0:
+            return min(delay, max_seconds)
+        return delay
+
     def fetch_historical(
         self,
         symbol: str,
@@ -49,9 +87,72 @@ class YFinanceProvider:
         end: str | None = None,
     ) -> pd.DataFrame:
         ticker = yf.Ticker(symbol)
-        if start:
-            return ticker.history(start=start, end=end, interval=interval, auto_adjust=True)
-        return ticker.history(period=period, interval=interval, auto_adjust=True)
+        request_type = self._request_type(start)
+        max_attempts, base_backoff_seconds, max_backoff_seconds = self._retry_policy(request_type)
+
+        last_error: Exception | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                if start:
+                    result = ticker.history(start=start, end=end, interval=interval, auto_adjust=True)
+                else:
+                    result = ticker.history(period=period, interval=interval, auto_adjust=True)
+
+                if result.empty:
+                    if attempt >= max_attempts:
+                        logger.warning(
+                            "YFinance retries exhausted (empty result) for %s interval=%s request_type=%s attempts=%s",
+                            symbol,
+                            interval,
+                            request_type,
+                            attempt,
+                        )
+                        return result
+                    delay = self._retry_delay(attempt, base_backoff_seconds, max_backoff_seconds)
+                    logger.warning(
+                        "YFinance empty result for %s interval=%s request_type=%s attempt=%s/%s; retrying in %.2fs",
+                        symbol,
+                        interval,
+                        request_type,
+                        attempt,
+                        max_attempts,
+                        delay,
+                    )
+                    if delay > 0.0:
+                        time.sleep(delay)
+                    continue
+
+                return result
+            except Exception as exc:  # pylint: disable=broad-except
+                last_error = exc
+                if attempt >= max_attempts:
+                    logger.warning(
+                        "YFinance retries exhausted (exception) for %s interval=%s request_type=%s attempts=%s error=%s",
+                        symbol,
+                        interval,
+                        request_type,
+                        attempt,
+                        exc,
+                    )
+                    raise
+                delay = self._retry_delay(attempt, base_backoff_seconds, max_backoff_seconds)
+                logger.warning(
+                    "YFinance request failed for %s interval=%s request_type=%s attempt=%s/%s; retrying in %.2fs (%s)",
+                    symbol,
+                    interval,
+                    request_type,
+                    attempt,
+                    max_attempts,
+                    delay,
+                    exc,
+                )
+                if delay > 0.0:
+                    time.sleep(delay)
+
+        if last_error is not None:
+            raise last_error
+
+        return pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
 
 
 @dataclass
@@ -313,7 +414,10 @@ class AlphaVantageProvider:
         return frame.sort_index()
 
 
-def get_provider(name: str) -> HistoricalDataProvider:
+def get_provider(
+    name: str,
+    yfinance_provider: YFinanceProvider | None = None,
+) -> HistoricalDataProvider:
     """Factory for known providers.
 
     Implemented: yfinance, polygon
@@ -322,7 +426,7 @@ def get_provider(name: str) -> HistoricalDataProvider:
     """
     normalized = (name or "yfinance").strip().lower()
     if normalized in {"yfinance", "yf", "yahoo"}:
-        return YFinanceProvider()
+        return yfinance_provider or YFinanceProvider()
     if normalized in {"polygon"}:
         return PolygonProvider()
     if normalized in {"alpha_vantage"}:

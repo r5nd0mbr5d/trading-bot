@@ -1,0 +1,22 @@
+source_id: algorithmic_trading_and_machine_learning_based_on_gpu
+source_type: article
+title: Algorithmic Trading and Machine Learning Based on GPU
+url: http://ceur-ws.org/Vol-2147/p09.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Mantas Vaitonis, Saulius Masteika, Konstantinas Korovkinas (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

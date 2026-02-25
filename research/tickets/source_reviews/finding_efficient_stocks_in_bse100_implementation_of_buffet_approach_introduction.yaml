@@ -1,0 +1,22 @@
+source_id: finding_efficient_stocks_in_bse100_implementation_of_buffet_approach_introduction
+source_type: article
+title: Finding Efficient Stocks in BSE100: Implementation of Buffet Approach INTRODUCTION
+url: https://www.researchgate.net/publication/340501895_Asian_Journal_of_Management_Finding_Efficient_Stocks_in_BSE100_Implementation_of_Buffet_Approach_INTRODUCTION
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Sherin Varghese, Sandeep Thakur, Medha Dhingra (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

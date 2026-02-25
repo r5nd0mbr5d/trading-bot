@@ -1,0 +1,22 @@
+source_id: application_of_deep_q_network_in_portfolio_management
+source_type: article
+title: Application of Deep Q-Network in Portfolio Management
+url: https://arxiv.org/abs/2003.06365
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Ziming Gao, Yuan Gao, Yi Hu, Zhengyong Jiang, Jionglong Su (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

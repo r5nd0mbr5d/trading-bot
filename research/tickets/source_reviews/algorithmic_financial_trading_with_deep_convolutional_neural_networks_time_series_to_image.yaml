@@ -1,0 +1,22 @@
+source_id: algorithmic_financial_trading_with_deep_convolutional_neural_networks_time_series_to_image
+source_type: article
+title: Algorithmic Financial Trading with Deep Convolutional Neural Networks: Time Series to Image Conversion Approach
+url: https://www.researchgate.net/publication/324802031_Algorithmic_Financial_Trading_with_Deep_Convolutional_Neural_Networks_Time_Series_to_Image_Conversion_Approach
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Convolutional Neural Networks (CNNs); Omer Berat Sezar, Murat Ozbayoglu (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

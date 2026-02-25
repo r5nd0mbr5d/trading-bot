@@ -1,0 +1,22 @@
+source_id: yvictor_tradinggym
+source_type: article
+title: Yvictor/TradingGym
+url: https://github.com/Yvictor/TradingGym
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Trading and Backtesting environment for training reinforcement learning agent or simple rule base algo
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

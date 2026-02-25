@@ -1,0 +1,22 @@
+source_id: gujiuxiang_deep_trader_pytorch
+source_type: article
+title: gujiuxiang/Deep_Trader.pytorch
+url: https://github.com/gujiuxiang/Deep_Trader.pytorch
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; This project uses Reinforcement learning on stock market and agent tries to learn trading. PyTorch based.
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

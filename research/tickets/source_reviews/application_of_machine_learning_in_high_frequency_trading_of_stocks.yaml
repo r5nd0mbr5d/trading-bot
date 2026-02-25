@@ -1,0 +1,22 @@
+source_id: application_of_machine_learning_in_high_frequency_trading_of_stocks
+source_type: article
+title: Application of Machine Learning in High Frequency Trading of Stocks
+url: https://www.ijser.org/researchpaper/Application-of-Machine-Learning-in-High-Frequency-Trading-of-Stocks.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > High Frequency; Obi Bertrand Obi (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

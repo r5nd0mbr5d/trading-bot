@@ -6,7 +6,7 @@ Requires TWS or IB Gateway running locally and `ib_insync` installed.
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 from src.data.models import Order, OrderSide, OrderStatus, Position
 from src.execution.broker import BrokerBase
@@ -22,6 +22,7 @@ class IBKRBroker(BrokerBase):
         self._ib = None
         self._Stock = None
         self._MarketOrder = None
+        self._symbol_currency_cache: Dict[str, str] = {}
         self._connect()
 
     def _connect(self) -> None:
@@ -84,6 +85,25 @@ class IBKRBroker(BrokerBase):
 
     def _connected(self) -> bool:
         return bool(self._ib and self._ib.isConnected())
+
+    def _get_trade_filled_qty(self, trade: Any) -> float:
+        """Return filled quantity from an ib_insync Trade object.
+
+        Handles both attribute and callable variants of ``trade.filled``.
+        """
+        filled_attr = getattr(trade, "filled", 0)
+        try:
+            value = filled_attr() if callable(filled_attr) else filled_attr
+            return float(value or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _cache_contract_currency(self, symbol: str, currency: str) -> None:
+        clean_symbol = str(symbol or "").strip().upper()
+        clean_currency = str(currency or "").strip().upper()
+        if not clean_symbol or not clean_currency:
+            return
+        self._symbol_currency_cache[clean_symbol] = clean_currency
 
     def __del__(self) -> None:
         """Ensure cleanup on garbage collection."""
@@ -179,6 +199,9 @@ class IBKRBroker(BrokerBase):
         )
 
     def get_symbol_currency(self, symbol: str) -> str:
+        cache_key = str(symbol or "").strip().upper()
+        if cache_key in self._symbol_currency_cache:
+            return self._symbol_currency_cache[cache_key]
         return self._contract_spec(symbol)["currency"]
 
     def get_account_base_currency(self) -> str:
@@ -238,14 +261,14 @@ class IBKRBroker(BrokerBase):
                     break
 
                 # Fallback: check if Trade object has fills (via Trade.filled property)
-                filled_qty = trade.filled if hasattr(trade, "filled") else 0
+                filled_qty = self._get_trade_filled_qty(trade)
                 if filled_qty > 0:
                     avg_fill = float(getattr(trade.orderStatus, "avgFillPrice", 0.0) or 0.0)
                     order.filled_price = avg_fill
                     order.filled_at = datetime.now(timezone.utc)
                     order.status = OrderStatus.FILLED
                     logger.info(
-                        "Order %s (%s) filled %d shares at %.4f after %d seconds (via Trade.filled)",
+                        "Order %s (%s) filled %.0f shares at %.4f after %d seconds (via Trade.filled)",
                         order.symbol,
                         order.order_id,
                         filled_qty,
@@ -260,11 +283,11 @@ class IBKRBroker(BrokerBase):
                 status = getattr(trade.orderStatus, "status", None)
                 logger.warning(
                     "Order %s (%s) not filled after 30 seconds, final status: %s, "
-                    "Trade.filled: %d, Trade.isDone: %s",
+                    "Trade.filled: %.0f, Trade.isDone: %s",
                     order.symbol,
                     order.order_id,
                     status,
-                    trade.filled if hasattr(trade, "filled") else 0,
+                    self._get_trade_filled_qty(trade),
                     trade.isDone() if hasattr(trade, "isDone") else None,
                 )
         except Exception as exc:
@@ -297,7 +320,9 @@ class IBKRBroker(BrokerBase):
                 symbol = pos.contract.symbol
                 qty = float(pos.position)
                 avg_entry_price = float(pos.avgCost)
-                market_price = self._market_price(symbol) or avg_entry_price
+                contract_currency = getattr(pos.contract, "currency", "")
+                self._cache_contract_currency(symbol, contract_currency)
+                market_price = self._market_price_for_contract(pos.contract) or avg_entry_price
                 positions[symbol] = Position(
                     symbol=symbol,
                     qty=qty,
@@ -314,6 +339,14 @@ class IBKRBroker(BrokerBase):
             return None
         try:
             contract = self._build_stock_contract(symbol)
+            return self._market_price_for_contract(contract)
+        except Exception:
+            return None
+
+    def _market_price_for_contract(self, contract) -> Optional[float]:
+        if not self._connected():
+            return None
+        try:
             ticker = self._ib.reqMktData(contract, "", False, False)
             self._ib.sleep(0.2)
             market_price = ticker.marketPrice()

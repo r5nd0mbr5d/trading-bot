@@ -60,14 +60,14 @@ def test_get_positions_parses_ibkr_position_rows(monkeypatch):
         def positions(self):
             return [
                 SimpleNamespace(
-                    contract=SimpleNamespace(symbol="VOD"),
+                    contract=SimpleNamespace(symbol="VOD", currency="GBP"),
                     position=5,
                     avgCost=120.5,
                 )
             ]
 
     broker._ib = FakeIB()
-    monkeypatch.setattr(broker, "_market_price", lambda symbol: 121.0)
+    monkeypatch.setattr(broker, "_market_price_for_contract", lambda contract: 121.0)
 
     positions = broker.get_positions()
 
@@ -75,6 +75,7 @@ def test_get_positions_parses_ibkr_position_rows(monkeypatch):
     assert positions["VOD"].qty == 5.0
     assert positions["VOD"].avg_entry_price == 120.5
     assert positions["VOD"].current_price == 121.0
+    assert broker.get_symbol_currency("VOD") == "GBP"
 
 
 def test_build_stock_contract_infers_lse_for_dot_l_symbol(monkeypatch):
@@ -242,3 +243,116 @@ def test_submit_order_maps_rejected_status(monkeypatch):
 
     assert result.order_id == "101"
     assert result.status == OrderStatus.REJECTED
+
+
+def test_submit_order_marks_filled_from_order_status(monkeypatch):
+    broker = _make_broker(monkeypatch)
+
+    class FakeTrade:
+        def __init__(self):
+            self.order = SimpleNamespace(orderId=202)
+            self.orderStatus = SimpleNamespace(status="Filled", avgFillPrice=123.45)
+            self.filled = 1
+
+        def isDone(self):
+            return True
+
+    class FakeIB:
+        def isConnected(self):
+            return True
+
+        def placeOrder(self, contract, ib_order):
+            return FakeTrade()
+
+        def waitOnUpdate(self, timeout):
+            return None
+
+    broker._ib = FakeIB()
+    broker._Stock = lambda *args, **kwargs: SimpleNamespace()
+    broker._MarketOrder = lambda *args, **kwargs: SimpleNamespace()
+
+    order = Order(symbol="HSBA.L", side=OrderSide.BUY, qty=1)
+    result = broker.submit_order(order)
+
+    assert result.order_id == "202"
+    assert result.status == OrderStatus.FILLED
+    assert result.filled_price == 123.45
+    assert result.filled_at is not None
+
+
+def test_submit_order_marks_filled_from_trade_filled_fallback(monkeypatch):
+    broker = _make_broker(monkeypatch)
+
+    class FakeTrade:
+        def __init__(self):
+            self.order = SimpleNamespace(orderId=303)
+            self.orderStatus = SimpleNamespace(status="Submitted", avgFillPrice=98.76)
+            self.filled = 0
+            self._poll_count = 0
+
+        def isDone(self):
+            return self.filled > 0
+
+    trade = FakeTrade()
+
+    class FakeIB:
+        def isConnected(self):
+            return True
+
+        def placeOrder(self, contract, ib_order):
+            return trade
+
+        def waitOnUpdate(self, timeout):
+            trade._poll_count += 1
+            if trade._poll_count >= 2:
+                trade.filled = 1
+            return None
+
+    broker._ib = FakeIB()
+    broker._Stock = lambda *args, **kwargs: SimpleNamespace()
+    broker._MarketOrder = lambda *args, **kwargs: SimpleNamespace()
+
+    order = Order(symbol="VOD.L", side=OrderSide.BUY, qty=1)
+    result = broker.submit_order(order)
+
+    assert result.order_id == "303"
+    assert result.status == OrderStatus.FILLED
+    assert result.filled_price == 98.76
+    assert result.filled_at is not None
+
+
+def test_submit_order_handles_trade_filled_callable(monkeypatch):
+    broker = _make_broker(monkeypatch)
+
+    class FakeTrade:
+        def __init__(self):
+            self.order = SimpleNamespace(orderId=404)
+            self.orderStatus = SimpleNamespace(status="Submitted", avgFillPrice=110.11)
+
+        def isDone(self):
+            return True
+
+        def filled(self):
+            return 1
+
+    class FakeIB:
+        def isConnected(self):
+            return True
+
+        def placeOrder(self, contract, ib_order):
+            return FakeTrade()
+
+        def waitOnUpdate(self, timeout):
+            return None
+
+    broker._ib = FakeIB()
+    broker._Stock = lambda *args, **kwargs: SimpleNamespace()
+    broker._MarketOrder = lambda *args, **kwargs: SimpleNamespace()
+
+    order = Order(symbol="HSBA.L", side=OrderSide.BUY, qty=1)
+    result = broker.submit_order(order)
+
+    assert result.order_id == "404"
+    assert result.status == OrderStatus.FILLED
+    assert result.filled_price == 110.11
+    assert result.filled_at is not None

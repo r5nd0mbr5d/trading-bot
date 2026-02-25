@@ -1,0 +1,22 @@
+source_id: fintech_ai_machine_learning_in_finance
+source_type: article
+title: FinTech, AI, Machine Learning in Finance
+url: https://www.slideshare.net/sanjivdas/fintech-ai-machine-learning-in-finance
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Resources > Presentations; Sanjiv Das (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

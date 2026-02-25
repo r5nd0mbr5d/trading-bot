@@ -1,0 +1,22 @@
+source_id: recommending_cryptocurrency_trading_points_with_deep_reinforcement_learning_approach
+source_type: article
+title: Recommending Cryptocurrency Trading Points with Deep Reinforcement Learning Approach
+url: https://doi.org/10.3390/app10041506
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Cryptocurrency; Otabek Sattarov, Azamjon Muminov, Cheol Won Lee, Hyun Kyu Kang, Ryumduck Oh, Junho Ahn, Hyung Jun Oh, Heung Seok Jeon (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

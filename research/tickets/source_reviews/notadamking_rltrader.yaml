@@ -1,0 +1,22 @@
+source_id: notadamking_rltrader
+source_type: article
+title: notadamking/RLTrader
+url: https://github.com/notadamking/RLTrader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; A cryptocurrency trading environment using deep reinforcement learning and OpenAI's gym
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

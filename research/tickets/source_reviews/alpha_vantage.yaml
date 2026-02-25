@@ -1,0 +1,22 @@
+source_id: alpha_vantage
+source_type: article
+title: Alpha Vantage
+url: https://www.alphavantage.co/
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories > Datasets; Free APIs in JSON and CSV formats, realtime and historical stock data, FX and cryptocurrency feeds, 50+ technical indicators
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

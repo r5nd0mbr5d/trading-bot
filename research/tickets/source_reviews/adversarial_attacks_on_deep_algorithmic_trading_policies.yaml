@@ -1,0 +1,22 @@
+source_id: adversarial_attacks_on_deep_algorithmic_trading_policies
+source_type: article
+title: Adversarial Attacks on Deep Algorithmic Trading Policies
+url: https://arxiv.org/abs/2010.11388
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Vulnerabilities; Yaser Faghan, Nancirose Piazza, Vahid Behzadan, Ali Fathi (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

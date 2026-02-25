@@ -1,0 +1,22 @@
+source_id: high_frequency_trading_strategy_based_on_deep_neural_networks
+source_type: article
+title: High-Frequency Trading Strategy Based on Deep Neural Networks
+url: https://link.springer.com/chapter/10.1007%2F978-3-319-42297-8_40
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Andrés Arévalo, Jaime Niño, German Hernández, Javier Sandoval (2016)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,22 @@
+source_id: comparing_arima_model_and_lstm_rnn_model_in_time_series_forecasting
+source_type: article
+title: Comparing Arima Model and LSTM RNN Model in Time-Series Forecasting
+url: https://analyticsindiamag.com/comparing-arima-model-and-lstm-rnn-model-in-time-series-forecasting/
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Guides; Vaibhav Kumar (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

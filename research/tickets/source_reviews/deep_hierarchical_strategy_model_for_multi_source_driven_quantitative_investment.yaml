@@ -1,0 +1,22 @@
+source_id: deep_hierarchical_strategy_model_for_multi_source_driven_quantitative_investment
+source_type: article
+title: Deep Hierarchical Strategy Model for Multi-Source Driven Quantitative Investment
+url: https://ieeexplore.ieee.org/abstract/document/8743385
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Chunming Tang, Wenyan Zhu, Xiang Yu (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

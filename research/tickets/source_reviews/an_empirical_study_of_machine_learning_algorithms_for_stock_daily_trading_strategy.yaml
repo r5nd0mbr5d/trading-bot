@@ -1,0 +1,22 @@
+source_id: an_empirical_study_of_machine_learning_algorithms_for_stock_daily_trading_strategy
+source_type: article
+title: An Empirical Study of Machine Learning Algorithms for Stock Daily Trading Strategy
+url: https://www.hindawi.com/journals/mpe/2019/7816154/ref/
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Dongdong Lv, Shuhan Yuan, Meizi Li, Yang Xiang (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

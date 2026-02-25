@@ -1,0 +1,28 @@
+source_id: reinforcement_learning_in_financial_markets
+source_type: article
+title: Reinforcement Learning in Financial Markets
+url: https://www.mdpi.com/2306-5729/4/3/110/pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 74
+  maintenance_health: 62
+  test_evidence: 48
+  risk_controls: 66
+  lpdd_invariant_fit: 82
+  operational_realism: 72
+
+notes:
+  final_verdict: Research first
+  review_scope: Papers > Meta Analyses & Systematic Reviews; Terry Lingze Meng, Matloob Khushi (2019)
+  reusable_items:
+    - RL problem framing and environment-design considerations for financial tasks
+    - Common RL evaluation caveats applicable to internal research protocols
+  conflicts:
+    - Survey emphasizes RL potential but does not provide LPDD-compliant production control patterns
+  ticket_recommendations:
+    - step: 70
+      recommendation: Use for RL experiment scoping only; enforce strict risk gate and paper-mode validation before any runtime consideration
+      intended_agent: Copilot

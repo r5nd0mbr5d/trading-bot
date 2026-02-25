@@ -1,0 +1,22 @@
+source_id: deep_learning_based_feature_engineering_for_stock_price_movement_prediction
+source_type: article
+title: Deep learning-based feature engineering for stock price movement prediction
+url: https://www.sciencedirect.com/science/article/abs/pii/S0950705118305264
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Wen Long, Zhichen Lu, Lingxiao Cui (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

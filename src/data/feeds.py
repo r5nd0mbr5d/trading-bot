@@ -16,7 +16,7 @@ import pandas as pd
 from config.settings import Settings
 from src.data.market_data_store import MarketDataStore
 from src.data.models import Bar
-from src.data.providers import HistoricalDataProvider, get_provider
+from src.data.providers import HistoricalDataProvider, YFinanceProvider, get_provider
 from src.data.symbol_utils import normalize_symbol
 
 logger = logging.getLogger(__name__)
@@ -140,14 +140,27 @@ class MarketDataFeed:
     def __init__(self, settings: Settings):
         self.settings = settings
         self._cache: Dict[str, pd.DataFrame] = {}
-        self._primary_provider: HistoricalDataProvider = get_provider(settings.data.source)
+        self._primary_provider: HistoricalDataProvider = self._build_provider(settings.data.source)
         fallback_sources = getattr(settings.data, "fallback_sources", []) or []
         self._fallback_providers: List[HistoricalDataProvider] = [
-            get_provider(source) for source in fallback_sources
+            self._build_provider(source) for source in fallback_sources
         ]
         self._cache_store: Optional[MarketDataStore] = None
         if getattr(settings.data, "cache_enabled", False):
             self._cache_store = MarketDataStore(settings.data.cache_dir)
+
+    def _build_provider(self, source: str) -> HistoricalDataProvider:
+        """Build a provider instance for source, injecting yfinance retry config."""
+        yfinance_provider = YFinanceProvider(
+            retry_enabled=self.settings.yfinance_retry_enabled,
+            period_max_attempts=self.settings.yfinance_period_max_attempts,
+            period_backoff_base_seconds=self.settings.yfinance_period_backoff_base_seconds,
+            period_backoff_max_seconds=self.settings.yfinance_period_backoff_max_seconds,
+            start_end_max_attempts=self.settings.yfinance_start_end_max_attempts,
+            start_end_backoff_base_seconds=self.settings.yfinance_start_end_backoff_base_seconds,
+            start_end_backoff_max_seconds=self.settings.yfinance_start_end_backoff_max_seconds,
+        )
+        return get_provider(source, yfinance_provider=yfinance_provider)
 
     @staticmethod
     def _normalize_ohlcv_index(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
@@ -400,8 +413,9 @@ class MarketDataFeed:
 
             for symbol in symbols:
                 try:
-                    df = self.fetch_historical(symbol, period="5d", interval="1m")
-                    self._cache.pop(f"{symbol}:5d:1m", None)  # don't cache stream data
+                    raw_df = self._fetch_with_fallbacks(symbol=symbol, period="5d", interval="1m")
+                    df = self._normalize_ohlcv_index(raw_df, symbol)
+                    self._cache.pop(f"{symbol}:5d::1m", None)  # don't retain stream cache entries
                     if not df.empty:
                         row = df.iloc[-1]
                         dt = df.index[-1]

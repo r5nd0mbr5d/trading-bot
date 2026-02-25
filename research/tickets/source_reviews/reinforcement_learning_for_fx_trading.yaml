@@ -1,0 +1,22 @@
+source_id: reinforcement_learning_for_fx_trading
+source_type: article
+title: Reinforcement Learning for FX trading
+url: http://stanford.edu/class/msande448/2019/Final_reports/gr2.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Yuqin Dai, Chris Wang, Iris Wang, Yilun Xu (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

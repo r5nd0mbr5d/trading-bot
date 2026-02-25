@@ -1,0 +1,22 @@
+source_id: rosdyana_cnn_financial_data
+source_type: article
+title: rosdyana/CNN-Financial-Data
+url: https://github.com/rosdyana/CNN-Financial-Data
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Deep Trading using a Convolutional Neural Network
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

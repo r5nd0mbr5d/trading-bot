@@ -1,0 +1,28 @@
+source_id: evaluating_the_performance_of_machine_learning_algorithms_in_financial_market_forecasting_
+source_type: article
+title: "Evaluating the Performance of Machine Learning Algorithms in Financial Market Forecasting: A Comprehensive Survey"
+url: https://arxiv.org/abs/1906.07786
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 78
+  maintenance_health: 60
+  test_evidence: 50
+  risk_controls: 62
+  lpdd_invariant_fit: 80
+  operational_realism: 70
+
+notes:
+  final_verdict: Research first
+  review_scope: Papers > Meta Analyses & Systematic Reviews; Lukas Ryll, Sebastian Seidens (2019)
+  reusable_items:
+    - Comparative evaluation framing for ML algorithms and forecasting horizons
+    - Useful checklist-style discussion of validation pitfalls and performance metric interpretation
+  conflicts:
+    - Survey-level conclusions are not executable architecture and must be translated into LPDD-safe experiments
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reuse benchmarking framework language in research specs; do not treat as implementation authority
+      intended_agent: Copilot

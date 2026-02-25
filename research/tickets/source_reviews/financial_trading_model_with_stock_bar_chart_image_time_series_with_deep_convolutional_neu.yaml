@@ -1,0 +1,22 @@
+source_id: financial_trading_model_with_stock_bar_chart_image_time_series_with_deep_convolutional_neu
+source_type: article
+title: Financial Trading Model with Stock Bar Chart Image Time Series with Deep Convolutional Neural Networks
+url: https://arxiv.org/abs/1903.04610
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Omer Berat Sezer, Ahmet Murat Ozbayoglu (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

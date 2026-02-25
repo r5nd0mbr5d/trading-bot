@@ -10,6 +10,14 @@ Quick navigation for enterprise algorithmic trading platform documentation.
 
 Other docs below are references. Check the backlog first when deciding what to work on.
 
+**Session startup order (LPDD + topology):**
+1. `SESSION_LOG.md` (last 2–3 entries)
+2. `SESSION_TOPOLOGY.md` §5
+3. `PROJECT_DESIGN.md`
+4. `CLAUDE.md`
+5. `IMPLEMENTATION_BACKLOG.md`
+6. `.python-style-guide.md`
+
 ---
 
 ## 📖 Documentation Files
@@ -17,7 +25,8 @@ Other docs below are references. Check the backlog first when deciding what to w
 ### 0. **PROJECT_DESIGN.md** — LLM Project Design Document (LPDD)
 **Read before any design or structural work.** The single authoritative source for *why* the project is built the way it is.
 - Architecture Decision Records (ADRs 001–012) — all major decisions with context, rationale, and consequences
-- Active RFCs (RFC-001–003) — proposed changes not yet implemented
+- Architecture Decision Records (ADRs 001–017) — all major decisions with context, rationale, and consequences
+- Active RFCs (RFC-004–006) — currently tracked operational/reliability proposals
 - Technical Debt Register — known issues with backlog step links
 - Evolution Log — append-only record of major changes
 - Hard constraints that cannot be changed without a new ADR
@@ -351,14 +360,40 @@ Would contain:
 **Auto-read by GitHub Copilot** in VS Code. Distils the key rules from CLAUDE.md and
 PROJECT_DESIGN.md into a format Copilot consumes as workspace context.
 
-**Contains:** Reading order, hard invariants, architecture table, code style summary,
-LPDD update conventions (when to add ADR / RFC / Evolution Log entry), what NOT to do
+**Contains:** Reading order (6 items including session log + topology), session protocol,
+hard invariants, architecture table, code style summary, LPDD update conventions, what NOT to do
 
-**Update:** When CLAUDE.md invariants or LPDD conventions change materially.
+**Update:** When CLAUDE.md invariants, LPDD conventions, or session topology change materially.
 
 ---
 
-### 28. **External Resources** — Third-Party References
+### 28. **SESSION_TOPOLOGY.md** — Session Type Definitions & Routing
+**Read at the start of every LLM session** to identify which session type applies (§5 decision tree).
+
+**Contains:**
+- 6 session types: IMPL, ARCH, RSRCH, OPS, DEBUG, REVIEW — each with pre-read list, scope guard, and handoff rules
+- Context loading priority table (§3) — what to read first when context window is limited
+- Agent routing decision tree (§5) — flowchart for type classification
+- Session continuity patterns (§6) — multi-session sprints, design→implement handoffs, debug→fix→verify
+- VS Code integration (§7) — snippets and tasks
+
+**Length:** ~280 lines | **Use for:** Session management, handoff protocol, scope control
+**ADR:** ADR-016 | **Update:** When adding new session types or changing routing rules
+
+---
+
+### 29. **SESSION_LOG.md** — Session Journal (Append-Only)
+**Read the last 2–3 entries at the start of every session** for recent context and handoff notes.
+
+**Contains:** Chronological session entries with structured format (goal, outcome, queue changes,
+files modified, test baseline, handoff notes). Tagged by session type for filtering.
+
+**Rules:** Append-only; rotate at 50 entries (archive to `archive/session_logs/`).
+**Snippets:** Use `slog` / `slog-short` in VS Code (`.vscode/session.code-snippets`).
+
+---
+
+### 30. **External Resources** — Third-Party References
 
 **IBKR Campus (QuantConnect / IBKR Quant)**
 
@@ -639,9 +674,11 @@ LPDD update conventions (when to add ADR / RFC / Evolution Log entry), what NOT 
 
 ---
 
-**Last Updated:** February 24, 2026
-**Total Documentation:** ~8,500 lines (24 active docs; 11 archived)
-**Test Coverage:** 405+ passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
+**Last Updated:** February 25, 2026
+**Total Documentation:** ~9,400 lines (26 active docs; 11 archived; 3 custom agent definitions)
+**Test Coverage:** 551+ passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
 **Status:** Foundation ~75% complete → UK paper-trading + promotion framework + research track specs all operational
 **LPDD:** `PROJECT_DESIGN.md` is now the primary architectural authority — see it for ADRs, RFCs, and evolution log
+**Session Management:** `SESSION_TOPOLOGY.md` + `SESSION_LOG.md` (ADR-016) — see `.github/copilot-instructions.md` for reading order
+**Custom Agents:** `.github/agents/*.agent.md` (ADR-017) — lpdd-auditor, ops-runner, research-reviewer
 

@@ -1,0 +1,22 @@
+source_id: a_novel_deep_learning_framework_prediction_and_analysis_of_financial_time_series_using_cee
+source_type: article
+title: A novel Deep Learning Framework: Prediction and Analysis of Financial Time Series using CEEMD and LSTM
+url: https://www.sciencedirect.com/science/article/abs/pii/S0957417420304334
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); Yong'an Zhang, Binbin Yan, Memon Aasma (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

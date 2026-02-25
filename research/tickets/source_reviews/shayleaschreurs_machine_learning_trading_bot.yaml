@@ -1,0 +1,28 @@
+source_id: shayleaschreurs_machine_learning_trading_bot
+source_type: repo
+title: shayleaschreurs/Machine-Learning-Trading-Bot
+url: https://github.com/shayleaschreurs/Machine-Learning-Trading-Bot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 40
+  maintenance_health: 20
+  test_evidence: 10
+  risk_controls: 20
+  lpdd_invariant_fit: 35
+  operational_realism: 25
+
+notes:
+  final_verdict: Reject
+  review_scope: README + notebook summary + rubric-based governance fit
+  reusable_items:
+    - None identified at implementation-grade quality
+  conflicts:
+    - High-level project narrative with limited methodological detail and no testing harness
+    - No strong evidence of leakage controls or realistic cost/slippage handling
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject for implementation; retain as low-confidence educational artifact
+      intended_agent: Copilot

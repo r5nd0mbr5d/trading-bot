@@ -1,0 +1,22 @@
+source_id: multi_agent_deep_reinforcement_learning_for_liquidation_strategy_analysis
+source_type: article
+title: Multi-Agent Deep Reinforcement Learning for Liquidation Strategy Analysis
+url: https://arxiv.org/abs/1906.11046
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Wenhang Bao, Xiao-yang Liu (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

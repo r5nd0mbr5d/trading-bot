@@ -6,26 +6,26 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 72 (7 Prompts + 64 Next Steps + Code Style Governance)
-**Completed**: 67 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–63 except 57/62)
+**Total Items**: 84 (7 Prompts + 76 Next Steps + Code Style Governance)
+**Completed**: 76 (Prompts 1–7 + completed steps listed in their individual entries)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 3 (Step 32 LSTM/gated behind Step 62, Step 57 BTC LSTM features, Step 62 MLP gate)
+**Not Started**: 5 (Steps 32, 57, 62, 67, 68)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 521 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8 | **Asset classes**: 2
+**Test suite**: 551 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 9 | **Asset classes**: 2
 
 ---
 
 ## Copilot Task Queue
 
 > **For GitHub Copilot:** This section is your entry point. Start here every session.
-> Read `PROJECT_DESIGN.md`, `CLAUDE.md`, and `.python-style-guide.md` first, then pick the top item from the table below.
+> Read `SESSION_LOG.md` (last 2–3 entries), `SESSION_TOPOLOGY.md` §5, `PROJECT_DESIGN.md`, `CLAUDE.md`, `IMPLEMENTATION_BACKLOG.md`, and `.python-style-guide.md` first, then pick the top item from the table below.
 > When done: mark the step COMPLETED in this file, append to `PROJECT_DESIGN.md §6`, run full test suite.
 
 ### ✅ Immediately Actionable — Pick Up Now
 
 | Priority | Step | Name | Effort | Depends on |
 |---|---|---|---|---|
-| — | — | No Copilot-actionable steps remain in this queue. Next items are Opus-gated (32/57/62) or operator milestones (MO-2+). | — | — |
+| MEDIUM | **70** | Further Research: literature deep-review synthesis pack | 4–8h | 64 |
 
 ### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
 
@@ -34,6 +34,8 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 | **62** | Feedforward MLP baseline | Architecture review (layer sizes, regularisation, `skorch` config) |
 | **57** | BTC LSTM feature engineering | Feature set design and multi-timeframe window selection |
 | **32** | LSTM baseline model | Gated behind Step 62 MLP gate; architecture decisions throughout |
+| **67** | RL sandbox track feasibility | Decide if RL belongs in roadmap, define strict guardrails and success criteria |
+| **68** | Deep-sequence model governance gate | Decide minimum evidence required before adding CNN/LSTM/Transformer runtime track |
 
 > **Escalation rule:** If you encounter an ambiguous architectural decision, a test that cannot be fixed without design changes, or a task marked "Claude Opus" above — **stop, commit what you have, and leave a clear note in the step's Completion Notes field explaining the blocker.** Do not guess at architecture.
 
@@ -48,38 +50,9 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ---
 
-**Special Note** (Feb 25, 2026 00:50 UTC):
-- âœ… **Refactoring Progress**:
-  - Step 39 COMPLETE: Added `research/__init__.py`
-  - Step 38 COMPLETE: Extracted broker resilience to `src/execution/resilience.py` (`run_broker_operation`)
-  - Step 40 COMPLETE: Verified `IBKRBroker(BrokerBase)` interface consistency already satisfied
-  - Step 41 COMPLETE: Added model boundary validations (`Signal.strength`, timezone-aware timestamps) + tests
-  - Step 37 COMPLETE: `cmd_paper` now delegates bar processing to `TradingLoopHandler` + stream event builders
-  - Step 42 COMPLETE: Added shared `ReportingEngine` and routed reporting/audit loaders through it
-  - Step 43 COMPLETE: Extracted CLI parser/dispatch into `src/cli/arguments.py`; `main.py` now uses parser + dispatch entrypoint wiring
-- âœ… Test Suite: All 436 tests passing post-refactoring (no regressions)
-- âœ… Code Quality: All files black-formatted, isort-sorted, pre-commit hooks ready
-- âœ… Git: Repository initialized and pushed to GitHub (https://github.com/r5nd0mbr5d/trading-bot)
-- âœ… Push Record: Commit `32e01f7` pushed to `origin/main` (Feb 24, 2026 19:52 UTC)
-  - Summary: Closed refactor backlog Steps 37â€“43 with trading loop decomposition, shared reporting engine, and CLI parser/dispatch extraction
-
-Last updated: Feb 25, 2026 00:56 UTC
-
-**Latest**: Refactor backlog closure commit pushed to https://github.com/r5nd0mbr5d/trading-bot
-- Commit: `32e01f7` â€” Close refactor backlog steps 37â€“43 with loop decomposition and shared reporting engine
-
-### Recent Commits (Handoff)
-
-- `3e9811d` â€” Document refactor closure push record in backlog
-- `32e01f7` â€” Close refactor backlog steps 37â€“43 with loop decomposition and shared reporting engine
-- `5d09489` â€” Initial commit with style governance, execution flows, and comprehensive documentation
-
-### Queue Snapshot (Outstanding)
-
-- Claude Opus Queue: **0**
-- Copilot Queue (Non-Opus): **0**
-- Manual Operator Queue: **7** (MO-1 closed; MO-2 and MO-3â€“8 remain)
-- Actionable Now Queue: **1** (Step 1A burn-in)
+**Queue Authority Note (Step 71):**
+- The three tables in this `Copilot Task Queue` section are the only authoritative queue source.
+- Any legacy queue snapshots elsewhere in this file are historical only and non-authoritative.
 
 ---
 
@@ -2279,7 +2252,366 @@ black --check src/ tests/ backtest/ --line-length 100
 
 ---
 
-## Progress Timeline
+### Step 64: External Source Triage + Reproducibility Scorecard
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — external examples are useful but highly variable quality; a repeatable scoring rubric reduces time spent on low-quality sources and prevents architecture drift from hype content
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement a lightweight external-source review framework. (1) Add `docs/SOURCE_REVIEW_RUBRIC.md` with scoring dimensions: reproducibility, maintenance, test evidence, risk controls, fit to LPDD invariants, and operational realism. (2) Add `research/specs/SOURCE_REVIEW_TEMPLATE.md` for per-source notes: verdict (`Adopt now`/`Research first`/`Reject`), reusable items, conflicts, and ticket recommendations. (3) Add `scripts/source_review.py` that reads a YAML/JSON review file and computes a weighted score plus recommended verdict. (4) Add one seed review artifact under `research/tickets/source_reviews/` for `asavinov/intelligent-trading-bot` to validate workflow. (5) Add tests for score boundary mapping (`>=80 adopt`, `50–79 research`, `<50 reject`) and missing-field validation.
+
+**Scope**:
+- `docs/SOURCE_REVIEW_RUBRIC.md` — scoring rubric
+- `research/specs/SOURCE_REVIEW_TEMPLATE.md` — analyst template
+- `scripts/source_review.py` — deterministic score + verdict utility
+- `research/tickets/source_reviews/asavinov_intelligent_trading_bot.yaml` — seed review artifact
+- `tests/test_source_review.py` — parser/score tests
+
+**Estimated Effort**: 2–4 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added rubric: `docs/SOURCE_REVIEW_RUBRIC.md` with six weighted dimensions and deterministic verdict mapping
+- Added per-source template: `research/specs/SOURCE_REVIEW_TEMPLATE.md`
+- Added scoring utility: `scripts/source_review.py` (JSON + YAML input, weighted score, verdict output)
+- Added seed review artifact: `research/tickets/source_reviews/asavinov_intelligent_trading_bot.yaml`
+- Added tests: `tests/test_source_review.py` covering verdict boundaries and validation errors
+- Validation:
+  - `python -m pytest tests/test_source_review.py -q` → **7 passed**
+  - `python scripts/source_review.py research/tickets/source_reviews/asavinov_intelligent_trading_bot.yaml` → score `61.75`, verdict `Research first`
+
+---
+
+### Step 65: Research Claim-Integrity Gate (Anti-Hype Checks)
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — several reviewed sources report extreme returns without standardized evidence; this step enforces minimum claim quality before promotion discussion
+**Intended Agent**: Copilot
+**Execution Prompt**: Add a claim-integrity gate for research outputs. (1) Define required evidence fields in `research/specs/RESEARCH_PROMOTION_POLICY.md`: out-of-sample period, transaction costs/slippage assumptions, max drawdown, turnover, and number of tested variants. (2) Extend research result artifacts (or sidecar metadata) with these fields. (3) In promotion checklist generation, emit `CAUTION` flags when any required field is missing; do not hard-fail yet. (4) Add report text: `high_return_claim_unverified` when annualized return > 100% and evidence fields are incomplete. (5) Add tests covering caution triggers and clean pass case.
+
+**Scope**:
+- `research/specs/RESEARCH_PROMOTION_POLICY.md` — claim-integrity requirements
+- `research/experiments/harness.py` (or equivalent checklist generator) — caution flags
+- `research/specs/RESEARCH_SPEC.md` — integrity note
+- `tests/test_research_harness.py` — caution/clean-path assertions
+
+**Depends on**: Step 64
+**Estimated Effort**: 3–5 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added claim-integrity metadata requirements in `research/specs/RESEARCH_PROMOTION_POLICY.md` (Section 3c)
+- Updated `research/specs/RESEARCH_SPEC.md` with claim-integrity discipline requirements
+- Extended `research/experiments/harness.py` promotion output with:
+  - `claim_integrity` field block (required evidence fields + completeness)
+  - `caution_flags` list for missing evidence
+  - `high_return_claim_unverified` when annualized return > 100% and evidence is incomplete
+  - `claim_integrity_caution` reviewer notice text when relevant
+- Added/extended tests in `tests/test_research_harness.py` for:
+  - missing-field caution triggers
+  - high-return unverified caution
+  - clean-pass case with complete evidence
+- Validation:
+  - `python -m pytest tests/test_research_harness.py -q` → **6 passed**
+
+---
+
+### Step 66: Pairs-Trading Benchmark Baseline (UK Universe)
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: MEDIUM — simple statistical baselines from external sources provide a sanity-check comparator for ML models and improve promotion discipline
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement a transparent non-ML benchmark strategy for comparison. (1) Add `src/strategies/pairs_mean_reversion.py` using rolling z-score spread between two symbols, with configurable entry/exit thresholds and max holding bars. (2) Enforce existing invariants: strategy emits `Signal` only; order path remains through `RiskManager.approve_signal()`. (3) Add CLI registration in `src/cli/runtime.py` (not `main.py`). (4) Add backtest coverage for signal generation and `min_bars_required()` behavior. (5) Add documentation note in `research/specs/RESEARCH_SPEC.md` that ML experiments should compare against this benchmark when applicable.
+
+**Scope**:
+- `src/strategies/pairs_mean_reversion.py` — new strategy
+- `src/cli/runtime.py` — strategy registration
+- `tests/test_strategies.py` — pairs strategy tests
+- `research/specs/RESEARCH_SPEC.md` — benchmark comparison note
+
+**Estimated Effort**: 4–6 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Implemented `PairsMeanReversionStrategy` in `src/strategies/pairs_mean_reversion.py`
+  - rolling z-score spread over two configured symbols
+  - long-only entry on negative z-score threshold breach
+  - exit on z-score mean reversion or max holding bars
+  - emits `Signal` only (order path remains through `RiskManager.approve_signal()`)
+- Added strategy config fields in `config/settings.py` (`pair_lookback`, z-score thresholds, max holding bars, hedge ratio, pair symbols)
+- Registered strategy in runtime map in `src/cli/runtime.py` as `pairs_mean_reversion`
+- Added tests in `tests/test_strategies.py` for min-bars behavior, entry signal, and max-holding exit
+- Updated `research/specs/RESEARCH_SPEC.md` to require benchmark comparison against `pairs_mean_reversion` where applicable
+- Validation:
+  - `python -m pytest tests/test_strategies.py -q` → **30 passed**
+
+---
+
+### Step 67: RL Trading Track Feasibility Spike — Needs Claude Opus Review
+**Status**: NOT STARTED
+**Priority**: MEDIUM — RL appears frequently in external material, but architecture and evaluation risk are high; requires design judgment before implementation
+**Intended Agent**: Claude Opus
+**Execution Prompt**: Produce a design memo deciding whether to add an RL research track. Include: (1) compatibility with UK-first, paper-before-live governance, (2) reproducibility requirements, (3) minimal sandbox design boundaries, (4) reward-function pitfalls and leakage controls, (5) explicit go/no-go criteria and rollback criteria. If go: define smallest safe Step plan; if no-go: document rejection rationale.
+
+**Scope**:
+- `research/tickets/rl_feasibility_spike.md` — decision memo (no runtime code)
+- LPDD references to decision outcome (if approved)
+
+**Dependencies**: None
+**Estimated Effort**: 4–8 hours
+
+---
+
+### Step 68: Deep-Sequence Model Governance Gate — Needs Claude Opus Review
+**Status**: NOT STARTED
+**Priority**: MEDIUM — external CNN/LSTM/Transformer examples show high complexity and weak reproducibility; needs clear governance before any expansion beyond current MLP/LSTM backlog path
+**Intended Agent**: Claude Opus
+**Execution Prompt**: Define a governance gate for adding sequence models (CNN/LSTM/Transformer). Deliver: (1) minimum evidence requirements (walk-forward, costs, stability), (2) data-volume and feature-leakage controls, (3) compute budget constraints, (4) promotion thresholds relative to XGBoost/MLP baselines, and (5) recommendation on whether to keep or retire Step 32/57 sequencing assumptions.
+
+**Scope**:
+- `research/tickets/deep_sequence_governance_spike.md` — decision memo
+- optional LPDD RFC draft if policy changes are proposed
+
+**Dependencies**: Steps 62 and 57 context
+**Estimated Effort**: 4–8 hours
+
+---
+
+### Step 69: Further Research — UK Sentiment Data Utility Validation
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: MEDIUM — sentiment is promising in reviewed sources but value for UK-first equities is uncertain and may add noise/cost
+**Intended Agent**: Copilot
+**Execution Prompt**: Run a constrained research ticket (no runtime integration). (1) Identify two candidate UK-compatible sentiment data paths (free/low-cost). (2) Build a small offline experiment plan comparing baseline features vs +sentiment features on one approved symbol basket. (3) Define explicit validation criteria: must improve PR-AUC by ≥0.02 and not worsen max drawdown by >5% relative to baseline. (4) Output recommendation: proceed, park, or reject.
+
+**Scope**:
+- `research/tickets/uk_sentiment_validation.md` — experiment plan + recommendation template
+- `research/specs/FEATURE_LABEL_SPEC.md` — optional notes section only (no production feature additions)
+
+**Dependencies**: None
+**Estimated Effort**: 2–3 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added research ticket artifact: `research/tickets/uk_sentiment_validation.md`
+  - defined two UK-compatible sentiment paths (Massive/Polygon news sentiment and RSS+lexicon scoring)
+  - defined constrained offline experiment plan (baseline vs +sentiment)
+  - defined explicit acceptance criteria:
+    - PR-AUC must improve by at least `+0.02`
+    - max drawdown must not worsen by more than `5%`
+  - added recommendation output template (`proceed` / `park` / `reject`)
+- Updated `research/specs/FEATURE_LABEL_SPEC.md` with optional Step 69 note (Section 3h)
+  - confirms no runtime integration under Step 69
+- Reviewed and highlighted manual execution scripts for live-window testing in `UK_OPERATIONS.md` Section 9b
+
+---
+
+### Step 70: Further Research — External Literature Deep-Review Synthesis Pack
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: MEDIUM — reviewed sources include promising ideas but many claims are not implementation-grade; a structured deep-review pack is needed before additional design or roadmap changes
+**Intended Agent**: Copilot (research synthesis)
+**Operator Note**: Before adding any new URLs, papers, or page subsections beyond the Required Review Inputs below, pause and confirm scope additions with the user.
+
+**Completion Notes (Feb 25, 2026):**
+- Full synthesis pack created in `research/tickets/external_literature_deep_review_2026-02.md`.
+- All required sources scored and verdicts mapped using Step 64 rubric.
+- No "adopt now" candidates; four "research first" sources identified for future research framing only.
+- Actionable recommendations: broker adapter conformance checks, integration maturity labels, release-provenance checklist, RL research caveats (all mapped to Copilot/ops subtasks or research notes).
+- All recommendations and rejections explicitly mapped to LPDD hard invariants; no roadmap or architecture changes made.
+- Validation: all required review inputs covered, meta-analyses included, YAML stubs generated for scored sources, and summary matrix included in synthesis pack.
+- No new tickets created; all recommendations are subtask-level or research-note only.
+
+**Required Review Inputs (must be covered):**
+- https://github.com/asavinov/intelligent-trading-bot
+- https://github.com/Mun-Min/ML_Trading_Bot
+- https://github.com/shayleaschreurs/Machine-Learning-Trading-Bot
+- https://github.com/CodeDestroyer19/Neural-Network-MT5-Trading-Bot
+- https://github.com/pskrunner14/trading-bot
+- https://github.com/owocki/pytrader?tab=MIT-1-ov-file#readme
+- https://github.com/cbailes/awesome-deep-trading?tab=readme-ov-file#meta-analyses--systematic-reviews (review papers listed in this subsection)
+- https://medium.com/datapebbles/building-a-trading-bot-with-deep-reinforcement-learning-drl-b9519a8ba2ac
+- https://blog.mlq.ai/deep-reinforcement-learning-for-trading-with-tensorflow-2-0/
+- https://medium.com/@jsgastoniriartecabrera/building-an-ai-powered-crypto-trading-bot-a-deep-dive-into-automated-trading-with-lstm-neural-c212fd413cf5
+- https://imbuedeskpicasso.medium.com/33-885-returns-in-3-years-on-cryptocurrency-using-neural-network-transformer-model-and-short-49d0fb7ab78b
+- https://blog.bitunix.com/automated-bitcoin-trading-neural-networks/
+- https://alpaca.markets/learn/using-deep-learning-create-stock-trading-bot
+- https://devpost.com/software/algorithmic-trading-bot-using-machine-learning
+
+**Scope**:
+- `research/tickets/external_literature_deep_review_2026-02.md` — full synthesis pack
+- `docs/SOURCE_REVIEW_RUBRIC.md` — reused as scoring basis (no rubric redesign)
+- `PROJECT_DESIGN.md` §6 — append evolution note only if follow-on tickets are created
+
+**Validation Criteria**:
+- Includes at least the full `Meta Analyses & Systematic Reviews` subsection from `awesome-deep-trading`
+- Covers all Required Review Inputs listed in this ticket
+- Every recommendation links to one explicit ticket action (existing or new)
+- No recommendation violates LPDD hard invariants
+
+**Dependencies**: Step 64
+**Estimated Effort**: 4–8 hours
+
+---
+
+### Step 71: LPDD Process Hygiene + Queue Consistency Pass
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — LPDD process quality has drifted due stale queue snapshots, mixed encodings, and duplicate lifecycle sections that slow future sessions and risk incorrect pickup decisions
+**Intended Agent**: Copilot
+**Execution Prompt**: Perform a focused LPDD hygiene pass. (1) Normalize `IMPLEMENTATION_BACKLOG.md` top-level queue snapshots so only one authoritative queue status block exists and stale legacy blocks are clearly archived or removed. (2) Fix mojibake/encoding artifacts (`â€”`, `âœ…`, `â‰¥`, etc.) in active sections. (3) Align all reading-order references across `PROJECT_DESIGN.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, and `DOCUMENTATION_INDEX.md` to the session-topology-first flow. (4) Add a lightweight consistency checklist section to `SESSION_TOPOLOGY.md` for end-of-session LPDD sync (backlog counts, evolution log, session log). (5) Add a regression test/script (`scripts/lpdd_consistency_check.py`) that flags obvious mismatches (missing files, malformed queue count line patterns, missing Last Updated date).
+
+**Scope**:
+- `IMPLEMENTATION_BACKLOG.md` — queue status normalization + encoding cleanup
+- `SESSION_TOPOLOGY.md` — LPDD sync checklist
+- `scripts/lpdd_consistency_check.py` — lightweight doc consistency checker
+- `tests/test_lpdd_consistency_check.py` — checker tests
+
+**Estimated Effort**: 2–4 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Normalized queue authority in this file to the top `Copilot Task Queue` section
+- Removed stale duplicate queue snapshot block and mojibake from active top-of-file sections
+- Aligned reading-order text references to session-topology-first flow
+- Added LPDD end-of-session consistency checklist in `SESSION_TOPOLOGY.md`
+- Added checker utility: `scripts/lpdd_consistency_check.py`
+- Added tests: `tests/test_lpdd_consistency_check.py`
+- Validation:
+  - `python -m pytest tests/test_lpdd_consistency_check.py -q` → **4 passed**
+  - `python scripts/lpdd_consistency_check.py --root .` → **pass**
+
+---
+
+### Step 72: UK Paper Symbol-Universe Reliability Hardening
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — MO-2 paper runs can fail before strategy execution when most UK symbols do not return usable intraday bars in preflight windows
+**Intended Agent**: Copilot
+**Execution Prompt**: Harden the `uk_paper` symbol universe so paper runs are robust to transient provider gaps. (1) Add a small symbol-health utility that evaluates the configured UK list against the current provider and returns a ranked availability report. (2) Add a deterministic fallback universe policy (e.g., keep top-N healthy symbols from an approved allowlist) that does not violate profile safety locks. (3) Wire this policy into paper-trial startup as optional auto-remediation, with explicit audit events showing substitutions made. (4) Add tests for healthy, partially healthy, and no-healthy-symbol scenarios. (5) Document operator controls for strict mode vs auto-remediation mode.
+
+**Scope**:
+- `src/data/` (new symbol-health helper module)
+- `src/cli/runtime.py` (paper-trial integration + audit emissions)
+- `config/settings.py` (optional controls only)
+- `tests/` (unit tests for policy and runtime integration)
+- `UK_OPERATIONS.md` (operator usage notes)
+
+**Validation Criteria**:
+- Paper trial starts with at least 1 healthy symbol when allowlist has healthy candidates
+- Strict mode still blocks run when healthy symbol ratio is below threshold
+- Audit output records any symbol substitutions with before/after lists
+- Existing `uk_paper` profile guardrails remain intact (`Profile=uk_paper`, session window rules)
+
+**Dependencies**: Step 1A context
+**Estimated Effort**: 2–4 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added `src/data/symbol_health.py` with:
+  - `evaluate_symbol_universe_health()` for per-symbol bars/availability summary
+  - `apply_symbol_universe_policy()` for strict blocking and optional deterministic remediation
+- Added symbol-universe settings controls in `config/settings.py`:
+  - strict mode (default true), threshold ratio, min bars, preflight period/interval
+  - remediation enabled/min/target controls
+- Integrated policy into `src/cli/runtime.py` `cmd_paper_trial()` startup:
+  - blocks trial when strict mode is on and availability is below threshold
+  - applies filtered-symbol remediation when enabled and possible
+  - emits `SYMBOL_UNIVERSE_REMEDIATED` audit event when active symbols are substituted
+- Added tests:
+  - `tests/test_symbol_health.py`
+  - `tests/test_main_paper_trial.py` (strict block + remediation/audit path)
+- Validation:
+  - `python -m pytest tests/test_symbol_health.py tests/test_main_paper_trial.py -v` → **8 passed**
+
+---
+
+### Step 73: YFinance Request-Type Retry Controls + Local Store Feasibility
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — transient yfinance false-negatives can trigger avoidable preflight/stream failures; retry behavior must be explicit and bounded by call type
+**Intended Agent**: Copilot
+**Execution Prompt**: Add configurable, provider-scoped retries for yfinance only. (1) Add settings for retry count/backoff with separate policy by request type: `period`-based calls and `start/end`-based calls. (2) Apply retry logic in `YFinanceProvider.fetch_historical()` without changing non-yfinance providers. (3) Emit clear warning logs for retry attempts and final exhausted state (including symbol, interval, request type, and attempt count). (4) Add targeted tests covering success-after-retry and retry-exhausted paths for both request types. (5) Produce a short feasibility note estimating local yfinance store size/cost for current UK universe and 1m/5m/daily bars, with go/no-go recommendation and phased rollout option.
+
+**Scope**:
+- `config/settings.py` — yfinance retry config by request type
+- `src/data/providers.py` — yfinance retry implementation
+- `tests/` — provider retry unit tests
+- `docs/YFINANCE_LOCAL_STORE_FEASIBILITY.md` — storage sizing estimate + recommendation
+
+**Validation Criteria**:
+- Retries are only applied for yfinance provider and are disabled/enabled via config
+- Distinct retry policies are respected for `period` vs `start/end` calls
+- Logs include retry attempt count and terminal failure reason
+- Existing non-yfinance provider behavior remains unchanged
+- Feasibility note includes: assumptions table, estimated monthly storage growth, and operational trade-offs
+
+**Dependencies**: Step 72
+**Estimated Effort**: 3–5 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Implemented provider-scoped yfinance retry controls with separate request-type policies:
+  - `config/settings.py`: `yfinance_retry_enabled`, `yfinance_period_max_attempts`, `yfinance_period_backoff_base_seconds`, `yfinance_period_backoff_max_seconds`, `yfinance_start_end_max_attempts`, `yfinance_start_end_backoff_base_seconds`, `yfinance_start_end_backoff_max_seconds`
+  - `src/data/providers.py`: request-type-aware retry policy for `period` vs `start/end`, bounded exponential backoff, warning logs for retry attempts and terminal exhaustion
+  - `src/data/feeds.py`: provider factory wiring that injects yfinance retry settings only into `YFinanceProvider`
+- Added feasibility memo: `docs/YFINANCE_LOCAL_STORE_FEASIBILITY.md` with assumptions table, monthly/yearly growth estimates, trade-offs, and phased rollout recommendation
+- Completed targeted retry test coverage for both request types in `tests/test_data_providers.py`:
+  - success-after-retry: `period` and `start/end`
+  - retry-exhausted: `period` and `start/end`
+  - terminal log assertions include request type and retries exhausted markers
+- Validation:
+  - `python -m pytest tests/test_data_providers.py tests/test_data_feed.py -v` → **18 passed**
+  - `python -m pytest tests/ -v` → **551 passed**
+
+---
+
+### Step 74: Step1A Auto Client-ID Wrapper for IBKR Collision Recovery
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: HIGH — MO-2 runs should not fail due to avoidable `client id is already in use` collisions
+**Intended Agent**: Copilot
+**Execution Prompt**: Add an operator-safe wrapper around Step 1A burn-in that automatically sets and retries `IBKR_CLIENT_ID` when collision failures occur, without masking non-collision failures.
+
+**Scope**:
+- `scripts/run_step1a_burnin_auto_client.ps1` (new)
+- `IMPLEMENTATION_BACKLOG.md` checklist command updates
+
+**Validation Criteria**:
+- Wrapper forwards all Step 1A burn-in parameters
+- Wrapper retries with incremented client IDs only when collision evidence is detected
+- Non-collision failures are returned immediately with original exit code
+- Operator command path documented in in-window checklist
+
+**Dependencies**: Step 1A context
+**Estimated Effort**: 1–2 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added `scripts/run_step1a_burnin_auto_client.ps1`:
+  - sets candidate `IBKR_CLIENT_ID` values and invokes `run_step1a_burnin.ps1`
+  - detects collision from `step1a_burnin_latest.json` (`client_id_in_use_error_seen=true`)
+  - retries with next candidate ID up to bounded attempt count
+  - preserves/restore original `IBKR_CLIENT_ID` env var after execution
+- Updated operational checklist to use the wrapper command as the default in-window path.
+- Wired `scripts/run_step1a_market.ps1` to invoke `run_step1a_burnin_auto_client.ps1` so `run_step1a_market_if_window.ps1` and `run_mo2_end_to_end.ps1` inherit collision recovery automatically.
+
+---
+
+### Step 75: Multi-Agent Handoff Protocol + Custom Agent Roles
+**Status**: COMPLETED (Feb 25, 2026)
+**Priority**: MEDIUM — process improvement for multi-agent session management
+**Intended Agent**: Copilot (Claude Opus 4.6)
+**Execution Prompt**: Implement VS Code multi-agent best practices into the LPDD system: formal handoff protocol, handoff packet template, pre-handoff consistency gate, custom agent role definitions, and workspace settings.
+
+**Scope**:
+- `SESSION_TOPOLOGY.md` — new §6b (handoff protocol), §6c (packet template), §6d (pre-handoff gate)
+- `.github/agents/lpdd-auditor.agent.md` (new)
+- `.github/agents/ops-runner.agent.md` (new)
+- `.github/agents/research-reviewer.agent.md` (new)
+- `.vscode/settings.json` (new)
+- `PROJECT_DESIGN.md` — ADR-017, §10 update, §6 evolution log
+- `.github/copilot-instructions.md` — updated ADR/RFC numbering reference
+- `DOCUMENTATION_INDEX.md` — updated doc count and ADR range
+
+**Validation Criteria**:
+- SESSION_TOPOLOGY.md contains handoff matrix, packet template, and pre-handoff gate
+- Three `.agent.md` files exist with role-specific scope guards
+- `.vscode/settings.json` enables multi-agent features
+- ADR-017 committed to PROJECT_DESIGN.md
+- LPDD consistency check passes
+
+**Dependencies**: ADR-016 (session topology system)
+**Estimated Effort**: 2–3 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added §6b handoff matrix (9 cross-type handoff scenarios), §6c handoff packet template, §6d pre-handoff consistency gate
+- Created 3 custom agent definitions with enforced scope guards
+- Created `.vscode/settings.json` with `chat.viewSessions.enabled`, `chat.agentsControl.enabled`, `chat.agent.enabled`
+- Added ADR-017, updated §10 agent matrix with custom agent roles table
+- Updated governance doc references (copilot-instructions, DOCUMENTATION_INDEX)
 
 ### Week of Feb 23 (This Week)
 - [x] Prompt 1: Paper session summary â€” COMPLETE
@@ -2546,10 +2878,31 @@ Expected output:
 
 Use during 08:00â€“16:00 UTC only.
 
+#### IBKR API Hardening Pre-Checks (from IBKR TWS API docs)
+
+- Connection gate before run start:
+  - In TWS/IB Gateway: **Enable ActiveX and Socket Clients**, **Disable Read-Only API**, verify correct socket port.
+  - In run shell: set a unique client id for this session (prevents IBKR error 326 collisions):
+    - `$env:IBKR_CLIENT_ID='73'` (increment if already in use)
+- Expected startup notifications (not fatal):
+  - `2104` market data farm OK
+  - `2106` historical data farm connected
+  - `2158` sec-def data farm OK
+- Treat as hard blockers for Step 1A run quality:
+  - `326` (client id already in use)
+  - `502` (cannot connect to TWS/IBG)
+  - Broken socket / connection closed events during run
+- TWS/IBG operational stability settings:
+  - Prefer offline/stable TWS build for API sessions.
+  - Keep auto-restart/reauth cadence in mind when scheduling consecutive runs.
+- Logging for incident triage (enable before reruns when failures occur):
+  - Enable **Create API message log file** and set logging level to **Detail**.
+  - Archive the generated API log alongside run artifacts when diagnosing failures.
+
 1. Pre-check (must pass):
   - `python main.py uk_health_check --profile uk_paper --strict-health`
 2. 30-minute sign-off run:
-  - `python main.py paper_trial --confirm-paper-trial --profile uk_paper --paper-duration-seconds 1800 --skip-rotate`
+  - `./scripts/run_step1a_burnin_auto_client.ps1 -Runs 1 -PaperDurationSeconds 1800 -MinFilledOrders 1 -MinSymbolDataAvailabilityRatio 0.80 -PreflightMinBarsPerSymbol 100`
 3. Export same-session artifacts:
   - `python main.py paper_session_summary --profile uk_paper --output-dir reports/uk_tax`
   - `python main.py uk_tax_export --profile uk_paper --output-dir reports/uk_tax`
@@ -2910,18 +3263,18 @@ Once all items are Complete:
 
 ### Step 1A Auto Evidence Log
 
-- Generated (UTC): 2026-02-24T21:20:14.7978817Z
+- Generated (UTC): 2026-02-25T10:16:49.6021353Z
 - Source report: reports\uk_tax\step1a_burnin\step1a_burnin_latest.json
-- Session output dir: reports\uk_tax\step1a_burnin\session_20260224_211900
-- Session pass: True
-- Runs: 1 / 1 passed (1 completed)
+- Session output dir: reports\uk_tax\step1a_burnin\session_20260225_094635
+- Session pass: False
+- Runs: 0 / 3 passed (1 completed)
 
 #### Auto Run 1
-- Date (UTC): 2026-02-24T21:19:00.7086594Z
-- Window check: False
-- Result: True
+- Date (UTC): 2026-02-25T09:46:35.4040689Z
+- Window check: True
+- Result: False
 - filled_order_count: 0
-- min_filled_orders_required: 0
+- min_filled_orders_required: 5
 - drift_flag_count: 0
 - event_loop_error_seen: False
 - client_id_in_use_error_seen: False
@@ -2933,11 +3286,12 @@ Once all items are Complete:
   - realized_gains_csv: True
   - fx_notes_csv: True
 - Logs:
-  - health_check: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\01_health_check.log
-  - paper_trial: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\02_paper_trial.log
-  - paper_session_summary: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\03_session_summary.log
-  - uk_tax_export: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\04_tax_export.log
-  - paper_reconcile: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\05_reconcile.log
+  - health_check: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\01_health_check.log
+  - paper_trial: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\02_paper_trial.log
+  - paper_session_summary: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\03_session_summary.log
+  - uk_tax_export: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\04_tax_export.log
+  - paper_reconcile: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\05_reconcile.log
+- Notes: criteria_not_met
 
 ---
 

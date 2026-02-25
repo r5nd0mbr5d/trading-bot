@@ -4,6 +4,11 @@ param(
     [int]$PaperDurationSeconds = 1800,
     [int]$FunctionalDurationSeconds = 180,
     [int]$MinFilledOrders = 5,
+    [double]$MinSymbolDataAvailabilityRatio = 0.80,
+    [int]$PreflightMinBarsPerSymbol = 100,
+    [string]$PreflightPeriod = "5d",
+    [string]$PreflightInterval = "1m",
+    [switch]$SkipSymbolAvailabilityPreflight,
     [string]$OutputRoot = "reports/uk_tax/step1a_burnin",
     [switch]$AppendBacklogEvidence,
     [string]$BacklogPath = "IMPLEMENTATION_BACKLOG.md",
@@ -13,6 +18,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($Profile -ne "uk_paper") {
+    throw "Profile '$Profile' is not allowed for Step 1A burn-in runs. Use --Profile uk_paper only."
+}
 
 function Get-UtcNow {
     return (Get-Date).ToUniversalTime()
@@ -80,6 +89,111 @@ function Write-JsonFile {
     }
 
     $Payload | ConvertTo-Json -Depth 10 | Set-Content -Path $Path -Encoding UTF8
+}
+
+function Invoke-SymbolDataPreflight {
+    param(
+        [string]$ProfileName,
+        [string]$ReportPath,
+        [string]$Period,
+        [string]$Interval,
+        [int]$MinBarsPerSymbol
+    )
+
+    $preflightCode = @'
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd()))
+
+from config.settings import Settings
+from src.cli.runtime import apply_runtime_profile
+from src.data.feeds import MarketDataFeed
+
+path = sys.argv[1]
+profile = sys.argv[2]
+period = sys.argv[3]
+interval = sys.argv[4]
+min_bars = int(sys.argv[5])
+
+payload = {
+    "ok": False,
+    "profile": profile,
+    "period": period,
+    "interval": interval,
+    "min_bars_per_symbol": min_bars,
+    "symbols": [],
+    "summary": {
+        "total_symbols": 0,
+        "available_symbols": 0,
+        "availability_ratio": 0.0,
+    },
+    "error": "",
+}
+
+try:
+    settings = Settings()
+    apply_runtime_profile(settings, profile)
+    feed = MarketDataFeed(settings)
+
+    symbols = list(settings.data.symbols)
+    payload["summary"]["total_symbols"] = len(symbols)
+    available_symbols = 0
+
+    for symbol in symbols:
+        entry = {
+            "symbol": symbol,
+            "bars": 0,
+            "available": False,
+            "error": "",
+        }
+        try:
+            frame = feed.fetch_historical(symbol, period=period, interval=interval)
+            bars = len(frame)
+            entry["bars"] = bars
+            entry["available"] = bars >= min_bars
+            if bars < min_bars:
+                entry["error"] = f"insufficient_bars:{bars}"
+        except Exception as exc:
+            entry["error"] = str(exc)
+
+        if entry["available"]:
+            available_symbols += 1
+
+        payload["symbols"].append(entry)
+
+    total_symbols = payload["summary"]["total_symbols"]
+    ratio = 0.0
+    if total_symbols > 0:
+        ratio = available_symbols / total_symbols
+
+    payload["summary"]["available_symbols"] = available_symbols
+    payload["summary"]["availability_ratio"] = ratio
+    payload["ok"] = True
+except Exception as exc:
+    payload["error"] = str(exc)
+
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(payload, handle, indent=2)
+'@
+
+    $tempPy = [System.IO.Path]::Combine(
+        [System.IO.Path]::GetTempPath(),
+        "step1a_symbol_preflight_" + [System.Guid]::NewGuid().ToString("N") + ".py"
+    )
+    Set-Content -Path $tempPy -Value $preflightCode -Encoding UTF8
+    try {
+        & python $tempPy $ReportPath $ProfileName $Period $Interval "$MinBarsPerSymbol"
+        if ($LASTEXITCODE -ne 0) {
+            throw "Symbol data preflight command failed (see $ReportPath)"
+        }
+    }
+    finally {
+        if (Test-Path $tempPy) {
+            Remove-Item -Force $tempPy
+        }
+    }
 }
 
 function Export-BrokerSnapshot {
@@ -162,6 +276,14 @@ if ($FunctionalDurationSeconds -lt 30) {
     throw "FunctionalDurationSeconds must be >= 30"
 }
 
+if ($MinSymbolDataAvailabilityRatio -lt 0.0 -or $MinSymbolDataAvailabilityRatio -gt 1.0) {
+    throw "MinSymbolDataAvailabilityRatio must be in [0.0, 1.0]"
+}
+
+if ($PreflightMinBarsPerSymbol -lt 1) {
+    throw "PreflightMinBarsPerSymbol must be >= 1"
+}
+
 $effectivePaperDurationSeconds = $PaperDurationSeconds
 if ($NonQualifyingTestMode -and -not $PSBoundParameters.ContainsKey("PaperDurationSeconds")) {
     $effectivePaperDurationSeconds = $FunctionalDurationSeconds
@@ -222,11 +344,51 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
 
     $snapshotPrePath = Join-Path $runDir "broker_snapshot_pre.json"
     $snapshotPostPath = Join-Path $runDir "broker_snapshot_post.json"
+    $symbolPreflightPath = Join-Path $runDir "00_symbol_data_preflight.json"
 
     $runPassed = $false
     $failureReason = ""
+    $preflightPayload = $null
+    $preflightGatePassed = $true
 
     try {
+        if (-not $SkipSymbolAvailabilityPreflight) {
+            Invoke-SymbolDataPreflight -ProfileName $Profile -ReportPath $symbolPreflightPath -Period $PreflightPeriod -Interval $PreflightInterval -MinBarsPerSymbol $PreflightMinBarsPerSymbol
+            $preflightPayload = Get-Content -Path $symbolPreflightPath -Raw | ConvertFrom-Json
+
+            if ($preflightPayload.ok -ne $true) {
+                throw "Symbol data preflight failed: $($preflightPayload.error)"
+            }
+
+            $availabilityRatio = [double]$preflightPayload.summary.availability_ratio
+            $preflightGatePassed = ($availabilityRatio -ge $MinSymbolDataAvailabilityRatio)
+            if (-not $preflightGatePassed) {
+                $result = [PSCustomObject]@{
+                    run = $runIndex
+                    utc_start = $runStartUtc.ToString("o")
+                    in_window = $windowOk
+                    commands_passed = $false
+                    preflight_gate_passed = $false
+                    preflight_gate_threshold_ratio = $MinSymbolDataAvailabilityRatio
+                    preflight_data_availability_ratio = $availabilityRatio
+                    preflight_report_path = $symbolPreflightPath
+                    passed = $false
+                    reason = "symbol_data_preflight_failed"
+                    run_dir = $runDir
+                    logs = [ordered]@{
+                        health_check = $healthLog
+                        paper_trial = $trialLog
+                        paper_session_summary = $summaryLog
+                        uk_tax_export = $taxLog
+                        paper_reconcile = $reconcileLog
+                    }
+                }
+                $runResults += $result
+                $allPassed = $false
+                break
+            }
+        }
+
         if ($ClearKillSwitchBeforeEachRun) {
             python -c "import sqlite3; db = sqlite3.connect('trading_paper.db'); db.execute('DELETE FROM kill_switch'); db.commit(); print('Kill switch cleared')"
             if ($LASTEXITCODE -ne 0) {
@@ -240,16 +402,56 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             "main.py", "uk_health_check", "--profile", $Profile, "--strict-health"
         )
 
-        Invoke-StepCommand -Label "2/5 Paper trial" -LogPath $trialLog -CommandArgs @(
-            "main.py",
-            "paper_trial",
-            "--confirm-paper-trial",
-            "--profile",
-            $Profile,
-            "--paper-duration-seconds",
-            "$effectivePaperDurationSeconds",
-            "--skip-rotate"
-        )
+        $originalSymbolRatioEnv = $env:SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO
+        $originalSymbolMinBarsEnv = $env:SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL
+        $originalSymbolPeriodEnv = $env:SYMBOL_UNIVERSE_PREFLIGHT_PERIOD
+        $originalSymbolIntervalEnv = $env:SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL
+        try {
+            $env:SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO = [string]$MinSymbolDataAvailabilityRatio
+            $env:SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL = [string]$PreflightMinBarsPerSymbol
+            $env:SYMBOL_UNIVERSE_PREFLIGHT_PERIOD = $PreflightPeriod
+            $env:SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL = $PreflightInterval
+
+            Invoke-StepCommand -Label "2/5 Paper trial" -LogPath $trialLog -CommandArgs @(
+                "main.py",
+                "paper_trial",
+                "--confirm-paper-trial",
+                "--profile",
+                $Profile,
+                "--paper-duration-seconds",
+                "$effectivePaperDurationSeconds",
+                "--skip-rotate"
+            )
+        }
+        finally {
+            if ($null -ne $originalSymbolRatioEnv) {
+                $env:SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO = $originalSymbolRatioEnv
+            }
+            else {
+                Remove-Item Env:SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO -ErrorAction SilentlyContinue
+            }
+
+            if ($null -ne $originalSymbolMinBarsEnv) {
+                $env:SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL = $originalSymbolMinBarsEnv
+            }
+            else {
+                Remove-Item Env:SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL -ErrorAction SilentlyContinue
+            }
+
+            if ($null -ne $originalSymbolPeriodEnv) {
+                $env:SYMBOL_UNIVERSE_PREFLIGHT_PERIOD = $originalSymbolPeriodEnv
+            }
+            else {
+                Remove-Item Env:SYMBOL_UNIVERSE_PREFLIGHT_PERIOD -ErrorAction SilentlyContinue
+            }
+
+            if ($null -ne $originalSymbolIntervalEnv) {
+                $env:SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL = $originalSymbolIntervalEnv
+            }
+            else {
+                Remove-Item Env:SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL -ErrorAction SilentlyContinue
+            }
+        }
 
         Invoke-StepCommand -Label "3/5 Paper session summary" -LogPath $summaryLog -CommandArgs @(
             "main.py", "paper_session_summary", "--profile", $Profile, "--output-dir", $runDir
@@ -344,6 +546,11 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             broker_snapshot_connected_ok = ($preSnapshotConnected -and $postSnapshotConnected)
             broker_snapshot_nonzero_ok = $gateSnapshots
             non_qualifying_test_mode = [bool]$NonQualifyingTestMode
+            preflight_gate_enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
+            preflight_gate_passed = $preflightGatePassed
+            preflight_gate_threshold_ratio = $MinSymbolDataAvailabilityRatio
+            preflight_data_availability_ratio = $(if ($preflightPayload -ne $null) { [double]$preflightPayload.summary.availability_ratio } else { 1.0 })
+            preflight_report_path = $symbolPreflightPath
             artifacts = $artifactChecks
             all_artifacts_present = $allArtifactsPresent
             passed = $runPassed
@@ -403,6 +610,13 @@ $report = [ordered]@{
     runs_passed = $passedRuns
     paper_duration_seconds = $effectivePaperDurationSeconds
     min_filled_orders_required = $(if ($NonQualifyingTestMode) { 0 } else { $MinFilledOrders })
+    symbol_data_preflight = [ordered]@{
+        enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
+        min_symbol_data_availability_ratio = $MinSymbolDataAvailabilityRatio
+        preflight_min_bars_per_symbol = $PreflightMinBarsPerSymbol
+        preflight_period = $PreflightPeriod
+        preflight_interval = $PreflightInterval
+    }
     session_passed = $sessionPassed
     signoff_ready = $(if ($NonQualifyingTestMode) { $false } else { $sessionPassed })
     output_dir = $sessionDir

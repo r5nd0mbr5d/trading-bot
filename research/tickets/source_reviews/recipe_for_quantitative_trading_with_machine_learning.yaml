@@ -1,0 +1,22 @@
+source_id: recipe_for_quantitative_trading_with_machine_learning
+source_type: article
+title: Recipe for Quantitative Trading with Machine Learning
+url: http://dx.doi.org/10.2139/ssrn.3232143
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Daniel Alexandre Bloch (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

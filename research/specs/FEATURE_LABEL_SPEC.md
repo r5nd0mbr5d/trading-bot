@@ -141,6 +141,17 @@ All features are computed as of the **bar[t] close** using only data from bars [
 - Feature family joins to the main feature table by `(symbol, date)`; `date` must align with bar-close date index.
 - Source endpoint: `GET /v2/reference/news` (Polygon/Massive free tier) with Bearer auth.
 
+### 3h. Optional UK Sentiment Validation Note (Step 69)
+
+- Step 69 evaluates sentiment utility as an **offline research ticket only**.
+- Candidate paths:
+  1. Massive/Polygon news sentiment features (existing integration path)
+  2. Free/low-cost RSS headline ingestion + deterministic lexicon scoring
+- Promotion criteria for enabling sentiment in baseline research flow:
+  - PR-AUC improvement of at least `+0.02` versus baseline
+  - max drawdown deterioration not worse than `5%` versus baseline
+- No runtime (`src/`) feature additions are allowed under Step 69 without a follow-on approved ticket.
+
 ---
 
 ## 4. Leakage Traps and Mitigation Rules

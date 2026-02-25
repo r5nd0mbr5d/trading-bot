@@ -1,0 +1,28 @@
+source_id: owocki_pytrader
+source_type: repo
+title: owocki/pytrader
+url: https://github.com/owocki/pytrader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 35
+  maintenance_health: 10
+  test_evidence: 20
+  risk_controls: 30
+  lpdd_invariant_fit: 35
+  operational_realism: 30
+
+notes:
+  final_verdict: Reject
+  review_scope: repository metadata + historical readme/structure signals
+  reusable_items:
+    - None identified with current-state confidence
+  conflicts:
+    - Extremely stale maintenance state and outdated exchange/runtime assumptions
+    - Insufficient evidence for reproducible modern evaluation or invariant-preserving risk path
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject from shortlist due to maintenance and governance mismatch
+      intended_agent: Copilot

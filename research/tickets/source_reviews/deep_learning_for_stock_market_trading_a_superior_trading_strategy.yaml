@@ -1,0 +1,22 @@
+source_id: deep_learning_for_stock_market_trading_a_superior_trading_strategy
+source_type: article
+title: Deep Learning for Stock Market Trading: A Superior Trading Strategy?
+url: https://doi.org/10.14311/NNW.2019.29.011
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); D. Fister, J. C. Mun, V. Jagrič, T. Jagrič, (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

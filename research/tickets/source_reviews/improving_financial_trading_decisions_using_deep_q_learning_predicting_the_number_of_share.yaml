@@ -1,0 +1,22 @@
+source_id: improving_financial_trading_decisions_using_deep_q_learning_predicting_the_number_of_share
+source_type: article
+title: Improving financial trading decisions using deep Q-learning: Predicting the number of shares, action strategies, and transfer learning
+url: https://www.sciencedirect.com/science/article/pii/S0957417418306134
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Gyeeun Jeong, Ha Young Kim (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

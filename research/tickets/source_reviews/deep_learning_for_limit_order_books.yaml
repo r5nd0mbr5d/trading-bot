@@ -1,0 +1,22 @@
+source_id: deep_learning_for_limit_order_books
+source_type: article
+title: Deep Learning for Limit Order Books
+url: https://arxiv.org/pdf/1601.01987
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Justin Sirignano (2016)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,22 @@
+source_id: a_reinforcement_learning_model_based_on_reward_correction_for_quantitative_stock_selection
+source_type: article
+title: A reinforcement learning model based on reward correction for quantitative stock selection
+url: https://doi.org/10.1088/1757-899X/768/7/072036
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Haibo Chen, Chenyu Zhang, Yunke Li (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

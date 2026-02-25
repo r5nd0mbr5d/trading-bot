@@ -1,0 +1,22 @@
+source_id: research_on_financial_assets_transaction_prediction_model_based_on_lstm_neural_network
+source_type: article
+title: Research on financial assets transaction prediction model based on LSTM neural network
+url: https://doi.org/10.1007/s00521-020-04992-7
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); Xue Yan, Wang Weihan & Miao Chang (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

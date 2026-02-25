@@ -3,6 +3,11 @@ param(
     [int]$Runs = 3,
     [int]$PaperDurationSeconds = 1800,
     [int]$MinFilledOrders = 5,
+    [double]$MinSymbolDataAvailabilityRatio = 0.80,
+    [int]$PreflightMinBarsPerSymbol = 100,
+    [string]$PreflightPeriod = "5d",
+    [string]$PreflightInterval = "1m",
+    [switch]$SkipSymbolAvailabilityPreflight,
     [switch]$AppendBacklogEvidence,
     [switch]$ClearKillSwitchBeforeEachRun,
     [int]$WindowStartUtcHour = 8,
@@ -21,6 +26,11 @@ $invokeParams = @{
     Runs = $Runs
     PaperDurationSeconds = $PaperDurationSeconds
     MinFilledOrders = $MinFilledOrders
+    MinSymbolDataAvailabilityRatio = $MinSymbolDataAvailabilityRatio
+    PreflightMinBarsPerSymbol = $PreflightMinBarsPerSymbol
+    PreflightPeriod = $PreflightPeriod
+    PreflightInterval = $PreflightInterval
+    SkipSymbolAvailabilityPreflight = [bool]$SkipSymbolAvailabilityPreflight
     AppendBacklogEvidence = [bool]$AppendBacklogEvidence
     ClearKillSwitchBeforeEachRun = [bool]$ClearKillSwitchBeforeEachRun
     WindowStartUtcHour = $WindowStartUtcHour

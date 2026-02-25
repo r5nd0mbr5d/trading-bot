@@ -1,0 +1,28 @@
+source_id: mlq_ai_drl_tensorflow_article
+source_type: article
+title: Deep Reinforcement Learning for Trading with TensorFlow 2.0 (MLQ.ai)
+url: https://blog.mlq.ai/deep-reinforcement-learning-for-trading-with-tensorflow-2-0/
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 65
+  maintenance_health: 50
+  test_evidence: 15
+  risk_controls: 35
+  lpdd_invariant_fit: 60
+  operational_realism: 45
+
+notes:
+  final_verdict: Reject
+  review_scope: tutorial code + methodology framing + caveats
+  reusable_items:
+    - Introductory DQN training-loop pedagogy for internal onboarding docs
+  conflicts:
+    - Tutorial itself warns against live use and lacks robust transaction-cost/risk controls
+    - Framework and dependency stack are dated for direct adoption
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject for implementation; keep as educational reference only
+      intended_agent: Copilot

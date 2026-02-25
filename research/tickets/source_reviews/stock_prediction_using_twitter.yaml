@@ -1,0 +1,22 @@
+source_id: stock_prediction_using_twitter
+source_type: article
+title: Stock Prediction Using Twitter
+url: https://towardsdatascience.com/stock-prediction-using-twitter-e432b35e14bd
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Sentiment Analysis; Khan Saad Bin Hasan (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

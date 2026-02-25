@@ -1,0 +1,28 @@
+source_id: pskrunner14_trading_bot
+source_type: repo
+title: pskrunner14/trading-bot
+url: https://github.com/pskrunner14/trading-bot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 70
+  maintenance_health: 20
+  test_evidence: 20
+  risk_controls: 35
+  lpdd_invariant_fit: 45
+  operational_realism: 45
+
+notes:
+  final_verdict: Reject
+  review_scope: README + RL methodology summary + governance fit
+  reusable_items:
+    - Clear explanation of DQN variants for conceptual research notes
+  conflicts:
+    - Stale codebase and no strong evidence of modern risk/evaluation controls
+    - Return claims are narrow and not paired with robust institutional validation workflow
+  ticket_recommendations:
+    - step: 70
+      recommendation: Use only as historical RL concept reference; reject implementation path
+      intended_agent: Copilot

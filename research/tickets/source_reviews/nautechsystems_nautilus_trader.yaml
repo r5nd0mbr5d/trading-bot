@@ -1,0 +1,28 @@
+source_id: nautechsystems_nautilus_trader
+source_type: repo
+title: nautechsystems/nautilus_trader
+url: https://github.com/nautechsystems/nautilus_trader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 88
+  maintenance_health: 94
+  test_evidence: 90
+  risk_controls: 84
+  lpdd_invariant_fit: 90
+  operational_realism: 86
+
+notes:
+  final_verdict: Adopt now
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Event-driven backtest/live parity design principles and integration-status taxonomy
+    - Supply-chain and release-attestation practices for operational hardening
+  conflicts:
+    - Stack complexity and Rust-heavy internals are beyond current repo scope for direct porting
+  ticket_recommendations:
+    - step: 70
+      recommendation: Adopt selected operational and architecture patterns (parity discipline, integration maturity labels, provenance checks)
+      intended_agent: Copilot

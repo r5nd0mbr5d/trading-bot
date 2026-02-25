@@ -1,0 +1,22 @@
+source_id: an_application_of_deep_reinforcement_learning_to_algorithmic_trading
+source_type: article
+title: An Application of Deep Reinforcement Learning to Algorithmic Trading
+url: https://arxiv.org/abs/2004.06627
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Thibaut Théate, Damien Ernst (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,69 @@
+﻿{
+    "step":  "1A",
+    "profile":  "uk_paper",
+    "generated_at_utc":  "2026-02-25T10:16:49.6021353Z",
+    "required_window_utc":  "08:00-16:00",
+    "non_qualifying_test_mode":  false,
+    "runs_required":  3,
+    "runs_completed":  1,
+    "runs_passed":  0,
+    "paper_duration_seconds":  1800,
+    "min_filled_orders_required":  5,
+    "session_passed":  false,
+    "signoff_ready":  false,
+    "output_dir":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635",
+    "run_results":  [
+                        {
+                            "run":  1,
+                            "utc_start":  "2026-02-25T09:46:35.4040689Z",
+                            "in_window":  true,
+                            "commands_passed":  true,
+                            "filled_order_count":  0,
+                            "min_filled_orders_required":  5,
+                            "drift_flag_count":  0,
+                            "event_loop_error_seen":  false,
+                            "client_id_in_use_error_seen":  false,
+                            "broker_snapshot_pre":  {
+                                                        "ok":  true,
+                                                        "profile":  "uk_paper",
+                                                        "account":  "DUQ117408",
+                                                        "is_paper_account":  true,
+                                                        "base_currency":  "",
+                                                        "cash":  999027.08,
+                                                        "portfolio_value":  1000066.65,
+                                                        "error":  ""
+                                                    },
+                            "broker_snapshot_post":  {
+                                                         "ok":  true,
+                                                         "profile":  "uk_paper",
+                                                         "account":  "DUQ117408",
+                                                         "is_paper_account":  true,
+                                                         "base_currency":  "",
+                                                         "cash":  999027.08,
+                                                         "portfolio_value":  1000068.04,
+                                                         "error":  ""
+                                                     },
+                            "broker_snapshot_connected_ok":  true,
+                            "broker_snapshot_nonzero_ok":  true,
+                            "non_qualifying_test_mode":  false,
+                            "artifacts":  {
+                                              "paper_session_summary_json":  true,
+                                              "paper_reconciliation_json":  true,
+                                              "trade_ledger_csv":  true,
+                                              "realized_gains_csv":  true,
+                                              "fx_notes_csv":  true
+                                          },
+                            "all_artifacts_present":  true,
+                            "passed":  false,
+                            "reason":  "criteria_not_met",
+                            "run_dir":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1",
+                            "logs":  {
+                                         "health_check":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1\\01_health_check.log",
+                                         "paper_trial":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1\\02_paper_trial.log",
+                                         "paper_session_summary":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1\\03_session_summary.log",
+                                         "uk_tax_export":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1\\04_tax_export.log",
+                                         "paper_reconcile":  "reports\\uk_tax\\step1a_burnin\\session_20260225_094635\\run_1\\05_reconcile.log"
+                                     }
+                        }
+                    ]
+}

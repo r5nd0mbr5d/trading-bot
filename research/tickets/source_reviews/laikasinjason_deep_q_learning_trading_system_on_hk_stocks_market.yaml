@@ -1,0 +1,22 @@
+source_id: laikasinjason_deep_q_learning_trading_system_on_hk_stocks_market
+source_type: article
+title: laikasinjason/deep-q-learning-trading-system-on-hk-stocks-market
+url: https://github.com/laikasinjason/deep-q-learning-trading-system-on-hk-stocks-market
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Deep Q learning implementation on the Hong Kong Stock Exchange
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

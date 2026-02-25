@@ -1,0 +1,28 @@
+source_id: erfaniaa_binance_futures_trading_bot
+source_type: repo
+title: Erfaniaa/binance-futures-trading-bot
+url: https://github.com/Erfaniaa/binance-futures-trading-bot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 57
+  maintenance_health: 34
+  test_evidence: 30
+  risk_controls: 40
+  lpdd_invariant_fit: 47
+  operational_realism: 45
+
+notes:
+  final_verdict: Reject
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Simple Telegram notification flow for operator visibility
+  conflicts:
+    - Strategy and order logic concentrated in monolithic script with limited guardrails
+    - Exceeds LPDD governance requirements for risk-manager mediation and auditability
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject architecture; optionally replicate only isolated notification patterns
+      intended_agent: Copilot

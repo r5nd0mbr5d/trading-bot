@@ -8,6 +8,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+if ($Profile -ne "uk_paper") {
+    throw "Profile '$Profile' is not allowed for Step 1A functional runs. Use --Profile uk_paper only."
+}
+
 $burninScript = Join-Path (Split-Path -Parent $PSCommandPath) "run_step1a_burnin.ps1"
 if (-not (Test-Path $burninScript)) {
     throw "Burn-in script not found: $burninScript"

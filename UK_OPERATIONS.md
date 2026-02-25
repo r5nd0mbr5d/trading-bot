@@ -179,10 +179,25 @@ python main.py paper_trial --manifest configs/trial_aggressive.json
 
 Notes on trials:
 - Runs UK health check first (fails fast on blocking errors).
+- Runs symbol-universe data preflight policy before trial stream startup.
 - Rotates paper DB by default before trial start.
 - Runs paper loop for configured duration, then exports summary and reconciliation.
 - Use `--skip-health-check` or `--skip-rotate` only for debugging.
 - See [TRIAL_MANIFEST.md](TRIAL_MANIFEST.md) for full manifest documentation and custom manifest creation.
+
+Symbol-universe policy controls (env vars):
+- Strict mode (default block on low availability):
+  - `SYMBOL_UNIVERSE_STRICT_MODE=true`
+  - `SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO=0.80`
+  - `SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL=100`
+  - `SYMBOL_UNIVERSE_PREFLIGHT_PERIOD=5d`
+  - `SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL=1m`
+- Optional deterministic remediation mode (continue with healthy subset):
+  - `SYMBOL_UNIVERSE_REMEDIATION_ENABLED=true`
+  - `SYMBOL_UNIVERSE_REMEDIATION_MIN_SYMBOLS=3`
+  - `SYMBOL_UNIVERSE_REMEDIATION_TARGET_SYMBOLS=0` (0 = keep all healthy symbols)
+
+When remediation adjusts the active universe, runtime emits audit event `SYMBOL_UNIVERSE_REMEDIATED` with before/after details.
 
 ### Legacy: Long CLI Format
 
@@ -246,6 +261,54 @@ Lists FX pairs used during conversion and configured rates.
 
 Tip: Replace `expected_kpis.json`/`tolerances.json` with one of the files in `reports/session/presets/` to choose conservative, standard, or aggressive drift policy.
 Tip: For repeatable ops, replace steps 3-7 with a single `paper_trial` run.
+
+---
+
+## 9b) Manual-Execution Scripts for Live Testing Windows
+
+These scripts require **manual/operator execution** (credentials, market-window timing,
+or explicit sign-off). Do not run unattended as part of autonomous agent workflows.
+
+| Script | Purpose | Manual Requirement |
+|---|---|---|
+| `run_step1a_market.ps1` | Execute in-window Step 1A market run | Must be run during 08:00–16:00 UTC with IBKR paper session active |
+| `run_step1a_market_if_window.ps1` | Guarded market-window runner | Operator must verify scheduler timing and inspect skip/pass outputs |
+| `run_step1a_session.ps1` | End-to-end Step 1A session sequence | Requires live IBKR connectivity and human review of generated artifacts |
+| `run_step1a_burnin.ps1` | Multi-run burn-in orchestration | Requires sequential in-window supervision and acceptance checks |
+| `append_step1a_evidence.ps1` | Append burn-in evidence to backlog/logs | Requires operator confirmation that artifact values are correct |
+
+Operational note:
+- Prefer `python main.py ...` commands for reproducible audit trails.
+- Use PowerShell wrappers above only when running MO-2/Step 1A operational closure tasks.
+- Safety lock: these Step 1A wrapper scripts now fail-fast unless `Profile=uk_paper`.
+
+### One-Command MO-2 Orchestrator (Recommended)
+
+Run the full MO-2 sequence end-to-end (3 in-window runs) with explicit guardrails
+and timestamped orchestration artifacts:
+
+```powershell
+./scripts/run_mo2_end_to_end.ps1 -Runs 3 -PaperDurationSeconds 1800 -MinFilledOrders 5 -MinSymbolDataAvailabilityRatio 0.80 -PreflightMinBarsPerSymbol 100 -AppendBacklogEvidence
+```
+
+What it enforces:
+- profile lock: `uk_paper` only
+- must start within 08:00–16:00 UTC window
+- sequential run execution (no parallel overlap)
+- optional kill-switch clear before each run
+- symbol-data preflight gate before each run (`reason=symbol_data_preflight_failed` if ratio below threshold)
+
+Preflight controls:
+- `-MinSymbolDataAvailabilityRatio` (default `0.80`): required fraction of configured symbols with usable bars
+- `-PreflightMinBarsPerSymbol` (default `100`): minimum bar count for a symbol to be considered available
+- `-PreflightPeriod` (default `5d`) and `-PreflightInterval` (default `1m`): fetch window for availability check
+- `-SkipSymbolAvailabilityPreflight`: disables the gate (operator override; not recommended for MO-2 sign-off)
+
+What it writes:
+- session log: `reports/uk_tax/mo2_orchestrator/session_<timestamp>/mo2_orchestrator.log`
+- orchestration report: `reports/uk_tax/mo2_orchestrator/session_<timestamp>/mo2_orchestrator_report.json`
+- underlying burn-in latest pointer: `reports/uk_tax/step1a_burnin/step1a_burnin_latest.json`
+- per-run preflight report: `reports/uk_tax/step1a_burnin/session_<timestamp>/run_<n>/00_symbol_data_preflight.json`
 
 ---
 

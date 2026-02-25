@@ -16,7 +16,7 @@ def test_stream_emits_heartbeat_and_bars(monkeypatch):
         index=index,
     )
 
-    monkeypatch.setattr(feed, "fetch_historical", lambda *args, **kwargs: frame)
+    monkeypatch.setattr(feed, "_fetch_with_fallbacks", lambda *args, **kwargs: frame)
 
     bars = []
     heartbeats = []
@@ -53,7 +53,7 @@ def test_stream_backoff_and_recovery(monkeypatch):
             raise RuntimeError("temporary stream failure")
         return frame
 
-    monkeypatch.setattr(feed, "fetch_historical", fake_fetch)
+    monkeypatch.setattr(feed, "_fetch_with_fallbacks", fake_fetch)
 
     errors = []
     heartbeats = []
@@ -83,7 +83,7 @@ def test_stream_raises_after_failure_limit(monkeypatch):
     def always_fail(*args, **kwargs):
         raise RuntimeError("down")
 
-    monkeypatch.setattr(feed, "fetch_historical", always_fail)
+    monkeypatch.setattr(feed, "_fetch_with_fallbacks", always_fail)
 
     events = []
 

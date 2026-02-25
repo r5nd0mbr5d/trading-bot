@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "profile": "uk_paper",
+  "period": "5d",
+  "interval": "1m",
+  "min_bars_per_symbol": 100,
+  "symbols": [
+    {
+      "symbol": "HSBA.L",
+      "bars": 0,
+      "available": false,
+      "error": "No data returned for HSBA.L. Check provider availability and date range."
+    },
+    {
+      "symbol": "VOD.L",
+      "bars": 0,
+      "available": false,
+      "error": "No data returned for VOD.L. Check provider availability and date range."
+    },
+    {
+      "symbol": "BP.L",
+      "bars": 0,
+      "available": false,
+      "error": "No data returned for BP.L. Check provider availability and date range."
+    },
+    {
+      "symbol": "BARC.L",
+      "bars": 1349,
+      "available": true,
+      "error": ""
+    },
+    {
+      "symbol": "SHEL.L",
+      "bars": 0,
+      "available": false,
+      "error": "No data returned for SHEL.L. Check provider availability and date range."
+    }
+  ],
+  "summary": {
+    "total_symbols": 5,
+    "available_symbols": 1,
+    "availability_ratio": 0.2
+  },
+  "error": ""
+}

@@ -1,0 +1,29 @@
+source_id: superalgos_superalgos
+source_type: repo
+title: Superalgos/Superalgos
+url: https://github.com/Superalgos/Superalgos
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 67
+  maintenance_health: 55
+  test_evidence: 40
+  risk_controls: 50
+  lpdd_invariant_fit: 60
+  operational_realism: 52
+
+notes:
+  final_verdict: Research first
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Operational runbook ideas for daemonized deployments and community onboarding
+    - Broad checklist style for installation and troubleshooting documentation
+  conflicts:
+    - Project scope and social-trading orientation are much broader than current LPDD constraints
+    - Limited recent core activity signal on primary branch lowers implementation confidence
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reuse only documentation-operations patterns; do not import execution logic or architecture
+      intended_agent: Copilot

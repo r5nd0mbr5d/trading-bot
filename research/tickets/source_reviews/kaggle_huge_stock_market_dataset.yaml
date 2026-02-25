@@ -1,0 +1,22 @@
+source_id: kaggle_huge_stock_market_dataset
+source_type: article
+title: kaggle/Huge Stock Market Dataset
+url: https://www.kaggle.com/borismarjanovic/price-volume-data-for-all-us-stocks-etfs
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories > Datasets; Historical daily prices and volumes of all U.S. stocks and ETFs
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

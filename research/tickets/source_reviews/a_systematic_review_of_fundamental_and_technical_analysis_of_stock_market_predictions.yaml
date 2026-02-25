@@ -1,0 +1,27 @@
+source_id: a_systematic_review_of_fundamental_and_technical_analysis_of_stock_market_predictions
+source_type: article
+title: A systematic review of fundamental and technical analysis of stock market predictions
+url: https://www.researchgate.net/publication/335274959_A_systematic_review_of_fundamental_and_technical_analysis_of_stock_market_predictions
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 76
+  maintenance_health: 58
+  test_evidence: 45
+  risk_controls: 56
+  lpdd_invariant_fit: 78
+  operational_realism: 68
+
+notes:
+  final_verdict: Research first
+  review_scope: Papers > Meta Analyses & Systematic Reviews; Isaac kofi Nti, Adebayo Adekoya, Benjamin Asubam Weyori (2019)
+  reusable_items:
+    - Structured comparison of fundamental vs technical inputs for prediction tasks
+  conflicts:
+    - Survey synthesis is useful for framing but insufficient for direct implementation decisions under LPDD invariants
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reuse as framing input for feature-prioritization research notes; require independent reproducibility checks per cited method
+      intended_agent: Copilot

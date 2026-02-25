@@ -1,0 +1,22 @@
+source_id: algorithmic_trading_using_deep_neural_networks_on_high_frequency_data
+source_type: article
+title: Algorithmic Trading Using Deep Neural Networks on High Frequency Data
+url: https://link.springer.com/chapter/10.1007/978-3-319-66963-2_14
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > High Frequency; Andrés Arévalo, Jaime Niño, German Hernandez, Javier Sandoval, Diego León, Arbey Aragón (2017)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

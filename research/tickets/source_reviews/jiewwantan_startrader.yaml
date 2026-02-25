@@ -1,0 +1,22 @@
+source_id: jiewwantan_startrader
+source_type: article
+title: jiewwantan/StarTrader
+url: https://github.com/jiewwantan/StarTrader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Trains an agent to trade like a human using a deep reinforcement learning algorithm: deep deterministic policy gradient (DDPG) learning algorithm
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -55,6 +55,14 @@ class StrategyConfig:
     use_adx_filter: bool = False
     adx_period: int = 14
     adx_threshold: float = 25.0
+    # Pairs mean-reversion benchmark
+    pair_lookback: int = 20
+    pair_entry_zscore: float = 2.0
+    pair_exit_zscore: float = 0.5
+    pair_max_holding_bars: int = 20
+    pair_hedge_ratio: float = 1.0
+    pair_primary_symbol: str = ""
+    pair_secondary_symbol: str = ""
 
 
 @dataclass
@@ -306,6 +314,54 @@ class Settings:
     )
     paper_db_archive_dir: str = field(
         default_factory=lambda: os.getenv("PAPER_DB_ARCHIVE_DIR", "archives/db")
+    )
+    symbol_universe_strict_mode: bool = field(
+        default_factory=lambda: os.getenv("SYMBOL_UNIVERSE_STRICT_MODE", "true").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    symbol_universe_min_availability_ratio: float = field(
+        default_factory=lambda: float(os.getenv("SYMBOL_UNIVERSE_MIN_AVAILABILITY_RATIO", "0.8"))
+    )
+    symbol_universe_min_bars_per_symbol: int = field(
+        default_factory=lambda: int(os.getenv("SYMBOL_UNIVERSE_MIN_BARS_PER_SYMBOL", "100"))
+    )
+    symbol_universe_preflight_period: str = field(
+        default_factory=lambda: os.getenv("SYMBOL_UNIVERSE_PREFLIGHT_PERIOD", "5d")
+    )
+    symbol_universe_preflight_interval: str = field(
+        default_factory=lambda: os.getenv("SYMBOL_UNIVERSE_PREFLIGHT_INTERVAL", "1m")
+    )
+    symbol_universe_remediation_enabled: bool = field(
+        default_factory=lambda: os.getenv("SYMBOL_UNIVERSE_REMEDIATION_ENABLED", "false").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    symbol_universe_remediation_min_symbols: int = field(
+        default_factory=lambda: int(os.getenv("SYMBOL_UNIVERSE_REMEDIATION_MIN_SYMBOLS", "3"))
+    )
+    symbol_universe_remediation_target_symbols: int = field(
+        default_factory=lambda: int(os.getenv("SYMBOL_UNIVERSE_REMEDIATION_TARGET_SYMBOLS", "0"))
+    )
+    yfinance_retry_enabled: bool = field(
+        default_factory=lambda: os.getenv("YFINANCE_RETRY_ENABLED", "true").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    yfinance_period_max_attempts: int = field(
+        default_factory=lambda: int(os.getenv("YFINANCE_PERIOD_MAX_ATTEMPTS", "2"))
+    )
+    yfinance_period_backoff_base_seconds: float = field(
+        default_factory=lambda: float(os.getenv("YFINANCE_PERIOD_BACKOFF_BASE_SECONDS", "0.25"))
+    )
+    yfinance_period_backoff_max_seconds: float = field(
+        default_factory=lambda: float(os.getenv("YFINANCE_PERIOD_BACKOFF_MAX_SECONDS", "1.0"))
+    )
+    yfinance_start_end_max_attempts: int = field(
+        default_factory=lambda: int(os.getenv("YFINANCE_START_END_MAX_ATTEMPTS", "3"))
+    )
+    yfinance_start_end_backoff_base_seconds: float = field(
+        default_factory=lambda: float(os.getenv("YFINANCE_START_END_BACKOFF_BASE_SECONDS", "0.5"))
+    )
+    yfinance_start_end_backoff_max_seconds: float = field(
+        default_factory=lambda: float(os.getenv("YFINANCE_START_END_BACKOFF_MAX_SECONDS", "2.0"))
     )
 
     def is_crypto(self, symbol: str) -> bool:

@@ -75,6 +75,25 @@ The following must be assembled **before** submitting for Stage R2 review. Missi
 | Data staleness documentation | If any training data is > 6 months old at submission time |
 | Corporate action adjustment log | If any training symbol had splits/dividends during the training window |
 
+### 3c. Claim-Integrity Required Fields (Anti-Hype Gate)
+
+Research outputs must include the following claim-integrity fields in metadata
+(`claim_integrity` object), propagated to `promotion_check.json`:
+
+| Field | Description |
+|---|---|
+| `out_of_sample_period` | Explicit OOS date window used for evaluation |
+| `transaction_costs_slippage_assumptions` | Cost/slippage assumptions used in reported results |
+| `max_drawdown` | Maximum drawdown for the reported strategy run |
+| `turnover` | Trade turnover metric for the reported run |
+| `tested_variants` | Count/list of tested variants used in the experiment cycle |
+
+Policy behavior (current phase):
+- Missing fields emit `CAUTION` flags in `promotion_check.json` (no hard fail yet)
+- If annualized return claim exceeds 100% while fields are incomplete, emit
+  `high_return_claim_unverified`
+- These cautions require reviewer sign-off before any promotion discussion
+
 ---
 
 ## 4. Stage R1: Internal Research Gate

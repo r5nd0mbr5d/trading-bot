@@ -1,0 +1,22 @@
+source_id: using_the_latest_advancements_in_deep_learning_to_predict_stock_price_movements
+source_type: article
+title: Using the latest advancements in deep learning to predict stock price movements
+url: https://towardsdatascience.com/aifortrading-2edd6fac689d
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Resources > Further Reading; Boris Banushev (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

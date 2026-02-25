@@ -1,0 +1,30 @@
+source_id: ccxt_ccxt
+source_type: repo
+title: ccxt/ccxt
+url: https://github.com/ccxt/ccxt
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 85
+  maintenance_health: 95
+  test_evidence: 80
+  risk_controls: 72
+  lpdd_invariant_fit: 88
+  operational_realism: 82
+
+notes:
+  final_verdict: Adopt now
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Unified multi-exchange API abstraction patterns and exchange capability normalization
+    - Built-in rate-limiter configuration patterns for exchange-specific constraints
+  conflicts:
+    - Library-level API broker assumptions require explicit fee and rebate neutrality checks per venue
+    - Direct order placement examples must still route through local RiskManager gate
+  ticket_recommendations:
+    - step: 63
+      recommendation: Add optional adapter-layer compatibility tests against CCXT symbol/precision schemas without replacing primary broker integrations
+      intended_agent: Copilot
+

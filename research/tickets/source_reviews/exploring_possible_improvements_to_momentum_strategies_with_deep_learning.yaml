@@ -1,0 +1,22 @@
+source_id: exploring_possible_improvements_to_momentum_strategies_with_deep_learning
+source_type: article
+title: Exploring Possible Improvements to Momentum Strategies with Deep Learning
+url: http://hdl.handle.net/2105/49940
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Adam Takács, X. Xiao (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

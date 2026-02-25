@@ -1,0 +1,28 @@
+source_id: datapebbles_drl_trading_article
+source_type: article
+title: Building a trading bot with Deep Reinforcement Learning (DataPebbles)
+url: https://medium.com/datapebbles/building-a-trading-bot-with-deep-reinforcement-learning-drl-b9519a8ba2ac
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 75
+  maintenance_health: 60
+  test_evidence: 20
+  risk_controls: 50
+  lpdd_invariant_fit: 70
+  operational_realism: 58
+
+notes:
+  final_verdict: Research first
+  review_scope: full article content + code snippets + limitations section
+  reusable_items:
+    - Explicit train/validation split pattern and simple environment scaffolding
+    - Clear limitations section (feature breadth, single-asset overfitting risk, stability caveats)
+  conflicts:
+    - Demonstration setup is educational and not production-grade for execution governance
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reuse RL experiment framing and caveat language in research specs only
+      intended_agent: Copilot

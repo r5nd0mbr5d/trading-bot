@@ -1,0 +1,22 @@
+source_id: alphastock_a_buying_winners_and_selling_losers_investment_strategy_using_interpretable_dee
+source_type: article
+title: AlphaStock: A Buying-Winners-and-Selling-Losers Investment Strategy using Interpretable Deep Reinforcement Attention Networks
+url: https://arxiv.org/abs/1908.02646
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Jingyuan Wang, Yang Zhang, Ke Tang, Junjie Wu, Zhang Xiong
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

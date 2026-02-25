@@ -1,0 +1,22 @@
+source_id: a_deep_reinforcement_learning_framework_for_the_financial_portfolio_management_problem
+source_type: article
+title: A Deep Reinforcement Learning Framework for the Financial Portfolio Management Problem
+url: https://arxiv.org/pdf/1706.10059
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Zhengyao Jiang, Dixing Xu, Jinjun Liang (2017)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

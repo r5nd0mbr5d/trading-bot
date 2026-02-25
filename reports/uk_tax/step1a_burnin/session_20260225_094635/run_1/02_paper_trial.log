@@ -1,0 +1,229 @@
+2026-02-25 09:46:40,359 [INFO] src.cli.runtime: [OK] Broker provider is IBKR
+2026-02-25 09:46:40,360 [INFO] src.cli.runtime: [OK] Market timezone is Europe/London
+2026-02-25 09:46:40,361 [INFO] src.cli.runtime: [OK] Base currency is GBP
+2026-02-25 09:46:40,363 [INFO] src.cli.runtime: [OK] Detected UK symbols: HSBA.L, VOD.L, BP.L, BARC.L, SHEL.L
+2026-02-25 09:46:40,363 [INFO] src.cli.runtime: [OK] DB isolation paths set (paper=trading_paper.db, live=trading_live.db, test=trading_test.db)
+2026-02-25 09:46:40,399 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-25 09:46:40,400 [INFO] ib_insync.client: Connected
+2026-02-25 09:46:40,403 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-25 09:46:40,405 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-25 09:46:40,405 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-25 09:46:40,405 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-25 09:46:40,405 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-25 09:46:40,405 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-25 09:46:40,406 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-25 09:46:40,407 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-25 09:46:40,407 [INFO] ib_insync.client: API connection ready
+2026-02-25 09:46:40,408 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-25 09:46:40,409 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.58785)
+2026-02-25 09:46:40,409 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878884)
+2026-02-25 09:46:40,510 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.6585002, marketValue=9.32, averageCost=7.58785, unrealizedPNL=-5.86, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:40,511 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5600004, marketValue=135.6, averageCost=13.81023, unrealizedPNL=-2.5, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:40,511 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.1688, marketValue=806.47, averageCost=1.1878884, unrealizedPNL=-13.17, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:40,513 [INFO] ib_insync.ib: Synchronization complete
+2026-02-25 09:46:40,514 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-25 09:46:40,514 [INFO] src.cli.runtime: [OK] IBKR connection established
+2026-02-25 09:46:40,514 [INFO] src.cli.runtime: [OK] IBKR account detected: DUQ117408 (paper)
+2026-02-25 09:46:40,514 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 119 B sent in 8 messages, 20.0 kB received in 412 messages, session time 115 ms.
+2026-02-25 09:46:40,515 [INFO] ib_insync.client: Disconnecting
+2026-02-25 09:46:40,515 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-25 09:46:40,515 [INFO] src.cli.runtime: UK health check complete: no blocking errors
+2026-02-25 09:46:41,019 [INFO] ib_insync.client: Disconnected.
+2026-02-25 09:46:41,019 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-25 09:46:41,020 [INFO] ib_insync.client: Connected
+2026-02-25 09:46:41,023 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-25 09:46:41,024 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-25 09:46:41,024 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-25 09:46:41,024 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-25 09:46:41,024 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-25 09:46:41,025 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-25 09:46:41,025 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-25 09:46:41,025 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-25 09:46:41,025 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-25 09:46:41,025 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-25 09:46:41,026 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-25 09:46:41,026 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-25 09:46:41,026 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-25 09:46:41,026 [INFO] ib_insync.client: API connection ready
+2026-02-25 09:46:41,027 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-25 09:46:41,028 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, avgCost=7.58785)
+2026-02-25 09:46:41,028 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878884)
+2026-02-25 09:46:41,130 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.6585002, marketValue=9.32, averageCost=7.58785, unrealizedPNL=-5.86, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:41,130 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5600004, marketValue=135.6, averageCost=13.81023, unrealizedPNL=-2.5, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:41,130 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.1688, marketValue=806.47, averageCost=1.1878884, unrealizedPNL=-13.17, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:46:41,133 [INFO] ib_insync.ib: Synchronization complete
+2026-02-25 09:46:41,133 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-25 09:46:41,133 [INFO] src.cli.runtime: Starting timed paper trial for 1800s
+2026-02-25 09:46:41,137 [INFO] src.cli.runtime: IBKR account detected: DUQ117408 (paper)
+2026-02-25 09:46:41,139 [INFO] src.cli.runtime: Runtime DB (paper): trading_paper.db
+2026-02-25 09:46:41,144 [INFO] src.trading.loop: Pre-warming strategy with recent 5-day history…
+2026-02-25 09:46:42,199 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 09:46:42,199 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-25 09:46:42,200 [WARNING] src.trading.loop:   HSBA.L: pre-warm failed — No data returned for HSBA.L. Check provider availability and date range.
+2026-02-25 09:46:42,572 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 09:46:42,572 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-25 09:46:42,573 [WARNING] src.trading.loop:   VOD.L: pre-warm failed — No data returned for VOD.L. Check provider availability and date range.
+2026-02-25 09:46:42,976 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 09:46:42,976 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-25 09:46:42,977 [WARNING] src.trading.loop:   BP.L: pre-warm failed — No data returned for BP.L. Check provider availability and date range.
+2026-02-25 09:46:43,366 [ERROR] yfinance: $BARC.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 09:46:43,366 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BARC.L: Empty dataset from provider 'yfinance'
+2026-02-25 09:46:43,367 [WARNING] src.trading.loop:   BARC.L: pre-warm failed — No data returned for BARC.L. Check provider availability and date range.
+2026-02-25 09:46:43,744 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 09:46:43,744 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-25 09:46:43,744 [WARNING] src.trading.loop:   SHEL.L: pre-warm failed — No data returned for SHEL.L. Check provider availability and date range.
+2026-02-25 09:46:43,745 [INFO] src.cli.runtime: Paper trading started. Min bars required: 16. Polling every 300s. Ctrl+C to stop.
+2026-02-25 09:46:43,847 [INFO] src.trading.loop: Initial portfolio value: $1,000,066.65
+2026-02-25 09:46:43,847 [INFO] src.data.feeds: Stream started for ['HSBA.L', 'VOD.L', 'BP.L', 'BARC.L', 'SHEL.L'] (poll every 300s)
+2026-02-25 09:46:44,149 [ERROR] ib_insync.wrapper: Error 200, reqId 42: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:46:44,349 [ERROR] ib_insync.wrapper: Error 200, reqId 43: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:46:44,661 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:46:44,900 [ERROR] ib_insync.wrapper: Error 10089, reqId 44: Requested market data requires additional subscription for API. See link in 'Market Data Connections' dialog for more details.Delayed market data is available.VOD NASDAQ.NMS/TOP/ALL, contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:46:44,951 [ERROR] ib_insync.wrapper: Error 200, reqId 45: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:46:45,154 [ERROR] ib_insync.wrapper: Error 200, reqId 46: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:46:45,356 [ERROR] ib_insync.wrapper: Error 10168, reqId 47: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:46:45,467 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:46:45,766 [ERROR] ib_insync.wrapper: Error 200, reqId 48: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:46:45,974 [ERROR] ib_insync.wrapper: Error 200, reqId 49: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:46:46,180 [ERROR] ib_insync.wrapper: Error 10168, reqId 50: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:46:46,289 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:46:46,686 [ERROR] ib_insync.wrapper: Error 200, reqId 51: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:46:46,890 [ERROR] ib_insync.wrapper: Error 200, reqId 52: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:46:47,092 [ERROR] ib_insync.wrapper: Error 10168, reqId 53: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:46:47,203 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:46:47,518 [ERROR] ib_insync.wrapper: Error 200, reqId 54: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:46:47,727 [ERROR] ib_insync.wrapper: Error 200, reqId 55: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:46:47,944 [ERROR] ib_insync.wrapper: Error 10168, reqId 56: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:46:48,056 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:47:24,825 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.6529999, marketValue=9.31, averageCost=7.58785, unrealizedPNL=-5.87, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:47:24,826 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.56799985, marketValue=135.68, averageCost=13.81023, unrealizedPNL=-2.42, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:47:24,826 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.1695, marketValue=806.95, averageCost=1.1878884, unrealizedPNL=-12.69, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:50:24,817 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.57800005, marketValue=135.78, averageCost=13.81023, unrealizedPNL=-2.32, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:50:24,818 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16900005, marketValue=806.61, averageCost=1.1878884, unrealizedPNL=-13.03, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:51:48,884 [ERROR] ib_insync.wrapper: Error 200, reqId 57: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:51:49,093 [ERROR] ib_insync.wrapper: Error 200, reqId 58: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:51:49,298 [ERROR] ib_insync.wrapper: Error 10168, reqId 59: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:51:49,405 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:51:49,691 [ERROR] ib_insync.wrapper: Error 200, reqId 60: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:51:49,899 [ERROR] ib_insync.wrapper: Error 200, reqId 61: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:51:50,100 [ERROR] ib_insync.wrapper: Error 10168, reqId 62: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:51:50,213 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:51:50,503 [ERROR] ib_insync.wrapper: Error 200, reqId 63: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:51:50,712 [ERROR] ib_insync.wrapper: Error 200, reqId 64: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:51:50,932 [ERROR] ib_insync.wrapper: Error 10168, reqId 65: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:51:51,062 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:51:51,342 [ERROR] ib_insync.wrapper: Error 200, reqId 66: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:51:51,543 [ERROR] ib_insync.wrapper: Error 200, reqId 67: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:51:51,765 [ERROR] ib_insync.wrapper: Error 10168, reqId 68: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:51:51,879 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:51:52,191 [ERROR] ib_insync.wrapper: Error 200, reqId 69: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:51:52,395 [ERROR] ib_insync.wrapper: Error 200, reqId 70: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:51:52,599 [ERROR] ib_insync.wrapper: Error 10168, reqId 71: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:51:52,712 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:53:24,821 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.59000015, marketValue=135.9, averageCost=13.81023, unrealizedPNL=-2.2, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:56:24,818 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.56200025, marketValue=135.62, averageCost=13.81023, unrealizedPNL=-2.48, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:56:24,818 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.1687, marketValue=806.4, averageCost=1.1878884, unrealizedPNL=-13.24, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:56:53,293 [ERROR] ib_insync.wrapper: Error 200, reqId 72: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:56:53,509 [ERROR] ib_insync.wrapper: Error 200, reqId 73: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:56:53,821 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:56:54,030 [ERROR] ib_insync.wrapper: Error 10089, reqId 74: Requested market data requires additional subscription for API. See link in 'Market Data Connections' dialog for more details.Delayed market data is available.VOD NASDAQ.NMS/TOP/ALL, contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:56:54,108 [ERROR] ib_insync.wrapper: Error 200, reqId 75: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:56:54,312 [ERROR] ib_insync.wrapper: Error 200, reqId 76: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:56:54,627 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:56:54,828 [ERROR] ib_insync.wrapper: Error 10089, reqId 77: Requested market data requires additional subscription for API. See link in 'Market Data Connections' dialog for more details.Delayed market data is available.VOD NASDAQ.NMS/TOP/ALL, contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:56:54,916 [ERROR] ib_insync.wrapper: Error 200, reqId 78: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:56:55,135 [ERROR] ib_insync.wrapper: Error 200, reqId 79: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:56:55,352 [ERROR] ib_insync.wrapper: Error 10168, reqId 80: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:56:55,479 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:56:55,776 [ERROR] ib_insync.wrapper: Error 200, reqId 81: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:56:56,003 [ERROR] ib_insync.wrapper: Error 200, reqId 82: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:56:56,204 [ERROR] ib_insync.wrapper: Error 10168, reqId 83: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:56:56,316 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:56:56,627 [ERROR] ib_insync.wrapper: Error 200, reqId 84: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 09:56:56,824 [ERROR] ib_insync.wrapper: Error 200, reqId 85: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 09:56:57,041 [ERROR] ib_insync.wrapper: Error 10168, reqId 86: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 09:56:57,169 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 09:59:24,813 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.57199955, marketValue=135.72, averageCost=13.81023, unrealizedPNL=-2.38, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 09:59:24,813 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.1695, marketValue=806.95, averageCost=1.1878884, unrealizedPNL=-12.69, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:01:57,741 [ERROR] ib_insync.wrapper: Error 200, reqId 87: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:01:57,949 [ERROR] ib_insync.wrapper: Error 200, reqId 88: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:01:58,177 [ERROR] ib_insync.wrapper: Error 10168, reqId 89: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:01:58,295 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:01:58,583 [ERROR] ib_insync.wrapper: Error 200, reqId 90: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:01:58,787 [ERROR] ib_insync.wrapper: Error 200, reqId 91: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:01:58,989 [ERROR] ib_insync.wrapper: Error 10168, reqId 92: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:01:59,100 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:01:59,392 [ERROR] ib_insync.wrapper: Error 200, reqId 93: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:01:59,591 [ERROR] ib_insync.wrapper: Error 200, reqId 94: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:01:59,797 [ERROR] ib_insync.wrapper: Error 10168, reqId 95: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:01:59,906 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:02:00,195 [ERROR] ib_insync.wrapper: Error 200, reqId 96: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:02:00,415 [ERROR] ib_insync.wrapper: Error 200, reqId 97: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:02:00,633 [ERROR] ib_insync.wrapper: Error 10168, reqId 98: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:02:00,744 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:02:01,059 [ERROR] ib_insync.wrapper: Error 200, reqId 99: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:02:01,267 [ERROR] ib_insync.wrapper: Error 200, reqId 100: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:02:01,470 [ERROR] ib_insync.wrapper: Error 10168, reqId 101: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:02:01,580 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:02:24,814 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5500002, marketValue=135.5, averageCost=13.81023, unrealizedPNL=-2.6, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:02:24,814 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.16900005, marketValue=806.61, averageCost=1.1878884, unrealizedPNL=-13.03, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:05:24,810 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=2.0, marketPrice=4.64750005, marketValue=9.3, averageCost=7.58785, unrealizedPNL=-5.88, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:05:24,810 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5419998, marketValue=135.42, averageCost=13.81023, unrealizedPNL=-2.68, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:07:02,003 [ERROR] ib_insync.wrapper: Error 200, reqId 102: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:07:02,206 [ERROR] ib_insync.wrapper: Error 200, reqId 103: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:07:02,523 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:07:02,774 [ERROR] ib_insync.wrapper: Error 10089, reqId 104: Requested market data requires additional subscription for API. See link in 'Market Data Connections' dialog for more details.Delayed market data is available.VOD NASDAQ.NMS/TOP/ALL, contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:07:02,864 [ERROR] ib_insync.wrapper: Error 200, reqId 105: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:07:03,068 [ERROR] ib_insync.wrapper: Error 200, reqId 106: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:07:03,274 [ERROR] ib_insync.wrapper: Error 10168, reqId 107: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:07:03,386 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:07:03,700 [ERROR] ib_insync.wrapper: Error 200, reqId 108: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:07:03,896 [ERROR] ib_insync.wrapper: Error 200, reqId 109: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:07:04,101 [ERROR] ib_insync.wrapper: Error 10168, reqId 110: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:07:04,232 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:07:04,532 [ERROR] ib_insync.wrapper: Error 200, reqId 111: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:07:04,728 [ERROR] ib_insync.wrapper: Error 200, reqId 112: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:07:04,945 [ERROR] ib_insync.wrapper: Error 10168, reqId 113: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:07:05,073 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:07:05,355 [ERROR] ib_insync.wrapper: Error 200, reqId 114: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:07:05,563 [ERROR] ib_insync.wrapper: Error 200, reqId 115: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:07:05,769 [ERROR] ib_insync.wrapper: Error 10168, reqId 116: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:07:05,878 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:08:24,806 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5319996, marketValue=135.32, averageCost=13.81023, unrealizedPNL=-2.78, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:11:24,803 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.54599955, marketValue=135.46, averageCost=13.81023, unrealizedPNL=-2.64, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:12:06,339 [ERROR] ib_insync.wrapper: Error 200, reqId 117: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:12:06,554 [ERROR] ib_insync.wrapper: Error 200, reqId 118: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:12:06,757 [ERROR] ib_insync.wrapper: Error 10168, reqId 119: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:12:06,866 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:12:07,188 [ERROR] ib_insync.wrapper: Error 200, reqId 120: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:12:07,388 [ERROR] ib_insync.wrapper: Error 200, reqId 121: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:12:07,590 [ERROR] ib_insync.wrapper: Error 10168, reqId 122: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:12:07,718 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:12:08,024 [ERROR] ib_insync.wrapper: Error 200, reqId 123: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:12:08,240 [ERROR] ib_insync.wrapper: Error 200, reqId 124: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:12:08,442 [ERROR] ib_insync.wrapper: Error 10168, reqId 125: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:12:08,552 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:12:09,052 [ERROR] ib_insync.wrapper: Error 200, reqId 126: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:12:09,260 [ERROR] ib_insync.wrapper: Error 200, reqId 127: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:12:09,478 [ERROR] ib_insync.wrapper: Error 10168, reqId 128: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:12:09,588 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:12:09,904 [ERROR] ib_insync.wrapper: Error 200, reqId 129: No security definition has been found for the request, contract: Stock(symbol='HSBA', exchange='SMART', currency='USD')
+2026-02-25 10:12:10,112 [ERROR] ib_insync.wrapper: Error 200, reqId 130: No security definition has been found for the request, contract: Stock(symbol='BARC', exchange='SMART', currency='USD')
+2026-02-25 10:12:10,315 [ERROR] ib_insync.wrapper: Error 10168, reqId 131: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(symbol='VOD', exchange='SMART', currency='USD')
+2026-02-25 10:12:10,425 [INFO] src.trading.loop: Portfolio: $nan  cash=$999,027.08  positions=3  return=+nan%
+2026-02-25 10:14:24,801 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.5490217, marketValue=135.49, averageCost=13.81023, unrealizedPNL=-2.61, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:14:24,802 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.171, marketValue=807.99, averageCost=1.1878884, unrealizedPNL=-11.65, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 10:16:41,140 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 5.30 kB sent in 99 messages, 182 kB received in 3845 messages, session time 1.80 ks.
+2026-02-25 10:16:41,140 [INFO] ib_insync.client: Disconnecting
+2026-02-25 10:16:41,141 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-25 10:16:41,141 [INFO] ib_insync.client: Disconnected.
+2026-02-25 10:16:41,141 [INFO] src.cli.runtime: Paper trial duration reached (1800s); stopping session
+2026-02-25 10:16:41,144 [INFO] src.cli.runtime: Paper session summary export completed
+2026-02-25 10:16:41,144 [INFO] src.cli.runtime:   json: reports\uk_tax\paper_session_summary.json
+2026-02-25 10:16:41,144 [INFO] src.cli.runtime:   csv: reports\uk_tax\paper_session_summary.csv
+2026-02-25 10:16:41,144 [INFO] src.cli.runtime:   fills=0/8 fill_rate=0.00% win_rate=0.00% pnl_gbp=0.00

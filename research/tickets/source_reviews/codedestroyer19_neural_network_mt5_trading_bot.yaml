@@ -1,0 +1,28 @@
+source_id: codedestroyer19_neural_network_mt5_trading_bot
+source_type: repo
+title: CodeDestroyer19/Neural-Network-MT5-Trading-Bot
+url: https://github.com/CodeDestroyer19/Neural-Network-MT5-Trading-Bot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 60
+  maintenance_health: 25
+  test_evidence: 20
+  risk_controls: 45
+  lpdd_invariant_fit: 40
+  operational_realism: 50
+
+notes:
+  final_verdict: Reject
+  review_scope: README + containerized runtime description + rubric fit
+  reusable_items:
+    - Dockerized broker-runtime layout ideas for isolated experiments
+  conflicts:
+    - Limited evidence for robust validation protocol and test coverage
+    - Execution architecture does not demonstrate LPDD-style strict risk-manager mediation
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject direct adoption; optionally reference container packaging patterns only
+      intended_agent: Copilot

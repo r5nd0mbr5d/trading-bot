@@ -1,0 +1,22 @@
+source_id: lefnire_tforce_btc_trader
+source_type: article
+title: lefnire/tforce_btc_trader
+url: https://github.com/lefnire/tforce_btc_trader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories > Cryptocurrency; A TensorForce-based Bitcoin trading bot (algo-trader). Uses deep reinforcement learning to automatically buy/sell/hold BTC based on price history.
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

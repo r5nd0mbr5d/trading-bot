@@ -1,0 +1,41 @@
+2026-02-25 11:48:31,553 [INFO] src.cli.runtime: [OK] Broker provider is IBKR
+2026-02-25 11:48:31,554 [INFO] src.cli.runtime: [OK] Market timezone is Europe/London
+2026-02-25 11:48:31,555 [INFO] src.cli.runtime: [OK] Base currency is GBP
+2026-02-25 11:48:31,556 [INFO] src.cli.runtime: [OK] Detected UK symbols: HSBA.L, VOD.L, BP.L, BARC.L, SHEL.L
+2026-02-25 11:48:31,557 [INFO] src.cli.runtime: [OK] DB isolation paths set (paper=trading_paper.db, live=trading_live.db, test=trading_test.db)
+2026-02-25 11:48:31,592 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 73...
+2026-02-25 11:48:31,593 [INFO] ib_insync.client: Connected
+2026-02-25 11:48:31,596 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-25 11:48:31,596 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-25 11:48:31,597 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-25 11:48:31,597 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-25 11:48:31,597 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-25 11:48:31,597 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-25 11:48:31,598 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-25 11:48:31,599 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-25 11:48:31,599 [INFO] ib_insync.client: API connection ready
+2026-02-25 11:48:31,600 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-25 11:48:31,601 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=338.0, avgCost=4.722399619378698)
+2026-02-25 11:48:31,601 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878884)
+2026-02-25 11:48:31,703 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=338.0, marketPrice=4.64900015, marketValue=1571.36, averageCost=4.7223996, unrealizedPNL=-24.81, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:31,703 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.6591997, marketValue=136.59, averageCost=13.81023, unrealizedPNL=-1.51, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:31,703 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.173, marketValue=809.37, averageCost=1.1878884, unrealizedPNL=-10.27, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:31,708 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e85ee.01.01', time=datetime.datetime(2026, 2, 25, 11, 0, 44, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=119.0, price=466.25, permId=59685724, clientId=1, orderId=54, liquidation=0, cumQty=119.0, avgPrice=466.25, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:48:31,709 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e86c6.01.01', time=datetime.datetime(2026, 2, 25, 11, 38, 18, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=112.0, price=465.35, permId=59685733, clientId=1, orderId=70, liquidation=0, cumQty=112.0, avgPrice=465.35, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:48:31,709 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e86d3.01.01', time=datetime.datetime(2026, 2, 25, 11, 48, 5, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=105.0, price=464.9, permId=59685742, clientId=1, orderId=86, liquidation=0, cumQty=105.0, avgPrice=464.9, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:48:31,709 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e85ee.01.01', commission=5.774188, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:48:31,709 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e86c6.01.01', commission=5.60596, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:48:31,709 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e86d3.01.01', commission=5.440725, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:48:31,710 [INFO] ib_insync.ib: Synchronization complete
+2026-02-25 11:48:31,710 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=73)
+2026-02-25 11:48:31,710 [INFO] src.cli.runtime: [OK] IBKR connection established
+2026-02-25 11:48:31,710 [INFO] src.cli.runtime: [OK] IBKR account detected: DUQ117408 (paper)
+2026-02-25 11:48:31,710 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 118 B sent in 8 messages, 22.0 kB received in 421 messages, session time 118 ms.
+2026-02-25 11:48:31,710 [INFO] ib_insync.client: Disconnecting
+2026-02-25 11:48:31,711 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-25 11:48:31,711 [INFO] src.cli.runtime: UK health check complete: no blocking errors

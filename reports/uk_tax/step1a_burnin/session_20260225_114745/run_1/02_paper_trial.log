@@ -1,0 +1,161 @@
+2026-02-25 11:47:54,660 [INFO] src.cli.runtime: [OK] Broker provider is IBKR
+2026-02-25 11:47:54,662 [INFO] src.cli.runtime: [OK] Market timezone is Europe/London
+2026-02-25 11:47:54,663 [INFO] src.cli.runtime: [OK] Base currency is GBP
+2026-02-25 11:47:54,663 [INFO] src.cli.runtime: [OK] Detected UK symbols: HSBA.L, VOD.L, BP.L, BARC.L, SHEL.L
+2026-02-25 11:47:54,664 [INFO] src.cli.runtime: [OK] DB isolation paths set (paper=trading_paper.db, live=trading_live.db, test=trading_test.db)
+2026-02-25 11:47:54,701 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-25 11:47:54,703 [INFO] ib_insync.client: Connected
+2026-02-25 11:47:54,705 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-25 11:47:54,707 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-25 11:47:54,707 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-25 11:47:54,707 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-25 11:47:54,707 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-25 11:47:54,707 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-25 11:47:54,708 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-25 11:47:54,708 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-25 11:47:54,708 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-25 11:47:54,708 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-25 11:47:54,708 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-25 11:47:54,709 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-25 11:47:54,709 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-25 11:47:54,709 [INFO] ib_insync.client: API connection ready
+2026-02-25 11:47:54,710 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-25 11:47:54,710 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=233.0, avgCost=4.73212595)
+2026-02-25 11:47:54,711 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878884)
+2026-02-25 11:47:54,812 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=233.0, marketPrice=4.65199995, marketValue=1083.92, averageCost=4.73212595, unrealizedPNL=-18.67, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:54,813 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.67800045, marketValue=136.78, averageCost=13.81023, unrealizedPNL=-1.32, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:54,813 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.173, marketValue=809.37, averageCost=1.1878884, unrealizedPNL=-10.27, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:54,818 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e85ee.01.01', time=datetime.datetime(2026, 2, 25, 11, 0, 44, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=119.0, price=466.25, permId=59685724, clientId=1, orderId=54, liquidation=0, cumQty=119.0, avgPrice=466.25, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:47:54,818 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e86c6.01.01', time=datetime.datetime(2026, 2, 25, 11, 38, 18, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=112.0, price=465.35, permId=59685733, clientId=1, orderId=70, liquidation=0, cumQty=112.0, avgPrice=465.35, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:47:54,818 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e85ee.01.01', commission=5.774188, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:47:54,818 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e86c6.01.01', commission=5.60596, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:47:54,819 [INFO] ib_insync.ib: Synchronization complete
+2026-02-25 11:47:54,819 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-25 11:47:54,819 [INFO] src.cli.runtime: [OK] IBKR connection established
+2026-02-25 11:47:54,819 [INFO] src.cli.runtime: [OK] IBKR account detected: DUQ117408 (paper)
+2026-02-25 11:47:54,820 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 119 B sent in 8 messages, 21.5 kB received in 418 messages, session time 118 ms.
+2026-02-25 11:47:54,820 [INFO] ib_insync.client: Disconnecting
+2026-02-25 11:47:54,820 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-25 11:47:54,820 [INFO] src.cli.runtime: UK health check complete: no blocking errors
+2026-02-25 11:47:56,334 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:47:56,335 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:47:56,674 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:47:56,674 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-25 11:47:57,234 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-23 -> 2026-02-23)
+2026-02-25 11:47:57,235 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-25 11:47:58,445 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:47:58,446 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:47:58,446 [INFO] ib_insync.client: Connecting to 127.0.0.1:7497 with clientId 1...
+2026-02-25 11:47:58,447 [INFO] ib_insync.client: Connected
+2026-02-25 11:47:58,450 [INFO] ib_insync.client: Logged on to server version 176
+2026-02-25 11:47:58,451 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:hfarm
+2026-02-25 11:47:58,451 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarmnj
+2026-02-25 11:47:58,451 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:cashfarm
+2026-02-25 11:47:58,451 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfuture
+2026-02-25 11:47:58,451 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:jfarm
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm.nj
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:eufarm
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2104, reqId -1: Market data farm connection is OK:usfarm
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:euhmds
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:fundfarm
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2106, reqId -1: HMDS data farm connection is OK:ushmds
+2026-02-25 11:47:58,452 [INFO] ib_insync.wrapper: Warning 2158, reqId -1: Sec-def data farm connection is OK:secdefnj
+2026-02-25 11:47:58,453 [INFO] ib_insync.client: API connection ready
+2026-02-25 11:47:58,454 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, avgCost=13.81023)
+2026-02-25 11:47:58,454 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=233.0, avgCost=4.73212595)
+2026-02-25 11:47:58,454 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, avgCost=1.1878884)
+2026-02-25 11:47:58,556 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=233.0, marketPrice=4.65199995, marketValue=1083.92, averageCost=4.73212595, unrealizedPNL=-18.67, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:58,556 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.67800045, marketValue=136.78, averageCost=13.81023, unrealizedPNL=-1.32, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:58,556 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=140148322, symbol='VOD', right='0', primaryExchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1'), position=690.0, marketPrice=1.173, marketValue=809.37, averageCost=1.1878884, unrealizedPNL=-10.27, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:47:58,559 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e85ee.01.01', time=datetime.datetime(2026, 2, 25, 11, 0, 44, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=119.0, price=466.25, permId=59685724, clientId=1, orderId=54, liquidation=0, cumQty=119.0, avgPrice=466.25, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:47:58,560 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e86c6.01.01', time=datetime.datetime(2026, 2, 25, 11, 38, 18, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=112.0, price=465.35, permId=59685733, clientId=1, orderId=70, liquidation=0, cumQty=112.0, avgPrice=465.35, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:47:58,560 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e85ee.01.01', commission=5.774188, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:47:58,560 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e86c6.01.01', commission=5.60596, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:47:58,560 [INFO] ib_insync.ib: Synchronization complete
+2026-02-25 11:47:58,560 [INFO] src.execution.ibkr_broker: Connected to IBKR at 127.0.0.1:7497 (clientId=1)
+2026-02-25 11:47:58,561 [INFO] src.cli.runtime: Starting timed paper trial for 180s
+2026-02-25 11:47:58,565 [INFO] src.cli.runtime: IBKR account detected: DUQ117408 (paper)
+2026-02-25 11:47:58,566 [INFO] src.cli.runtime: Runtime DB (paper): trading_paper.db
+2026-02-25 11:47:58,568 [INFO] src.trading.loop: Pre-warming strategy with recent 5-day history…
+2026-02-25 11:47:58,812 [ERROR] yfinance: $HSBA.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:47:58,812 [WARNING] src.data.feeds: Data provider 'yfinance' failed for HSBA.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:47:58,813 [WARNING] src.trading.loop:   HSBA.L: pre-warm failed — No data returned for HSBA.L. Check provider availability and date range.
+2026-02-25 11:47:59,048 [ERROR] yfinance: $VOD.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:47:59,048 [WARNING] src.data.feeds: Data provider 'yfinance' failed for VOD.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:47:59,048 [WARNING] src.trading.loop:   VOD.L: pre-warm failed — No data returned for VOD.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-25 11:47:59,338 [ERROR] yfinance: $BP.L: possibly delisted; no price data found  (1m 2026-02-23 -> 2026-02-23)
+2026-02-25 11:47:59,338 [WARNING] src.data.feeds: Data provider 'yfinance' failed for BP.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:47:59,338 [WARNING] src.trading.loop:   BP.L: pre-warm failed — No data returned for BP.L. Check provider availability and date range.
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+C:\Users\rando\Projects\trading-bot\src\data\market_data_store.py:187: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  for month, month_df in df.groupby(df.index.to_period("M")):
+2026-02-25 11:48:01,530 [INFO] src.trading.loop:   BARC.L: 1302 bars loaded (strategy ready: 1302 >= 16)
+2026-02-25 11:48:01,774 [ERROR] yfinance: $SHEL.L: possibly delisted; no price data found  (1m 2026-02-20 -> 2026-02-20)
+2026-02-25 11:48:01,774 [WARNING] src.data.feeds: Data provider 'yfinance' failed for SHEL.L: Empty dataset from provider 'yfinance'
+2026-02-25 11:48:01,774 [WARNING] src.trading.loop:   SHEL.L: pre-warm failed — No data returned for SHEL.L. Check provider availability and date range.
+2026-02-25 11:48:01,774 [INFO] src.cli.runtime: Paper trading started. Min bars required: 16. Polling every 300s. Ctrl+C to stop.
+2026-02-25 11:48:01,874 [INFO] src.trading.loop: Initial portfolio value: $1,000,057.93
+2026-02-25 11:48:01,874 [INFO] src.data.feeds: Stream started for ['HSBA.L', 'VOD.L', 'BP.L', 'BARC.L', 'SHEL.L'] (poll every 300s)
+2026-02-25 11:48:02,163 [ERROR] ib_insync.wrapper: Error 10168, reqId 74: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:02,381 [ERROR] ib_insync.wrapper: Error 10168, reqId 75: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:02,597 [ERROR] ib_insync.wrapper: Error 10168, reqId 76: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:02,813 [INFO] src.trading.loop: Portfolio: $nan  cash=$997,939.67  positions=3  return=+nan%
+2026-02-25 11:48:03,036 [ERROR] ib_insync.wrapper: Error 10168, reqId 77: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:03,248 [ERROR] ib_insync.wrapper: Error 10168, reqId 78: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:03,465 [ERROR] ib_insync.wrapper: Error 10168, reqId 79: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:03,665 [INFO] src.trading.loop: Portfolio: $nan  cash=$997,939.67  positions=3  return=+nan%
+2026-02-25 11:48:03,876 [ERROR] ib_insync.wrapper: Error 10168, reqId 80: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:04,084 [ERROR] ib_insync.wrapper: Error 10168, reqId 81: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:04,302 [ERROR] ib_insync.wrapper: Error 10168, reqId 82: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:04,517 [INFO] src.trading.loop: Portfolio: $nan  cash=$997,939.67  positions=3  return=+nan%
+2026-02-25 11:48:04,731 [ERROR] ib_insync.wrapper: Error 10168, reqId 83: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:04,921 [ERROR] ib_insync.wrapper: Error 10168, reqId 84: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:05,138 [ERROR] ib_insync.wrapper: Error 10168, reqId 85: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:05,338 [INFO] ib_insync.ib: placeOrder: New order Trade(contract=Stock(symbol='BARC', exchange='SMART', primaryExchange='LSE', currency='GBP'), order=MarketOrder(orderId=86, clientId=1, action='BUY', totalQuantity=105), orderStatus=OrderStatus(orderId=86, status='PendingSubmit', filled=0.0, remaining=0.0, avgFillPrice=0.0, permId=0, parentId=0, lastFillPrice=0.0, clientId=0, whyHeld='', mktCapPrice=0.0), fills=[], log=[TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 338865, tzinfo=datetime.timezone.utc), status='PendingSubmit', message='', errorCode=0)], advancedError='')
+2026-02-25 11:48:05,432 [ERROR] ib_insync.wrapper: Error 10349, reqId 86: Order TIF was set to DAY based on order preset.
+2026-02-25 11:48:05,432 [WARNING] ib_insync.wrapper: Canceled order: Trade(contract=Stock(symbol='BARC', exchange='SMART', primaryExchange='LSE', currency='GBP'), order=MarketOrder(orderId=86, clientId=1, action='BUY', totalQuantity=105), orderStatus=OrderStatus(orderId=86, status='Cancelled', filled=0.0, remaining=0.0, avgFillPrice=0.0, permId=0, parentId=0, lastFillPrice=0.0, clientId=0, whyHeld='', mktCapPrice=0.0), fills=[], log=[TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 338865, tzinfo=datetime.timezone.utc), status='PendingSubmit', message='', errorCode=0), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 432365, tzinfo=datetime.timezone.utc), status='Cancelled', message='Error 10349, reqId 86: Order TIF was set to DAY based on order preset.', errorCode=10349)], advancedError='')
+2026-02-25 11:48:05,612 [INFO] ib_insync.wrapper: orderStatus: Trade(contract=Stock(symbol='BARC', exchange='SMART', primaryExchange='LSE', currency='GBP'), order=MarketOrder(orderId=86, clientId=1, permId=59685742, action='BUY', totalQuantity=105.0, lmtPrice=0.0, auxPrice=0.0), orderStatus=OrderStatus(orderId=86, status='PreSubmitted', filled=0.0, remaining=105.0, avgFillPrice=0.0, permId=59685742, parentId=0, lastFillPrice=0.0, clientId=1, whyHeld='', mktCapPrice=0.0), fills=[], log=[TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 338865, tzinfo=datetime.timezone.utc), status='PendingSubmit', message='', errorCode=0), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 432365, tzinfo=datetime.timezone.utc), status='Cancelled', message='Error 10349, reqId 86: Order TIF was set to DAY based on order preset.', errorCode=10349), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 612862, tzinfo=datetime.timezone.utc), status='PreSubmitted', message='', errorCode=0)], advancedError='')
+2026-02-25 11:48:05,613 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=338.0, avgCost=4.706302799852071)
+2026-02-25 11:48:05,615 [INFO] ib_insync.wrapper: execDetails Execution(execId='0001b266.699e86d3.01.01', time=datetime.datetime(2026, 2, 25, 11, 48, 5, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=105.0, price=464.9, permId=59685742, clientId=1, orderId=86, liquidation=0, cumQty=105.0, avgPrice=464.9, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2)
+2026-02-25 11:48:05,616 [INFO] ib_insync.wrapper: execDetails: Fill(contract=Stock(conId=908940, symbol='BARC', exchange='BATEUK', currency='GBP', localSymbol='BARC', tradingClass='SET1'), execution=Execution(execId='0001b266.699e86d3.01.01', time=datetime.datetime(2026, 2, 25, 11, 48, 5, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=105.0, price=464.9, permId=59685742, clientId=1, orderId=86, liquidation=0, cumQty=105.0, avgPrice=464.9, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2), commissionReport=CommissionReport(execId='', commission=0.0, currency='', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0), time=datetime.datetime(2026, 2, 25, 11, 48, 5, 615864, tzinfo=datetime.timezone.utc))
+2026-02-25 11:48:05,616 [INFO] ib_insync.wrapper: orderStatus: Trade(contract=Stock(symbol='BARC', exchange='SMART', primaryExchange='LSE', currency='GBP'), order=MarketOrder(orderId=86, clientId=1, permId=59685742, action='BUY', totalQuantity=105.0, lmtPrice=0.0, auxPrice=0.0), orderStatus=OrderStatus(orderId=86, status='Filled', filled=105.0, remaining=0.0, avgFillPrice=464.9, permId=59685742, parentId=0, lastFillPrice=464.9, clientId=1, whyHeld='', mktCapPrice=0.0), fills=[Fill(contract=Stock(conId=908940, symbol='BARC', exchange='BATEUK', currency='GBP', localSymbol='BARC', tradingClass='SET1'), execution=Execution(execId='0001b266.699e86d3.01.01', time=datetime.datetime(2026, 2, 25, 11, 48, 5, tzinfo=datetime.timezone.utc), acctNumber='DUQ117408', exchange='BATEUK', side='BOT', shares=105.0, price=464.9, permId=59685742, clientId=1, orderId=86, liquidation=0, cumQty=105.0, avgPrice=464.9, orderRef='', evRule='', evMultiplier=0.0, modelCode='', lastLiquidity=2), commissionReport=CommissionReport(execId='', commission=0.0, currency='', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0), time=datetime.datetime(2026, 2, 25, 11, 48, 5, 615864, tzinfo=datetime.timezone.utc))], log=[TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 338865, tzinfo=datetime.timezone.utc), status='PendingSubmit', message='', errorCode=0), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 432365, tzinfo=datetime.timezone.utc), status='Cancelled', message='Error 10349, reqId 86: Order TIF was set to DAY based on order preset.', errorCode=10349), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 612862, tzinfo=datetime.timezone.utc), status='PreSubmitted', message='', errorCode=0), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 615864, tzinfo=datetime.timezone.utc), status='PreSubmitted', message='Fill 105.0@464.9', errorCode=0), TradeLogEntry(time=datetime.datetime(2026, 2, 25, 11, 48, 5, 616864, tzinfo=datetime.timezone.utc), status='Filled', message='', errorCode=0)], advancedError='')
+2026-02-25 11:48:05,617 [INFO] ib_insync.wrapper: commissionReport: CommissionReport(execId='0001b266.699e86d3.01.01', commission=5.440725, currency='GBP', realizedPNL=0.0, yield_=0.0, yieldRedemptionDate=0)
+2026-02-25 11:48:05,617 [INFO] src.execution.ibkr_broker: Order BARC.L (86) filled at 464.9000 after 2 seconds (status: Filled)
+2026-02-25 11:48:05,617 [INFO] src.trading.loop: ORDER FILLED: BUY 105.072 BARC.L @ ~$465.00
+2026-02-25 11:48:05,618 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=338.0, avgCost=4.722399619378698)
+2026-02-25 11:48:05,625 [ERROR] ib_insync.wrapper: Error 10168, reqId 87: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:05,836 [ERROR] ib_insync.wrapper: Error 10168, reqId 88: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:06,053 [ERROR] ib_insync.wrapper: Error 10168, reqId 89: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:06,269 [INFO] src.trading.loop: Portfolio: $nan  cash=$997,939.67  positions=3  return=+nan%
+2026-02-25 11:48:06,472 [ERROR] ib_insync.wrapper: Error 10168, reqId 90: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=909083, symbol='HSBA', exchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1')
+2026-02-25 11:48:06,539 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=338.0, marketPrice=4.64900015, marketValue=1571.36, averageCost=4.7223996, unrealizedPNL=-24.81, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:06,539 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.6591997, marketValue=136.59, averageCost=13.81023, unrealizedPNL=-1.51, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:06,691 [ERROR] ib_insync.wrapper: Error 10168, reqId 91: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1')
+2026-02-25 11:48:06,909 [ERROR] ib_insync.wrapper: Error 10168, reqId 92: Requested market data is not subscribed. Delayed market data is not enabled., contract: Stock(conId=140148322, symbol='VOD', exchange='LSE', currency='GBP', localSymbol='VOD', tradingClass='SET1')
+2026-02-25 11:48:07,124 [INFO] src.trading.loop: Portfolio: $nan  cash=$997,446.08  positions=3  return=+nan%
+2026-02-25 11:48:44,388 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=446.0, avgCost=4.704746796748879)
+2026-02-25 11:48:44,392 [INFO] ib_insync.wrapper: position: Position(account='DUQ117408', contract=Stock(conId=908940, symbol='BARC', exchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=446.0, avgCost=4.717102693609866)
+2026-02-25 11:48:45,313 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=908940, symbol='BARC', right='0', primaryExchange='LSE', currency='GBP', localSymbol='BARC', tradingClass='SET1'), position=446.0, marketPrice=4.6494999, marketValue=2073.68, averageCost=4.7171027, unrealizedPNL=-30.15, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:48:45,314 [INFO] ib_insync.wrapper: updatePortfolio: PortfolioItem(contract=Stock(conId=909083, symbol='HSBA', right='0', primaryExchange='LSE', currency='GBP', localSymbol='HSBA', tradingClass='SET1'), position=10.0, marketPrice=13.66600035, marketValue=136.66, averageCost=13.81023, unrealizedPNL=-1.44, realizedPNL=0.0, account='DUQ117408')
+2026-02-25 11:50:58,590 [INFO] ib_insync.ib: Disconnecting from 127.0.0.1:7497, 2.02 kB sent in 28 messages, 80.7 kB received in 1637 messages, session time 180 s.
+2026-02-25 11:50:58,590 [INFO] ib_insync.client: Disconnecting
+2026-02-25 11:50:58,590 [INFO] src.execution.ibkr_broker: Disconnected from IBKR
+2026-02-25 11:50:58,591 [INFO] ib_insync.client: Disconnected.
+2026-02-25 11:50:58,591 [INFO] src.cli.runtime: Paper trial duration reached (180s); stopping session
+2026-02-25 11:50:58,594 [INFO] src.cli.runtime: Paper session summary export completed
+2026-02-25 11:50:58,594 [INFO] src.cli.runtime:   json: reports\uk_tax\paper_session_summary.json
+2026-02-25 11:50:58,595 [INFO] src.cli.runtime:   csv: reports\uk_tax\paper_session_summary.csv
+2026-02-25 11:50:58,595 [INFO] src.cli.runtime:   fills=3/12 fill_rate=25.00% win_rate=0.00% pnl_gbp=0.00

@@ -1,0 +1,22 @@
+source_id: beat_china_s_stock_market_by_using_deep_reinforcement_learning
+source_type: article
+title: Beat China’s stock market by using Deep reinforcement learning
+url: https://www.researchgate.net/profile/Huang_Gang9/publication/340438304_Beat_China's_stock_market_by_using_Deep_reinforcement_learning/links/5e88e007299bf130797c7a68/Beat-Chinas-stock-market-by-using-Deep-reinforcement-learning.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Gang Huang, Xiaohua Zhou, Qingyang Song (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

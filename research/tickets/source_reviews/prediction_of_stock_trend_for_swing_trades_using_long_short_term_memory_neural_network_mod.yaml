@@ -1,0 +1,22 @@
+source_id: prediction_of_stock_trend_for_swing_trades_using_long_short_term_memory_neural_network_mod
+source_type: article
+title: Prediction Of Stock Trend For Swing Trades Using Long Short-Term Memory Neural Network Model
+url: https://www.researchgate.net/publication/340789607_Prediction_Of_Stock_Trend_For_Swing_Trades_Using_Long_Short-Term_Memory_Neural_Network_Model
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); Varun Totakura, V. Devasekhar, Madhu Sake (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

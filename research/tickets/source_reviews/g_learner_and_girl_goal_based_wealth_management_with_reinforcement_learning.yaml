@@ -1,0 +1,22 @@
+source_id: g_learner_and_girl_goal_based_wealth_management_with_reinforcement_learning
+source_type: article
+title: G-Learner and GIRL: Goal Based Wealth Management with Reinforcement Learning
+url: https://arxiv.org/abs/2002.10990
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Portfolio; Matthew Dixon, Igor Halperin (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

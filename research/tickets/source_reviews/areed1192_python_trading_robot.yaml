@@ -1,0 +1,28 @@
+source_id: areed1192_python_trading_robot
+source_type: repo
+title: areed1192/python-trading-robot
+url: https://github.com/areed1192/python-trading-robot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 62
+  maintenance_health: 24
+  test_evidence: 45
+  risk_controls: 50
+  lpdd_invariant_fit: 54
+  operational_realism: 48
+
+notes:
+  final_verdict: Reject
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Minimal object-model examples for portfolio/order abstractions
+  conflicts:
+    - Depends on stale TD Ameritrade-specific assumptions and dated maintenance
+    - Weak governance fit against strict LPDD risk and execution invariants
+  ticket_recommendations:
+    - step: 70
+      recommendation: Reject for implementation; retain only as legacy educational context
+      intended_agent: Copilot

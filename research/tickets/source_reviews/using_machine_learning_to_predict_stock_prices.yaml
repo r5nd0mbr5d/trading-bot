@@ -1,0 +1,22 @@
+source_id: using_machine_learning_to_predict_stock_prices
+source_type: article
+title: Using Machine Learning to Predict Stock Prices
+url: https://medium.com/analytics-vidhya/using-machine-learning-to-predict-stock-prices-c4d0b23b029a
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Sentiment Analysis; Vivek Palaniappan (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,22 @@
+source_id: deeplob_deep_convolutional_neural_networks_for_limit_order_books
+source_type: article
+title: DeepLOB: Deep Convolutional Neural Networks for Limit Order Books
+url: https://ieeexplore.ieee.org/abstract/document/8673598
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Convolutional Neural Networks (CNNs); Zihao Zhang, Stefan Zohren, Stephen Roberts (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

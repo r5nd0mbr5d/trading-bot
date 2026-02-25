@@ -1,0 +1,22 @@
+source_id: yuriak_rlquant
+source_type: article
+title: yuriak/RLQuant
+url: https://github.com/yuriak/RLQuant
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Repositories; Applying Reinforcement Learning in Quantitative Trading (Policy Gradient, Direct RL)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

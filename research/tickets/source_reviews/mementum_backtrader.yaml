@@ -1,0 +1,29 @@
+source_id: mementum_backtrader
+source_type: repo
+title: mementum/backtrader
+url: https://github.com/mementum/backtrader
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 74
+  maintenance_health: 48
+  test_evidence: 65
+  risk_controls: 68
+  lpdd_invariant_fit: 80
+  operational_realism: 72
+
+notes:
+  final_verdict: Research first
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Broker simulation features checklist (order types, slippage, commission schemes)
+    - Multi-timeframe and analyzer concept references for backtest enhancements
+  conflicts:
+    - Maintenance cadence is low relative to active alternatives
+    - Direct framework adoption would conflict with existing engine invariants and interfaces
+  ticket_recommendations:
+    - step: 70
+      recommendation: Borrow simulation feature ideas only; keep BacktestEngine as system of record
+      intended_agent: Copilot

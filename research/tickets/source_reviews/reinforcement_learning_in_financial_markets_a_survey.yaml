@@ -1,0 +1,22 @@
+source_id: reinforcement_learning_in_financial_markets_a_survey
+source_type: article
+title: Reinforcement learning in financial markets - a survey
+url: http://hdl.handle.net/10419/183139
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Thomas G. Fischer (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

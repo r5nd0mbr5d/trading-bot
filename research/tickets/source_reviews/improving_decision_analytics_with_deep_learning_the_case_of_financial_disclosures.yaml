@@ -1,0 +1,22 @@
+source_id: improving_decision_analytics_with_deep_learning_the_case_of_financial_disclosures
+source_type: article
+title: Improving Decision Analytics with Deep Learning: The Case of Financial Disclosures
+url: https://arxiv.org/pdf/1508.01993
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Sentiment Analysis; Stefan Feuerriegel, Ralph Fehrer (2015)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

@@ -1,0 +1,22 @@
+source_id: an_adaptive_financial_trading_system_using_deep_reinforcement_learning_with_candlestick_de
+source_type: article
+title: An Adaptive Financial Trading System Using Deep Reinforcement Learning With Candlestick Decomposing Features
+url: https://doi.org/10.1109/ACCESS.2020.2982662
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Ding Fengqian, Luo Chao (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

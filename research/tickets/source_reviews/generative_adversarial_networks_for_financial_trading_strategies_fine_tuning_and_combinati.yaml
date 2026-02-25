@@ -1,0 +1,22 @@
+source_id: generative_adversarial_networks_for_financial_trading_strategies_fine_tuning_and_combinati
+source_type: article
+title: Generative Adversarial Networks for Financial Trading Strategies Fine-Tuning and Combination
+url: https://deepai.org/publication/generative-adversarial-networks-for-financial-trading-strategies-fine-tuning-and-combination
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Generative Adversarial Networks (GANs); Adriano Koshiyama (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

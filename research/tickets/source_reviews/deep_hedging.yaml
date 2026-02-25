@@ -1,0 +1,22 @@
+source_id: deep_hedging
+source_type: article
+title: Deep Hedging
+url: https://arxiv.org/pdf/1802.03042
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Hans Bühler, Lukas Gonon, Josef Teichmann, Ben Wood (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

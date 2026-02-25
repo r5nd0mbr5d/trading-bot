@@ -1,0 +1,22 @@
+source_id: big_data_deep_learning_for_financial_sentiment_analysis
+source_type: article
+title: Big Data: Deep Learning for financial sentiment analysis
+url: https://journalofbigdata.springeropen.com/articles/10.1186/s40537-017-0111-6
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Sentiment Analysis; Sahar Sohangir, Dingding Wang, Anna Pomeranets, Taghi M. Khoshgoftaar (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

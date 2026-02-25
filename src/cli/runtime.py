@@ -21,6 +21,7 @@ from src.audit.reconciliation import export_paper_reconciliation
 from src.audit.session_summary import export_paper_session_summary
 from src.audit.uk_tax_export import export_uk_tax_reports
 from src.data.feeds import MarketDataFeed
+from src.data.symbol_health import apply_symbol_universe_policy
 from src.execution.ibkr_broker import IBKRBroker
 from src.monitoring.execution_trend import update_execution_trend
 from src.promotions.checklist import export_promotion_checklist
@@ -39,6 +40,7 @@ from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
 from src.strategies.obv_momentum import OBVMomentumStrategy
+from src.strategies.pairs_mean_reversion import PairsMeanReversionStrategy
 from src.strategies.rsi_momentum import RSIMomentumStrategy
 from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
 from backtest.engine import BacktestEngine
@@ -57,6 +59,7 @@ STRATEGIES = {
     "ma_crossover": MACrossoverStrategy,
     "macd_crossover": MACDCrossoverStrategy,
     "obv_momentum": OBVMomentumStrategy,
+    "pairs_mean_reversion": PairsMeanReversionStrategy,
     "rsi_momentum": RSIMomentumStrategy,
     "stochastic_oscillator": StochasticOscillatorStrategy,
 }
@@ -560,6 +563,21 @@ def _log_execution_drift_events(db_path: str, warnings: list[str]) -> None:
     asyncio.run(_write())
 
 
+def _log_symbol_universe_remediation_event(db_path: str, payload: dict[str, Any]) -> None:
+    async def _write() -> None:
+        audit = AuditLogger(db_path)
+        await audit.start()
+        await audit.log_event(
+            "SYMBOL_UNIVERSE_REMEDIATED",
+            payload,
+            severity="warning",
+        )
+        await audit.flush()
+        await audit.stop()
+
+    asyncio.run(_write())
+
+
 async def _run_paper_for_duration(
     settings: Settings,
     duration_seconds: int,
@@ -601,6 +619,42 @@ def cmd_paper_trial(
             return 2
         # Allow event loop to fully clean up after health check broker disconnect
         time.sleep(0.5)
+
+    symbol_policy = apply_symbol_universe_policy(settings)
+    policy_summary = symbol_policy["health_summary"]
+    if not symbol_policy["allowed"]:
+        logger.error(
+            "Paper trial blocked by symbol-universe health policy: reason=%s "
+            "availability=%.2f threshold=%.2f healthy=%s/%s",
+            symbol_policy["reason"],
+            policy_summary["availability_ratio"],
+            policy_summary["threshold_ratio"],
+            policy_summary["healthy_symbols"],
+            policy_summary["total_symbols"],
+        )
+        return 2
+
+    if symbol_policy["remediated"]:
+        selected_symbols = list(symbol_policy["selected_symbols"])
+        removed_symbols = list(symbol_policy["removed_symbols"])
+        settings.data.symbols = selected_symbols
+        logger.warning(
+            "Symbol-universe remediation applied: selected=%s removed=%s",
+            selected_symbols,
+            removed_symbols,
+        )
+        _log_symbol_universe_remediation_event(
+            db_path,
+            {
+                "selected_symbols": selected_symbols,
+                "removed_symbols": removed_symbols,
+                "availability_ratio": policy_summary["availability_ratio"],
+                "threshold_ratio": policy_summary["threshold_ratio"],
+                "healthy_symbols": policy_summary["healthy_symbols"],
+                "total_symbols": policy_summary["total_symbols"],
+                "reason": symbol_policy["reason"],
+            },
+        )
 
     if not skip_rotate:
         cmd_rotate_paper_db(

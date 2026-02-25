@@ -1,0 +1,29 @@
+source_id: asavinov_intelligent_trading_bot
+source_type: repo
+title: asavinov/intelligent-trading-bot
+url: https://github.com/asavinov/intelligent-trading-bot
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 72
+  maintenance_health: 58
+  test_evidence: 45
+  risk_controls: 62
+  lpdd_invariant_fit: 68
+  operational_realism: 57
+
+notes:
+  final_verdict: Research first
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Candidate workflow ideas for research-ticket decomposition
+    - Documentation structure ideas for experiment traceability
+  conflicts:
+    - No direct evidence that all LPDD hard invariants are enforced
+    - Runtime path appears less strict on governance than this repository
+  ticket_recommendations:
+    - step: 65
+      recommendation: Add claim-integrity caution gate before promotion discussion
+      intended_agent: Copilot

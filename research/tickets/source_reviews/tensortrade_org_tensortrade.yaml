@@ -1,0 +1,29 @@
+source_id: tensortrade_org_tensortrade
+source_type: repo
+title: tensortrade-org/tensortrade
+url: https://github.com/tensortrade-org/tensortrade
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: COMPLETED
+
+scores:
+  reproducibility: 80
+  maintenance_health: 82
+  test_evidence: 78
+  risk_controls: 70
+  lpdd_invariant_fit: 74
+  operational_realism: 72
+
+notes:
+  final_verdict: Research first
+  review_scope: README + repository architecture + governance fit
+  reusable_items:
+    - Walk-forward validation tutorial framing and overfitting warning structure
+    - Commission-aware RL evaluation framing for reward scheme design
+  conflicts:
+    - RL-oriented direct execution abstractions are not aligned by default with strict risk-gate routing
+    - Crypto-centric default examples need adaptation for UK-first equities operating mode
+  ticket_recommendations:
+    - step: 70
+      recommendation: Extract a research note on commission-aware reward shaping and walk-forward RL validation as optional ML extension
+      intended_agent: Copilot

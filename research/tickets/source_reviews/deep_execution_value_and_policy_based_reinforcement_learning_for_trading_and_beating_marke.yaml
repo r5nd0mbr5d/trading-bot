@@ -1,0 +1,22 @@
+source_id: deep_execution_value_and_policy_based_reinforcement_learning_for_trading_and_beating_marke
+source_type: article
+title: Deep Execution - Value and Policy Based Reinforcement Learning for Trading and Beating Market Benchmarks
+url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3374766
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Kevin Dabérius, Elvin Granat, Patrik Karlsson (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

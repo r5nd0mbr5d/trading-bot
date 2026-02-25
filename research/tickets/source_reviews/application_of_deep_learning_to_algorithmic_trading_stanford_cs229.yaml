@@ -1,0 +1,22 @@
+source_id: application_of_deep_learning_to_algorithmic_trading_stanford_cs229
+source_type: article
+title: Application of Deep Learning to Algorithmic Trading, Stanford CS229
+url: http://cs229.stanford.edu/proj2017/final-reports/5241098.pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); Guanting Chen, Yatong Chen, Takahiro Fushimi (2017)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

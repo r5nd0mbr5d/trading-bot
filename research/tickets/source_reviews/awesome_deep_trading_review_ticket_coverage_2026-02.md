@@ -1,0 +1,132 @@
+# Awesome Deep Trading Review Ticket Coverage (2026-02-25)
+
+- Source list: `awesome_deep_trading_extracted_sources.json`
+- Total extracted items: 116
+- Ticket status in this pass: `NOT_STARTED` stubs created for each listed item
+
+## Pickup Now (Meta Analyses & Systematic Reviews)
+
+- [x] Application of machine learning in stock trading: a review - `application_of_machine_learning_in_stock_trading_a_review.yaml` (COMPLETED)
+- [x] Evaluating the Performance of Machine Learning Algorithms in Financial Market Forecasting: A Comprehensive Survey - `evaluating_the_performance_of_machine_learning_algorithms_in_financial_market_forecasting_.yaml` (COMPLETED)
+- [x] Reinforcement Learning in Financial Markets - `reinforcement_learning_in_financial_markets.yaml` (COMPLETED)
+- [x] Financial Time Series Forecasting with Deep Learning: A Systematic Literature Review: 2005-2019 - `financial_time_series_forecasting_with_deep_learning_a_systematic_literature_review_2005_2.yaml` (COMPLETED)
+- [x] A systematic review of fundamental and technical analysis of stock market predictions - `a_systematic_review_of_fundamental_and_technical_analysis_of_stock_market_predictions.yaml` (COMPLETED)
+
+## Coverage List
+
+- [x] Classification-based Financial Markets Prediction using Deep Neural Networks - `classification_based_financial_markets_prediction_using_deep_neural_networks.yaml`
+- [x] Deep Learning for Limit Order Books - `deep_learning_for_limit_order_books.yaml`
+- [x] High-Frequency Trading Strategy Based on Deep Neural Networks - `high_frequency_trading_strategy_based_on_deep_neural_networks.yaml`
+- [x] A Deep Reinforcement Learning Framework for the Financial Portfolio Management Problem - `a_deep_reinforcement_learning_framework_for_the_financial_portfolio_management_problem.yaml`
+- [x] Agent Inspired Trading Using Recurrent Reinforcement Learning and LSTM Neural Networks - `agent_inspired_trading_using_recurrent_reinforcement_learning_and_lstm_neural_networks.yaml`
+- [x] Deep Hedging - `deep_hedging.yaml`
+- [x] Stock Trading Bot Using Deep Reinforcement Learning - `stock_trading_bot_using_deep_reinforcement_learning.yaml`
+- [x] Financial Trading as a Game: A Deep Reinforcement Learning Approach - `financial_trading_as_a_game_a_deep_reinforcement_learning_approach.yaml`
+- [x] Practical Deep Reinforcement Learning Approach for Stock Trading - `practical_deep_reinforcement_learning_approach_for_stock_trading.yaml`
+- [x] Algorithmic Trading and Machine Learning Based on GPU - `algorithmic_trading_and_machine_learning_based_on_gpu.yaml`
+- [x] A quantitative trading method using deep convolution neural network - `a_quantitative_trading_method_using_deep_convolution_neural_network.yaml`
+- [x] Deep learning in exchange markets - `deep_learning_in_exchange_markets.yaml`
+- [x] Financial Trading Model with Stock Bar Chart Image Time Series with Deep Convolutional Neural Networks - `financial_trading_model_with_stock_bar_chart_image_time_series_with_deep_convolutional_neu.yaml`
+- [x] Deep Reinforcement Learning for Financial Trading Using Price Trailing - `deep_reinforcement_learning_for_financial_trading_using_price_trailing.yaml`
+- [x] Cooperative Multi-Agent Reinforcement Learning Framework for Scalping Trading - `cooperative_multi_agent_reinforcement_learning_framework_for_scalping_trading.yaml`
+- [x] Improving financial trading decisions using deep Q-learning: Predicting the number of shares, action strategies, and transfer learning - `improving_financial_trading_decisions_using_deep_q_learning_predicting_the_number_of_share.yaml`
+- [x] Deep Execution - Value and Policy Based Reinforcement Learning for Trading and Beating Market Benchmarks - `deep_execution_value_and_policy_based_reinforcement_learning_for_trading_and_beating_marke.yaml`
+- [x] An Empirical Study of Machine Learning Algorithms for Stock Daily Trading Strategy - `an_empirical_study_of_machine_learning_algorithms_for_stock_daily_trading_strategy.yaml`
+- [x] Recipe for Quantitative Trading with Machine Learning - `recipe_for_quantitative_trading_with_machine_learning.yaml`
+- [x] Exploring Possible Improvements to Momentum Strategies with Deep Learning - `exploring_possible_improvements_to_momentum_strategies_with_deep_learning.yaml`
+- [x] Enhancing Time Series Momentum Strategies Using Deep Neural Networks - `enhancing_time_series_momentum_strategies_using_deep_neural_networks.yaml`
+- [x] Multi-Agent Deep Reinforcement Learning for Liquidation Strategy Analysis - `multi_agent_deep_reinforcement_learning_for_liquidation_strategy_analysis.yaml`
+- [x] Deep learning-based feature engineering for stock price movement prediction - `deep_learning_based_feature_engineering_for_stock_price_movement_prediction.yaml`
+- [x] Review on Stock Market Forecasting & Analysis - `review_on_stock_market_forecasting_analysis.yaml`
+- [x] Neural Networks as a Forecasting Tool in the Context of the Russian Financial Market Digitalization - `neural_networks_as_a_forecasting_tool_in_the_context_of_the_russian_financial_market_digit.yaml`
+- [x] Deep Hierarchical Strategy Model for Multi-Source Driven Quantitative Investment - `deep_hierarchical_strategy_model_for_multi_source_driven_quantitative_investment.yaml`
+- [x] Finding Efficient Stocks in BSE100: Implementation of Buffet Approach INTRODUCTION - `finding_efficient_stocks_in_bse100_implementation_of_buffet_approach_introduction.yaml`
+- [x] Deep Learning in Asset Pricing - `deep_learning_in_asset_pricing.yaml`
+- [x] Application of machine learning in stock trading: a review - `application_of_machine_learning_in_stock_trading_a_review.yaml`
+- [x] Evaluating the Performance of Machine Learning Algorithms in Financial Market Forecasting: A Comprehensive Survey - `evaluating_the_performance_of_machine_learning_algorithms_in_financial_market_forecasting_.yaml`
+- [x] Reinforcement Learning in Financial Markets - `reinforcement_learning_in_financial_markets.yaml`
+- [x] Financial Time Series Forecasting with Deep Learning: A Systematic Literature Review: 2005-2019 - `financial_time_series_forecasting_with_deep_learning_a_systematic_literature_review_2005_2.yaml`
+- [x] A systematic review of fundamental and technical analysis of stock market predictions - `a_systematic_review_of_fundamental_and_technical_analysis_of_stock_market_predictions.yaml`
+- [x] A deep learning based stock trading model with 2-D CNN trend detection - `a_deep_learning_based_stock_trading_model_with_2_d_cnn_trend_detection.yaml`
+- [x] Algorithmic Financial Trading with Deep Convolutional Neural Networks: Time Series to Image Conversion Approach - `algorithmic_financial_trading_with_deep_convolutional_neural_networks_time_series_to_image.yaml`
+- [x] DeepLOB: Deep Convolutional Neural Networks for Limit Order Books - `deeplob_deep_convolutional_neural_networks_for_limit_order_books.yaml`
+- [x] Application of Deep Learning to Algorithmic Trading, Stanford CS229 - `application_of_deep_learning_to_algorithmic_trading_stanford_cs229.yaml`
+- [x] Stock Prices Prediction using Deep Learning Models - `stock_prices_prediction_using_deep_learning_models.yaml`
+- [x] Deep Learning for Stock Market Trading: A Superior Trading Strategy? - `deep_learning_for_stock_market_trading_a_superior_trading_strategy.yaml`
+- [x] Performance Evaluation of Recurrent Neural Networks for Short-Term Investment Decision in Stock Market - `performance_evaluation_of_recurrent_neural_networks_for_short_term_investment_decision_in_.yaml`
+- [x] Research on financial assets transaction prediction model based on LSTM neural network - `research_on_financial_assets_transaction_prediction_model_based_on_lstm_neural_network.yaml`
+- [x] Prediction Of Stock Trend For Swing Trades Using Long Short-Term Memory Neural Network Model - `prediction_of_stock_trend_for_swing_trades_using_long_short_term_memory_neural_network_mod.yaml`
+- [x] A novel Deep Learning Framework: Prediction and Analysis of Financial Time Series using CEEMD and LSTM - `a_novel_deep_learning_framework_prediction_and_analysis_of_financial_time_series_using_cee.yaml`
+- [x] Deep Stock Predictions - `deep_stock_predictions.yaml`
+- [x] Generative Adversarial Networks for Financial Trading Strategies Fine-Tuning and Combination - `generative_adversarial_networks_for_financial_trading_strategies_fine_tuning_and_combinati.yaml`
+- [x] Stock Market Prediction Based on Generative Adversarial Network - `stock_market_prediction_based_on_generative_adversarial_network.yaml`
+- [x] Generative Adversarial Network for Stock Market price Prediction - `generative_adversarial_network_for_stock_market_price_prediction.yaml`
+- [x] Generative Adversarial Network for Market Hourly Discrimination - `generative_adversarial_network_for_market_hourly_discrimination.yaml`
+- [x] Algorithmic Trading Using Deep Neural Networks on High Frequency Data - `algorithmic_trading_using_deep_neural_networks_on_high_frequency_data.yaml`
+- [x] Stock Market Prediction on High-Frequency Data Using Generative Adversarial Nets - `stock_market_prediction_on_high_frequency_data_using_generative_adversarial_nets.yaml`
+- [x] Deep Neural Networks in High Frequency Trading - `deep_neural_networks_in_high_frequency_trading.yaml`
+- [x] Application of Machine Learning in High Frequency Trading of Stocks - `application_of_machine_learning_in_high_frequency_trading_of_stocks.yaml`
+- [x] Multi Scenario Financial Planning via Deep Reinforcement Learning AI - `multi_scenario_financial_planning_via_deep_reinforcement_learning_ai.yaml`
+- [x] G-Learner and GIRL: Goal Based Wealth Management with Reinforcement Learning - `g_learner_and_girl_goal_based_wealth_management_with_reinforcement_learning.yaml`
+- [x] Reinforcement-Learning based Portfolio Management with Augmented Asset Movement Prediction States - `reinforcement_learning_based_portfolio_management_with_augmented_asset_movement_prediction.yaml`
+- [x] Reinforcement learning in financial markets - a survey - `reinforcement_learning_in_financial_markets_a_survey.yaml`
+- [x] AlphaStock: A Buying-Winners-and-Selling-Losers Investment Strategy using Interpretable Deep Reinforcement Attention Networks - `alphastock_a_buying_winners_and_selling_losers_investment_strategy_using_interpretable_dee.yaml`
+- [x] Capturing Financial markets to apply Deep Reinforcement Learning - `capturing_financial_markets_to_apply_deep_reinforcement_learning.yaml`
+- [x] Reinforcement Learning for FX trading - `reinforcement_learning_for_fx_trading.yaml`
+- [x] An Application of Deep Reinforcement Learning to Algorithmic Trading - `an_application_of_deep_reinforcement_learning_to_algorithmic_trading.yaml`
+- [x] Single asset trading: a recurrent reinforcement learning approach - `single_asset_trading_a_recurrent_reinforcement_learning_approach.yaml`
+- [x] Beat China’s stock market by using Deep reinforcement learning - `beat_china_s_stock_market_by_using_deep_reinforcement_learning.yaml`
+- [x] An Adaptive Financial Trading System Using Deep Reinforcement Learning With Candlestick Decomposing Features - `an_adaptive_financial_trading_system_using_deep_reinforcement_learning_with_candlestick_de.yaml`
+- [x] Application of Deep Q-Network in Portfolio Management - `application_of_deep_q_network_in_portfolio_management.yaml`
+- [x] Deep Reinforcement Learning Pairs Trading with a Double Deep Q-Network - `deep_reinforcement_learning_pairs_trading_with_a_double_deep_q_network.yaml`
+- [x] A reinforcement learning model based on reward correction for quantitative stock selection - `a_reinforcement_learning_model_based_on_reward_correction_for_quantitative_stock_selection.yaml`
+- [x] AAMDRL: Augmented Asset Management with Deep Reinforcement Learning - `aamdrl_augmented_asset_management_with_deep_reinforcement_learning.yaml`
+- [x] Stock Price Prediction And Forecasting Using Stacked LSTM- Deep Learning - `stock_price_prediction_and_forecasting_using_stacked_lstm_deep_learning.yaml`
+- [x] Comparing Arima Model and LSTM RNN Model in Time-Series Forecasting - `comparing_arima_model_and_lstm_rnn_model_in_time_series_forecasting.yaml`
+- [x] LSTM to predict Dow Jones Industrial Average: A Time Series forecasting model - `lstm_to_predict_dow_jones_industrial_average_a_time_series_forecasting_model.yaml`
+- [x] Adversarial Attacks on Deep Algorithmic Trading Policies - `adversarial_attacks_on_deep_algorithmic_trading_policies.yaml`
+- [x] Recommending Cryptocurrency Trading Points with Deep Reinforcement Learning Approach - `recommending_cryptocurrency_trading_points_with_deep_reinforcement_learning_approach.yaml`
+- [x] Can Deep Learning Predict Risky Retail Investors? A Case Study in Financial Risk Behavior Forecasting - `can_deep_learning_predict_risky_retail_investors_a_case_study_in_financial_risk_behavior_f.yaml`
+- [x] Investor behaviour monitoring based on deep learning - `investor_behaviour_monitoring_based_on_deep_learning.yaml`
+- [x] Improving Decision Analytics with Deep Learning: The Case of Financial Disclosures - `improving_decision_analytics_with_deep_learning_the_case_of_financial_disclosures.yaml`
+- [x] Big Data: Deep Learning for financial sentiment analysis - `big_data_deep_learning_for_financial_sentiment_analysis.yaml`
+- [x] Using Machine Learning to Predict Stock Prices - `using_machine_learning_to_predict_stock_prices.yaml`
+- [x] Stock Prediction Using Twitter - `stock_prediction_using_twitter.yaml`
+- [x] Sentiment and Knowledge Based Algorithmic Trading with Deep Reinforcement Learning - `sentiment_and_knowledge_based_algorithmic_trading_with_deep_reinforcement_learning.yaml`
+- [x] Yvictor/TradingGym - `yvictor_tradinggym.yaml`
+- [x] Rachnog/Deep-Trading - `rachnog_deep_trading.yaml`
+- [x] jobvisser03/deep-trading-advisor - `jobvisser03_deep_trading_advisor.yaml`
+- [x] rosdyana/CNN-Financial-Data - `rosdyana_cnn_financial_data.yaml`
+- [x] iamSTone/Deep-trader-CNN-kospi200futures - `iamstone_deep_trader_cnn_kospi200futures.yaml`
+- [x] ha2emnomer/Deep-Trading - `ha2emnomer_deep_trading.yaml`
+- [x] gujiuxiang/Deep_Trader.pytorch - `gujiuxiang_deep_trader_pytorch.yaml`
+- [x] ZhengyaoJiang/PGPortfolio - `zhengyaojiang_pgportfolio.yaml`
+- [x] yuriak/RLQuant - `yuriak_rlquant.yaml`
+- [x] ucaiado/QLearning_Trading - `ucaiado_qlearning_trading.yaml`
+- [x] laikasinjason/deep-q-learning-trading-system-on-hk-stocks-market - `laikasinjason_deep_q_learning_trading_system_on_hk_stocks_market.yaml`
+- [x] golsun/deep-RL-trading - `golsun_deep_rl_trading.yaml`
+- [x] huseinzol05/Stock-Prediction-Models - `huseinzol05_stock_prediction_models.yaml`
+- [x] jiewwantan/StarTrader - `jiewwantan_startrader.yaml`
+- [x] notadamking/RLTrader - `notadamking_rltrader.yaml`
+- [x] borisbanushev/stockpredictionai - `borisbanushev_stockpredictionai.yaml`
+- [x] kah-ve/MarketGAN - `kah_ve_marketgan.yaml`
+- [x] samre12/deep-trading-agent - `samre12_deep_trading_agent.yaml`
+- [x] ThirstyScholar/trading-bitcoin-with-reinforcement-learning - `thirstyscholar_trading_bitcoin_with_reinforcement_learning.yaml`
+- [x] lefnire/tforce_btc_trader - `lefnire_tforce_btc_trader.yaml`
+- [x] kaggle/Huge Stock Market Dataset - `kaggle_huge_stock_market_dataset.yaml`
+- [x] Alpha Vantage - `alpha_vantage.yaml`
+- [x] Generating Realistic Stock Market Order Streams - `generating_realistic_stock_market_order_streams.yaml`
+- [x] Deep Hedging: Learning to Simulate Equity Option Markets - `deep_hedging_learning_to_simulate_equity_option_markets.yaml`
+- [x] BigDataFinance Neural Networks Intro - `bigdatafinance_neural_networks_intro.yaml`
+- [x] FinTech, AI, Machine Learning in Finance - `fintech_ai_machine_learning_in_finance.yaml`
+- [x] Deep Residual Learning for Portfolio Optimization:With Attention and Switching Modules - `deep_residual_learning_for_portfolio_optimization_with_attention_and_switching_modules.yaml`
+- [x] Neural networks for algorithmic trading. Simple time series forecasting - `neural_networks_for_algorithmic_trading_simple_time_series_forecasting.yaml`
+- [x] Predicting Cryptocurrency Prices With Deep Learning - `predicting_cryptocurrency_prices_with_deep_learning.yaml`
+- [x] Introduction to Learning to Trade with Reinforcement Learning - `introduction_to_learning_to_trade_with_reinforcement_learning.yaml`
+- [x] Webinar: How to Forecast Stock Prices Using Deep Neural Networks - `webinar_how_to_forecast_stock_prices_using_deep_neural_networks.yaml`
+- [x] Creating Bitcoin trading bots that don’t lose money - `creating_bitcoin_trading_bots_that_don_t_lose_money.yaml`
+- [x] Why Deep Reinforcement Learning Can Help Improve Trading Efficiency - `why_deep_reinforcement_learning_can_help_improve_trading_efficiency.yaml`
+- [x] Optimizing deep learning trading bots using state-of-the-art techniques - `optimizing_deep_learning_trading_bots_using_state_of_the_art_techniques.yaml`
+- [x] Using the latest advancements in deep learning to predict stock price movements - `using_the_latest_advancements_in_deep_learning_to_predict_stock_price_movements.yaml`
+- [x] RNN and LSTM — The Neural Networks with Memory - `rnn_and_lstm_the_neural_networks_with_memory.yaml`
+- [x] Introduction to Deep Learning Trading in Hedge Funds - `introduction_to_deep_learning_trading_in_hedge_funds.yaml`

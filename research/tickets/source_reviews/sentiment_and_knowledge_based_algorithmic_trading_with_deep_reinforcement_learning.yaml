@@ -1,0 +1,22 @@
+source_id: sentiment_and_knowledge_based_algorithmic_trading_with_deep_reinforcement_learning
+source_type: article
+title: Sentiment and Knowledge Based Algorithmic Trading with Deep Reinforcement Learning
+url: https://arxiv.org/abs/2001.09403
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Social Processing > Sentiment Analysis; Abhishek Nan, Anandh Perumal, Osmar R. Zaiane (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

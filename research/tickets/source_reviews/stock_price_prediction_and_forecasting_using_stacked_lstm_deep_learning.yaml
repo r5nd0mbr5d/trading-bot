@@ -1,0 +1,22 @@
+source_id: stock_price_prediction_and_forecasting_using_stacked_lstm_deep_learning
+source_type: article
+title: Stock Price Prediction And Forecasting Using Stacked LSTM- Deep Learning
+url: https://www.youtube.com/watch?v=H6du_pfuznE
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Guides; Krish Naik (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

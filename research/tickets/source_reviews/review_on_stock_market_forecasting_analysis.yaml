@@ -1,0 +1,22 @@
+source_id: review_on_stock_market_forecasting_analysis
+source_type: article
+title: Review on Stock Market Forecasting & Analysis
+url: https://www.researchgate.net/publication/340583328_Review_on_Stock_Market_Forecasting_Analysis-LSTM_Long-Short_Term_Memory_Holt's_Seasonal_MethodANN_Artificial_Neural_Network_ARIMA_Auto_Regressive_Integrated_Minimum_Average_PCA_MLP_Multi_Layers_Percep
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Anirban Bal, Debayan Ganguly, Kingshuk Chatterjee (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

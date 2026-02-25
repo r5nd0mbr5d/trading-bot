@@ -1,0 +1,22 @@
+source_id: neural_networks_as_a_forecasting_tool_in_the_context_of_the_russian_financial_market_digit
+source_type: article
+title: Neural Networks as a Forecasting Tool in the Context of the Russian Financial Market Digitalization
+url: https://www.researchgate.net/publication/340474330_Neural_Networks_as_a_Forecasting_Tool_in_the_Context_of_the_Russian_Financial_Market_Digitalization
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Valery Aleshin, Oleg Sviridov, Inna Nekrasova, Dmitry Shevchenko (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

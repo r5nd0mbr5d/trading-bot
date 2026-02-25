@@ -1,0 +1,22 @@
+source_id: capturing_financial_markets_to_apply_deep_reinforcement_learning
+source_type: article
+title: Capturing Financial markets to apply Deep Reinforcement Learning
+url: https://arxiv.org/abs/1907.04373
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Reinforcement Learning; Souradeep Chakraborty (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

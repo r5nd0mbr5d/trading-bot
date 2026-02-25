@@ -116,3 +116,155 @@ def test_yfinance_provider_calls_ticker_history(monkeypatch):
     provider = YFinanceProvider()
     result = provider.fetch_historical("AAPL", period="1d", interval="1m")
     assert result.equals(expected)
+
+
+def test_yfinance_period_request_retries_then_succeeds(monkeypatch):
+    index = pd.DatetimeIndex(["2024-01-01"], tz="UTC")
+    expected = pd.DataFrame(
+        {
+            "Open": [1.0],
+            "High": [1.1],
+            "Low": [0.9],
+            "Close": [1.05],
+            "Volume": [1000],
+        },
+        index=index,
+    )
+
+    attempts = {"count": 0}
+
+    class FakeTicker:
+        def history(self, **kwargs):
+            attempts["count"] += 1
+            if attempts["count"] == 1:
+                return pd.DataFrame()
+            return expected
+
+    monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
+    monkeypatch.setattr("src.data.providers.time.sleep", lambda _delay: None)
+
+    provider = YFinanceProvider(
+        retry_enabled=True,
+        period_max_attempts=2,
+        period_backoff_base_seconds=0.0,
+        period_backoff_max_seconds=0.0,
+        start_end_max_attempts=1,
+        start_end_backoff_base_seconds=0.0,
+        start_end_backoff_max_seconds=0.0,
+    )
+
+    result = provider.fetch_historical("AAPL", period="1d", interval="1m")
+
+    assert attempts["count"] == 2
+    assert result.equals(expected)
+
+
+def test_yfinance_start_end_retries_exhaust_on_empty(monkeypatch, caplog):
+    attempts = {"count": 0}
+
+    class FakeTicker:
+        def history(self, **kwargs):
+            attempts["count"] += 1
+            return pd.DataFrame()
+
+    monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
+    monkeypatch.setattr("src.data.providers.time.sleep", lambda _delay: None)
+
+    provider = YFinanceProvider(
+        retry_enabled=True,
+        period_max_attempts=1,
+        period_backoff_base_seconds=0.0,
+        period_backoff_max_seconds=0.0,
+        start_end_max_attempts=3,
+        start_end_backoff_base_seconds=0.0,
+        start_end_backoff_max_seconds=0.0,
+    )
+
+    with caplog.at_level("WARNING"):
+        result = provider.fetch_historical(
+            "VOD.L",
+            interval="1m",
+            start="2026-02-20",
+            end="2026-02-21",
+        )
+
+    assert result.empty
+    assert attempts["count"] == 3
+    assert "request_type=start_end" in caplog.text
+    assert "retries exhausted" in caplog.text
+
+
+def test_yfinance_start_end_request_retries_then_succeeds(monkeypatch):
+    index = pd.DatetimeIndex(["2024-01-01"], tz="UTC")
+    expected = pd.DataFrame(
+        {
+            "Open": [2.0],
+            "High": [2.1],
+            "Low": [1.9],
+            "Close": [2.05],
+            "Volume": [2000],
+        },
+        index=index,
+    )
+
+    attempts = {"count": 0}
+
+    class FakeTicker:
+        def history(self, **kwargs):
+            attempts["count"] += 1
+            if attempts["count"] == 1:
+                return pd.DataFrame()
+            return expected
+
+    monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
+    monkeypatch.setattr("src.data.providers.time.sleep", lambda _delay: None)
+
+    provider = YFinanceProvider(
+        retry_enabled=True,
+        period_max_attempts=1,
+        period_backoff_base_seconds=0.0,
+        period_backoff_max_seconds=0.0,
+        start_end_max_attempts=2,
+        start_end_backoff_base_seconds=0.0,
+        start_end_backoff_max_seconds=0.0,
+    )
+
+    result = provider.fetch_historical(
+        "VOD.L",
+        interval="1m",
+        start="2026-02-20",
+        end="2026-02-21",
+    )
+
+    assert attempts["count"] == 2
+    assert result.equals(expected)
+
+
+def test_yfinance_period_retries_exhaust_on_empty(monkeypatch, caplog):
+    attempts = {"count": 0}
+
+    class FakeTicker:
+        def history(self, **kwargs):
+            attempts["count"] += 1
+            return pd.DataFrame()
+
+    monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
+    monkeypatch.setattr("src.data.providers.time.sleep", lambda _delay: None)
+
+    provider = YFinanceProvider(
+        retry_enabled=True,
+        period_max_attempts=2,
+        period_backoff_base_seconds=0.0,
+        period_backoff_max_seconds=0.0,
+        start_end_max_attempts=1,
+        start_end_backoff_base_seconds=0.0,
+        start_end_backoff_max_seconds=0.0,
+    )
+
+    with caplog.at_level("WARNING"):
+        result = provider.fetch_historical("AAPL", period="1d", interval="1m")
+
+    assert result.empty
+    assert attempts["count"] == 2
+    assert "request_type=period" in caplog.text
+    assert "retries exhausted" in caplog.text

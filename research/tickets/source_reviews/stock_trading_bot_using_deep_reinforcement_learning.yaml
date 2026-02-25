@@ -1,0 +1,22 @@
+source_id: stock_trading_bot_using_deep_reinforcement_learning
+source_type: article
+title: Stock Trading Bot Using Deep Reinforcement Learning
+url: https://link.springer.com/chapter/10.1007/978-981-10-8201-6_5
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Akhil Raj Azhikodan, Anvitha G. K. Bhat, Mamatha V. Jadhav (2018)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

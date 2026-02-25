@@ -1,0 +1,22 @@
+source_id: stock_market_prediction_based_on_generative_adversarial_network
+source_type: article
+title: Stock Market Prediction Based on Generative Adversarial Network
+url: https://doi.org/10.1016/j.procs.2019.01.256
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Generative Adversarial Networks (GANs); Kang Zhang, Guoqiang Zhong, Junyu Dong, Shengke Wang, Yong Wang (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

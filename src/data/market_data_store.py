@@ -184,7 +184,8 @@ class MarketDataStore:
             logger.warning("Parquet engine not available; skipping cache write")
             return
         df = self._normalize_frame(df)
-        for month, month_df in df.groupby(df.index.to_period("M")):
+        month_keys = pd.DatetimeIndex(df.index).tz_localize(None).to_period("M")
+        for month, month_df in df.groupby(month_keys):
             month_dir = (
                 self._cache_dir / provider / symbol / interval / str(month).replace("/", "-")
             )

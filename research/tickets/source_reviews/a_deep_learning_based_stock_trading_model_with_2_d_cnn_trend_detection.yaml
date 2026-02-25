@@ -1,0 +1,22 @@
+source_id: a_deep_learning_based_stock_trading_model_with_2_d_cnn_trend_detection
+source_type: article
+title: A deep learning based stock trading model with 2-D CNN trend detection
+url: https://www.researchgate.net/publication/323131323_A_deep_learning_based_stock_trading_model_with_2-D_CNN_trend_detection
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Convolutional Neural Networks (CNNs); Ugur Gudelek, S. Arda Boluk, Murat Ozbayoglu, Murat Ozbayoglu (2017)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

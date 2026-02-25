@@ -11,6 +11,7 @@ from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
 from src.strategies.obv_momentum import OBVMomentumStrategy
+from src.strategies.pairs_mean_reversion import PairsMeanReversionStrategy
 from src.strategies.rsi_momentum import RSIMomentumStrategy
 from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
 
@@ -317,3 +318,59 @@ class TestStochasticOscillatorStrategy:
         if sig is not None:
             assert "stoch_k" in sig.metadata
             assert "stoch_d" in sig.metadata
+
+
+# ── Pairs Mean Reversion ─────────────────────────────────────────────────────
+
+
+class TestPairsMeanReversionStrategy:
+
+    def setup_method(self):
+        settings = Settings()
+        settings.strategy.pair_lookback = 5
+        settings.strategy.pair_entry_zscore = 1.5
+        settings.strategy.pair_exit_zscore = 0.4
+        settings.strategy.pair_max_holding_bars = 2
+        settings.strategy.pair_hedge_ratio = 1.0
+        settings.data.symbols = ["AAA", "BBB"]
+        settings.strategy.pair_primary_symbol = "AAA"
+        settings.strategy.pair_secondary_symbol = "BBB"
+        self.strategy = PairsMeanReversionStrategy(settings)
+
+    def _feed_pair_bar(self, idx: int, primary_price: float, secondary_price: float):
+        self.strategy.on_bar(make_bar("BBB", secondary_price, idx))
+        return self.strategy.on_bar(make_bar("AAA", primary_price, idx))
+
+    def test_min_bars_required(self):
+        assert self.strategy.min_bars_required() == 5
+
+    def test_no_signal_before_min_bars(self):
+        sig = None
+        for i in range(4):
+            sig = self._feed_pair_bar(i, 100.0, 100.0)
+        assert sig is None
+
+    def test_long_signal_on_negative_zscore_entry(self):
+        primary_prices = [100, 100, 100, 100, 90]
+        secondary_prices = [100, 100, 100, 100, 100]
+        sig = None
+        for i, (p_price, s_price) in enumerate(zip(primary_prices, secondary_prices)):
+            sig = self._feed_pair_bar(i, p_price, s_price)
+        assert sig is not None
+        assert sig.signal_type == SignalType.LONG
+        assert sig.symbol == "AAA"
+        assert 0.0 < sig.strength <= 1.0
+        assert "zscore" in sig.metadata
+
+    def test_close_signal_on_max_holding_bars(self):
+        primary_prices = [100, 100, 100, 100, 90, 89, 88]
+        secondary_prices = [100, 100, 100, 100, 100, 100, 100]
+        signals = []
+        for i, (p_price, s_price) in enumerate(zip(primary_prices, secondary_prices)):
+            sig = self._feed_pair_bar(i, p_price, s_price)
+            if sig is not None:
+                signals.append(sig)
+
+        assert len(signals) >= 2
+        assert signals[0].signal_type == SignalType.LONG
+        assert any(signal.signal_type == SignalType.CLOSE for signal in signals[1:])

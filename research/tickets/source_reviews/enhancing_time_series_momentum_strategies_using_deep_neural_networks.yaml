@@ -1,0 +1,22 @@
+source_id: enhancing_time_series_momentum_strategies_using_deep_neural_networks
+source_type: article
+title: Enhancing Time Series Momentum Strategies Using Deep Neural Networks
+url: https://arxiv.org/abs/1904.04912
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Bryan Lim, Stefan Zohren, Stephen Roberts (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

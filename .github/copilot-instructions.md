@@ -7,12 +7,29 @@ Follow them for every suggestion, completion, and edit in this repository.
 
 ## Reading Order (do this before any structural change)
 
-1. **`PROJECT_DESIGN.md`** — Why things are built the way they are (ADRs, RFCs, debt register)
-2. **`CLAUDE.md`** — Session context, invariants, file layout, run commands
-3. **`IMPLEMENTATION_BACKLOG.md`** — What to build next; start at the **Copilot Task Queue** section
-4. **`.python-style-guide.md`** — How to write the code
+1. **`SESSION_LOG.md`** (last 2–3 entries) — What happened recently; handoff notes from previous sessions
+2. **`SESSION_TOPOLOGY.md`** §5 — Identify your session type using the decision tree
+3. **`PROJECT_DESIGN.md`** — Why things are built the way they are (ADRs, RFCs, debt register)
+4. **`CLAUDE.md`** — Session context, invariants, file layout, run commands
+5. **`IMPLEMENTATION_BACKLOG.md`** — What to build next; start at the **Copilot Task Queue** section
+6. **`.python-style-guide.md`** — How to write the code
 
-For non-trivial tasks, read all four before generating code.
+For non-trivial tasks, read items 1–6 before generating code.
+For quick fixes, items 1–2 plus the relevant source file are sufficient.
+
+---
+
+## Session Protocol
+
+Every session must follow the topology defined in `SESSION_TOPOLOGY.md`:
+
+1. **Read `SESSION_LOG.md`** — last 2–3 entries for recent context and handoff notes
+2. **Identify your session type** — use the decision tree in `SESSION_TOPOLOGY.md` §5
+3. **Load context per priority table** — `SESSION_TOPOLOGY.md` §3 defines what to read per type
+4. **Follow the scope guard** — each session type has boundaries; do not exceed them
+5. **Append a `SESSION_LOG.md` entry before ending** — use the `slog` VS Code snippet
+
+Session types: `IMPL` (implementation), `ARCH` (architecture), `RSRCH` (research), `OPS` (operations), `DEBUG` (debugging), `REVIEW` (consolidation). See `SESSION_TOPOLOGY.md` §2 for full definitions.
 
 ---
 
@@ -20,7 +37,7 @@ For non-trivial tasks, read all four before generating code.
 
 Follow these steps at the start of every Copilot session:
 
-1. **Read the four docs above** — understand the current state before touching any code
+1. **Read the six docs above** — understand the current state before touching any code
 2. **Open `IMPLEMENTATION_BACKLOG.md` → Copilot Task Queue** — find the highest-priority NOT STARTED step in the "Immediately Actionable" table
 3. **Read the full step definition** — scroll to the `### Step N` entry and read every field
 4. **Check pre-conditions** — confirm all listed dependencies have Status = COMPLETED; if not, pick the next unblocked step
@@ -69,7 +86,7 @@ Stop immediately and leave a `**BLOCKED:**` note in the step's Completion Notes 
 | Data | `src/data/feeds.py` | Fetch OHLCV via yfinance |
 | Symbol utils | `src/data/symbol_utils.py` | Provider-specific symbol normalisation |
 | Models | `src/data/models.py` | Bar, Signal, Order, Position, AssetClass dataclasses |
-| Strategies | `src/strategies/` | One file per strategy (8 total); all inherit `BaseStrategy` |
+| Strategies | `src/strategies/` | One file per strategy (9 total); all inherit `BaseStrategy` |
 | Risk | `src/risk/manager.py` | Gate between signals and orders; crypto overlay via `CryptoRiskConfig` |
 | Broker — Equities paper | `src/execution/broker.py` → `AlpacaBroker` | Alpaca paper trading (equities) |
 | Broker — Equities live | `src/execution/broker.py` → `IBKRBroker` | Interactive Brokers live |
@@ -113,8 +130,8 @@ This project uses a **Living Project Design Document** in `PROJECT_DESIGN.md`.
 | Raising a design question | Add an RFC to `§4` with status `PROPOSED`; link to relevant backlog step |
 | Discovering technical debt | Add entry to `§5`; create a backlog step if actionable |
 
-- ADR numbering: `ADR-016`, `ADR-017`, ... (check §3 for last used number — currently ADR-015)
-- RFC numbering: `RFC-005`, `RFC-006`, ... (check §4 for last used — currently RFC-004)
+- ADR numbering: `ADR-018`, `ADR-019`, ... (check §3 for last used number — currently ADR-017)
+- RFC numbering: `RFC-007`, `RFC-008`, ... (check §4 for last used — currently RFC-006)
 - **Never** retroactively change ACCEPTED ADRs — supersede with a new one
 
 ---
@@ -141,7 +158,7 @@ All tests must pass before any task is considered complete:
 python -m pytest tests/ -v
 ```
 
-Current baseline: **498 passing**. Never skip a failing test — fix the underlying code.
+Current baseline: **551 passing**. Never skip a failing test — fix the underlying code.
 
 ---
 
@@ -169,6 +186,6 @@ The MA crossover (`src/strategies/ma_crossover.py`) is the canonical example.
 
 ---
 
-*For full context: `PROJECT_DESIGN.md` (LPDD) · `CLAUDE.md` (session context) · `IMPLEMENTATION_BACKLOG.md` (task queue + Copilot Queue) · `.python-style-guide.md` (code style)*
+*For full context: `PROJECT_DESIGN.md` (LPDD) · `CLAUDE.md` (session context) · `IMPLEMENTATION_BACKLOG.md` (task queue + Copilot Queue) · `.python-style-guide.md` (code style) · `SESSION_TOPOLOGY.md` (session types + routing) · `SESSION_LOG.md` (recent session history)*
 
 **Last Updated:** February 25, 2026

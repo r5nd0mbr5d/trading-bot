@@ -1,0 +1,22 @@
+source_id: classification_based_financial_markets_prediction_using_deep_neural_networks
+source_type: article
+title: Classification-based Financial Markets Prediction using Deep Neural Networks
+url: https://arxiv.org/pdf/1603.08604
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Matthew Dixon, Diego Klabjan, Jin Hoon Bang (2016)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

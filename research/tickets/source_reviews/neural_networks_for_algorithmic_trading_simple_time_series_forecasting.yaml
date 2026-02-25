@@ -1,0 +1,22 @@
+source_id: neural_networks_for_algorithmic_trading_simple_time_series_forecasting
+source_type: article
+title: Neural networks for algorithmic trading. Simple time series forecasting
+url: https://medium.com/@alexrachnog/neural-networks-for-algorithmic-trading-part-one-simple-time-series-forecasting-f992daa1045a
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Resources > Further Reading; Alex Rachnog (2016)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

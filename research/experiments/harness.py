@@ -44,6 +44,10 @@ def _compute_aggregate_metrics(folds: List[Dict[str, Any]]) -> Dict[str, Any]:
         float(f.get("roc_auc", f.get("metrics", {}).get("val_roc_auc", 0.0)) or 0.0)
         for f in folds
     ]
+    annualized_returns = [
+        float(f.get("annualized_return_pct", f.get("metrics", {}).get("annualized_return_pct", 0.0)) or 0.0)
+        for f in folds
+    ]
 
     passed_folds = sum(1 for f in folds if bool(f.get("passed", False)))
     total_folds = len(folds)
@@ -57,6 +61,47 @@ def _compute_aggregate_metrics(folds: List[Dict[str, Any]]) -> Dict[str, Any]:
         "mean_fill_rate": mean(fill_rates) if fill_rates else 0.0,
         "mean_pr_auc": mean(pr_aucs) if pr_aucs else 0.0,
         "mean_roc_auc": mean(roc_aucs) if roc_aucs else 0.0,
+        "mean_annualized_return_pct": mean(annualized_returns) if annualized_returns else 0.0,
+    }
+
+
+def _extract_claim_integrity(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract and evaluate claim-integrity evidence from metadata.
+
+    Parameters
+    ----------
+    metadata : Dict[str, Any]
+        Experiment metadata payload.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Claim-integrity fields with completeness metadata.
+    """
+    evidence = metadata.get("claim_integrity", {}) if isinstance(metadata, dict) else {}
+    if not isinstance(evidence, dict):
+        evidence = {}
+
+    fields = {
+        "out_of_sample_period": evidence.get("out_of_sample_period"),
+        "transaction_costs_slippage_assumptions": evidence.get(
+            "transaction_costs_slippage_assumptions"
+        ),
+        "max_drawdown": evidence.get("max_drawdown"),
+        "turnover": evidence.get("turnover"),
+        "tested_variants": evidence.get("tested_variants"),
+    }
+
+    missing_fields = [
+        name
+        for name, value in fields.items()
+        if value is None or (isinstance(value, str) and not value.strip())
+    ]
+
+    return {
+        **fields,
+        "missing_fields": missing_fields,
+        "is_complete": len(missing_fields) == 0,
     }
 
 
@@ -103,6 +148,17 @@ def run_experiment(
         and aggregate_metrics["mean_profit_factor"] >= 1.10
     )
 
+    claim_integrity = _extract_claim_integrity(metadata)
+    caution_flags: list[str] = []
+    if not claim_integrity["is_complete"]:
+        caution_flags.append("claim_integrity_fields_missing")
+
+    if (
+        aggregate_metrics["mean_annualized_return_pct"] > 100.0
+        and not claim_integrity["is_complete"]
+    ):
+        caution_flags.append("high_return_claim_unverified")
+
     promotion_check = {
         "experiment_id": experiment_id,
         "evaluated_at": aggregate_summary["evaluated_at"],
@@ -110,6 +166,8 @@ def run_experiment(
         "n_prior_tests": n_prior_tests,
         "adjusted_alpha": adjusted_alpha,
         "registered_before_test": registered_before_test,
+        "claim_integrity": claim_integrity,
+        "caution_flags": caution_flags,
         "gates": [
             {
                 "gate": "fold_pass_rate",
@@ -139,6 +197,10 @@ def run_experiment(
     }
     if not registered_before_test:
         promotion_check["caution"] = "CAUTION: hypothesis not pre-registered"
+    if caution_flags:
+        promotion_check["claim_integrity_caution"] = (
+            "CAUTION: claim-integrity evidence incomplete; review required before promotion discussion"
+        )
 
     aggregate_summary_path = root / "aggregate_summary.json"
     promotion_check_path = root / "promotion_check.json"

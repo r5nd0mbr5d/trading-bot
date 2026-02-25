@@ -264,8 +264,8 @@ def build_news_feature_table(
     full_index = pd.date_range(start=start_day, end=end_day, freq="D", tz="UTC", name="date")
     features = features.reindex(full_index)
 
-    features["article_count"] = features["article_count"].fillna(0).astype(int)
-    features["benzinga_count"] = features["benzinga_count"].fillna(0).astype(int)
-    features["earnings_proximity"] = features["earnings_proximity"].fillna(False).astype(bool)
+    features["article_count"] = pd.to_numeric(features["article_count"], errors="coerce").fillna(0).astype(int)
+    features["benzinga_count"] = pd.to_numeric(features["benzinga_count"], errors="coerce").fillna(0).astype(int)
+    features["earnings_proximity"] = features["earnings_proximity"].eq(True)
 
     return features[["sentiment_score", "article_count", "benzinga_count", "earnings_proximity"]]

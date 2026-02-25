@@ -1,0 +1,22 @@
+source_id: performance_evaluation_of_recurrent_neural_networks_for_short_term_investment_decision_in_
+source_type: article
+title: Performance Evaluation of Recurrent Neural Networks for Short-Term Investment Decision in Stock Market
+url: https://www.researchgate.net/publication/339751012_Performance_Evaluation_of_Recurrent_Neural_Networks_for_Short-Term_Investment_Decision_in_Stock_Market
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Long Short-Term Memory (LSTMs); Alexandre P. da Silva, Silas S. L. Pereira, Mário W. L. Moreira, Joel J. P. C. Rodrigues, Ricardo A. L. Rabêlo, Kashif Saleem (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

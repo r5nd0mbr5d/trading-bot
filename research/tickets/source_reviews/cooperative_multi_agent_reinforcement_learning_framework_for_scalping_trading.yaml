@@ -1,0 +1,22 @@
+source_id: cooperative_multi_agent_reinforcement_learning_framework_for_scalping_trading
+source_type: article
+title: Cooperative Multi-Agent Reinforcement Learning Framework for Scalping Trading
+url: https://arxiv.org/abs/1904.00441
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; Uk Jo, Taehyun Jo, Wanjun Kim, Iljoo Yoon, Dongseok Lee, Seungho Lee (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

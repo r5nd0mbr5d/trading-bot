@@ -1,0 +1,22 @@
+source_id: a_quantitative_trading_method_using_deep_convolution_neural_network
+source_type: article
+title: A quantitative trading method using deep convolution neural network
+url: https://iopscience.iop.org/article/10.1088/1757-899X/490/4/042018/pdf
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers; HaiBo Chen, DaoLei Liang, LL Zhao (2019)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []

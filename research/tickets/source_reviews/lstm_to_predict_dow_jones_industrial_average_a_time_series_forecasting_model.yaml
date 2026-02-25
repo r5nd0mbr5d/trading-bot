@@ -1,0 +1,22 @@
+source_id: lstm_to_predict_dow_jones_industrial_average_a_time_series_forecasting_model
+source_type: article
+title: LSTM to predict Dow Jones Industrial Average: A Time Series forecasting model
+url: https://medium.com/analytics-vidhya/lstm-to-predict-dow-jones-industrial-average-time-series-647b0115f28c
+review_date_utc: 2026-02-25
+reviewer: copilot
+status: NOT_STARTED
+
+scores:
+  reproducibility:
+  maintenance_health:
+  test_evidence:
+  risk_controls:
+  lpdd_invariant_fit:
+  operational_realism:
+
+notes:
+  final_verdict: TBD
+  review_scope: Papers > Guides; Sarit Maitra (2020)
+  reusable_items: []
+  conflicts: []
+  ticket_recommendations: []
