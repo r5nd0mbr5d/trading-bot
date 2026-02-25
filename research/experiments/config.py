@@ -25,6 +25,9 @@ class ExperimentConfig:
     xgb_params: Optional[Dict[str, Any]] = None
     xgb_preset: Optional[str] = None
     calibrate: bool = False
+    label_type: str = "direction"
+    threshold_bps: float = 45.0
+    hypothesis: Optional[Dict[str, Any]] = None
     walk_forward: bool = False
     train_months: int = 6
     val_months: int = 3
@@ -44,6 +47,9 @@ _OPTIONAL_FIELDS = {
     "xgb_params",
     "xgb_preset",
     "calibrate",
+    "label_type",
+    "threshold_bps",
+    "hypothesis",
     "walk_forward",
     "train_months",
     "val_months",
@@ -80,6 +86,26 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
     if "xgb_preset" in payload and payload["xgb_preset"] is not None:
         if not isinstance(payload["xgb_preset"], str):
             raise ValueError("xgb_preset must be a string")
+    if "label_type" in payload and payload["label_type"] is not None:
+        label_type = str(payload["label_type"]).strip().lower()
+        if label_type not in {"direction", "threshold"}:
+            raise ValueError("label_type must be 'direction' or 'threshold'")
+    if "threshold_bps" in payload and payload["threshold_bps"] is not None:
+        _ = float(payload["threshold_bps"])
+    if "hypothesis" in payload and payload["hypothesis"] is not None:
+        hypothesis = payload["hypothesis"]
+        if not isinstance(hypothesis, dict):
+            raise ValueError("hypothesis must be an object")
+        required_hypothesis_fields = {
+            "hypothesis_id",
+            "hypothesis_text",
+            "n_prior_tests",
+            "registered_before_test",
+        }
+        missing_hypothesis = required_hypothesis_fields - set(hypothesis.keys())
+        if missing_hypothesis:
+            missing = ", ".join(sorted(missing_hypothesis))
+            raise ValueError(f"Missing required hypothesis fields: {missing}")
 
     horizon_days = int(payload.get("horizon_days", 5))
     if horizon_days <= 0:
@@ -120,6 +146,9 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
         xgb_params=payload.get("xgb_params"),
         xgb_preset=payload.get("xgb_preset"),
         calibrate=bool(payload.get("calibrate", False)),
+        label_type=str(payload.get("label_type", "direction")),
+        threshold_bps=float(payload.get("threshold_bps", 45.0)),
+        hypothesis=payload.get("hypothesis"),
         walk_forward=bool(payload.get("walk_forward", False)),
         train_months=train_months,
         val_months=val_months,

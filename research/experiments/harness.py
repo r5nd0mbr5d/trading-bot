@@ -36,6 +36,14 @@ def _compute_aggregate_metrics(folds: List[Dict[str, Any]]) -> Dict[str, Any]:
     win_rates = [float(f.get("win_rate", 0.0) or 0.0) for f in folds]
     profit_factors = [float(f.get("profit_factor", 0.0) or 0.0) for f in folds]
     fill_rates = [float(f.get("fill_rate", 0.0) or 0.0) for f in folds]
+    pr_aucs = [
+        float(f.get("pr_auc", f.get("metrics", {}).get("val_pr_auc", 0.0)) or 0.0)
+        for f in folds
+    ]
+    roc_aucs = [
+        float(f.get("roc_auc", f.get("metrics", {}).get("val_roc_auc", 0.0)) or 0.0)
+        for f in folds
+    ]
 
     passed_folds = sum(1 for f in folds if bool(f.get("passed", False)))
     total_folds = len(folds)
@@ -47,6 +55,8 @@ def _compute_aggregate_metrics(folds: List[Dict[str, Any]]) -> Dict[str, Any]:
         "mean_win_rate": mean(win_rates) if win_rates else 0.0,
         "mean_profit_factor": mean(profit_factors) if profit_factors else 0.0,
         "mean_fill_rate": mean(fill_rates) if fill_rates else 0.0,
+        "mean_pr_auc": mean(pr_aucs) if pr_aucs else 0.0,
+        "mean_roc_auc": mean(roc_aucs) if roc_aucs else 0.0,
     }
 
 
@@ -82,6 +92,11 @@ def run_experiment(
         "aggregate_metrics": aggregate_metrics,
     }
 
+    hypothesis = metadata.get("hypothesis", {}) if isinstance(metadata, dict) else {}
+    n_prior_tests = int(hypothesis.get("n_prior_tests", 0) or 0)
+    adjusted_alpha = float(hypothesis.get("adjusted_alpha", 0.05 / (n_prior_tests + 1)))
+    registered_before_test = bool(hypothesis.get("registered_before_test", True))
+
     promotion_eligible = (
         aggregate_metrics["pass_rate"] >= 0.75
         and aggregate_metrics["mean_win_rate"] >= 0.50
@@ -92,6 +107,9 @@ def run_experiment(
         "experiment_id": experiment_id,
         "evaluated_at": aggregate_summary["evaluated_at"],
         "promotion_eligible": promotion_eligible,
+        "n_prior_tests": n_prior_tests,
+        "adjusted_alpha": adjusted_alpha,
+        "registered_before_test": registered_before_test,
         "gates": [
             {
                 "gate": "fold_pass_rate",
@@ -111,8 +129,16 @@ def run_experiment(
                 "actual": aggregate_metrics["mean_profit_factor"],
                 "passed": aggregate_metrics["mean_profit_factor"] >= 1.10,
             },
+            {
+                "gate": "mean_pr_auc",
+                "threshold": 0.55,
+                "actual": aggregate_metrics["mean_pr_auc"],
+                "passed": aggregate_metrics["mean_pr_auc"] >= 0.55,
+            },
         ],
     }
+    if not registered_before_test:
+        promotion_check["caution"] = "CAUTION: hypothesis not pre-registered"
 
     aggregate_summary_path = root / "aggregate_summary.json"
     promotion_check_path = root / "promotion_check.json"

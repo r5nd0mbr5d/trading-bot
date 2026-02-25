@@ -48,3 +48,28 @@ def test_harness_promotion_check_is_machine_readable(tmp_path):
     assert isinstance(promotion["promotion_eligible"], bool)
     assert isinstance(promotion["gates"], list)
     assert all("gate" in g and "passed" in g for g in promotion["gates"])
+
+
+def test_harness_adds_preregistration_caution_when_not_registered(tmp_path):
+    folds = [
+        {"win_rate": 0.60, "profit_factor": 1.3, "fill_rate": 0.96, "pr_auc": 0.61, "passed": True},
+    ]
+
+    report = run_experiment(
+        experiment_id="xgb_hypothesis_test",
+        fold_results=folds,
+        output_dir=str(tmp_path),
+        metadata={
+            "snapshot_id": "snap_3",
+            "hypothesis": {
+                "n_prior_tests": 5,
+                "adjusted_alpha": 0.05 / 6,
+                "registered_before_test": False,
+            },
+        },
+    )
+
+    promotion = json.loads(report.promotion_check_path.read_text(encoding="utf-8"))
+    assert promotion["registered_before_test"] is False
+    assert promotion["n_prior_tests"] == 5
+    assert "caution" in promotion

@@ -43,6 +43,21 @@ negative_threshold = np.percentile(train_fold_returns, 33)
 
 **Do not** use the full dataset's percentiles — that leaks test-period distribution into training labels.
 
+### 2d. ThresholdLabel (Cost-Aware Binary Target)
+
+For cost-aware binary classification experiments, use:
+
+```
+label = 1 if forward_return_bps > (round_trip_cost_bps + target_return_bps) else 0
+```
+
+Where:
+- `round_trip_cost_bps` captures spread + commission assumptions for the venue
+- `target_return_bps` captures minimum post-cost alpha requirement
+- `threshold_bps = round_trip_cost_bps + target_return_bps`
+
+Default threshold for baseline UK paper assumptions: `45 bps` (25 bps costs + 20 bps target).
+
 ---
 
 ## 3. Feature Families

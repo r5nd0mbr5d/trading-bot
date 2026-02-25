@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import json
 
 from research.data.snapshots import save_snapshot
 from research.experiments.xgboost_pipeline import run_xgboost_experiment
@@ -50,6 +51,11 @@ def test_run_xgboost_experiment_with_stub_trainer(tmp_path):
     assert result.experiment_report.promotion_check_path.exists()
     assert result.training_report.metadata.artifact_hash
     assert (result.output_dir / "shap" / "fold_F1.json").exists()
+
+    payload = json.loads(result.training_report_path.read_text(encoding="utf-8"))
+    assert "scale_pos_weight_used" in payload
+    assert "class_distribution" in payload
+    assert payload["label_type"] in {"direction", "threshold"}
 
 
 def test_run_xgboost_experiment_walk_forward(tmp_path):

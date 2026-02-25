@@ -881,11 +881,10 @@ def cmd_uk_health_check(
 
 
 async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool = True) -> None:
-    from src.execution.broker import AlpacaBroker, BinanceBroker
     from src.execution.ibkr_broker import IBKRBroker
     from src.portfolio.tracker import PortfolioTracker
     from src.risk.data_quality import DataQualityGuard
-    from src.trading.loop import TradingLoopHandler
+    from src.trading.loop import TradingLoopHandler, build_runtime_broker
     from src.trading.stream_events import (
         build_stream_error_handler,
         build_stream_heartbeat_handler,
@@ -907,16 +906,10 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
     
     # Use pre-created broker if provided, otherwise create new one
     if broker is None:
-        has_crypto_symbol = any(settings.is_crypto(symbol) for symbol in settings.data.symbols)
-        if has_crypto_symbol:
-            broker = BinanceBroker(settings)
-        elif settings.broker.provider.lower() == "ibkr":
-            broker = IBKRBroker(settings)
-        else:
-            broker = AlpacaBroker(settings)
+        broker = build_runtime_broker(settings)
     
     if broker is not None:
-        if settings.broker.provider.lower() == "ibkr":
+        if isinstance(broker, IBKRBroker):
             account = broker.get_primary_account()
             if account:
                 account_mode = "paper" if broker.is_paper_account() else "live"
@@ -931,7 +924,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                     "IBKR paper account detected while running in live mode. "
                     "Switch to a funded live account before proceeding."
                 )
-        elif settings.broker.provider.lower() == "alpaca" and hasattr(broker, "is_paper_mode"):
+        elif hasattr(broker, "is_paper_mode"):
             actual_paper = broker.is_paper_mode()
             if settings.broker.paper_trading and not actual_paper:
                 raise RuntimeError(

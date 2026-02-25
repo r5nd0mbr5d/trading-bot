@@ -22,6 +22,14 @@ def test_load_experiment_config(tmp_path):
         "xgb_params": {"max_depth": 3},
         "xgb_preset": "medium",
         "calibrate": True,
+        "label_type": "threshold",
+        "threshold_bps": 45.0,
+        "hypothesis": {
+            "hypothesis_id": "xgb-threshold-1",
+            "hypothesis_text": "Threshold labels improve precision.",
+            "n_prior_tests": 2,
+            "registered_before_test": True,
+        },
     }
     config_path.write_text(json.dumps(payload), encoding="utf-8")
 
@@ -42,6 +50,9 @@ def test_load_experiment_config(tmp_path):
     assert config.xgb_params == {"max_depth": 3}
     assert config.xgb_preset == "medium"
     assert config.calibrate is True
+    assert config.label_type == "threshold"
+    assert config.threshold_bps == 45.0
+    assert config.hypothesis["n_prior_tests"] == 2
 
 
 def test_load_experiment_config_requires_fields(tmp_path):
@@ -109,4 +120,27 @@ def test_load_experiment_config_rejects_bad_ranges(tmp_path):
     )
 
     with pytest.raises(ValueError, match="horizon_days must be positive"):
+        load_experiment_config(config_path)
+
+
+def test_load_experiment_config_rejects_incomplete_hypothesis(tmp_path):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "snapshot_dir": "snap",
+                "experiment_id": "xgb_test",
+                "symbol": "TEST",
+                "output_dir": "out",
+                "hypothesis": {
+                    "hypothesis_id": "h-1",
+                    "n_prior_tests": 1,
+                    "registered_before_test": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Missing required hypothesis fields"):
         load_experiment_config(config_path)

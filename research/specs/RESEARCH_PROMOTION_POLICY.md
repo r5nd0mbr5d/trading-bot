@@ -93,6 +93,17 @@ All of the following must be true:
 - [ ] No fold with walk-forward degradation > 0.15 (see VALIDATION_PROTOCOL.md §6b)
 - [ ] Seed stability: win rate stddev across 3 seeds < 3 percentage points
 - [ ] Feature concentration: no feature > 40% SHAP importance in any fold
+- [ ] Mean PR-AUC across OOS folds ≥ 0.55
+
+### Multiple-Testing Adjustment (Bonferroni)
+
+When multiple variants are tested on the same dataset, report:
+
+```
+adjusted_alpha = 0.05 / (n_prior_tests + 1)
+```
+
+`n_prior_tests` must be recorded in experiment metadata and propagated to `training_report.json` and `promotion_check.json`.
 
 ### R1 Output
 

@@ -21,6 +21,10 @@ from src.data.symbol_utils import normalize_symbol
 logger = logging.getLogger(__name__)
 
 
+class BrokerConnectionError(RuntimeError):
+    """Raised when a broker cannot be connected/initialised."""
+
+
 class BrokerBase(ABC):
     @abstractmethod
     def submit_order(self, order: Order) -> Order: ...
@@ -360,6 +364,232 @@ class BinanceBroker(BrokerBase):
             return float(gbp_balance.get("free", 0.0) or 0.0)
         except Exception as exc:
             logger.error("Binance get_cash failed: %s", exc)
+            return 0.0
+
+
+class CoinbaseBroker(BrokerBase):
+    """Coinbase Advanced Trade broker adapter with optional sandbox routing."""
+
+    def __init__(self, settings):
+        self.cfg = settings.broker
+        self._client = None
+        self._order_symbol_by_id: Dict[str, str] = {}
+        self._connect()
+
+    def _connect(self) -> None:
+        try:
+            from coinbase.rest import RESTClient
+
+            base_url = (
+                "https://api-public.sandbox.exchange.coinbase.com"
+                if self.cfg.coinbase_sandbox
+                else "https://api.coinbase.com"
+            )
+            self._client = RESTClient(
+                api_key=self.cfg.coinbase_api_key_id,
+                api_secret=self.cfg.coinbase_private_key,
+                base_url=base_url,
+            )
+            logger.info(
+                "Connected to Coinbase Advanced Trade (%s)",
+                "sandbox" if self.cfg.coinbase_sandbox else "live",
+            )
+        except ImportError:
+            logger.warning("coinbase-advanced-py not installed: pip install coinbase-advanced-py")
+            self._client = None
+            raise BrokerConnectionError("coinbase-advanced-py is not installed")
+        except Exception as exc:
+            logger.error("Coinbase connection failed: %s", exc)
+            self._client = None
+            raise BrokerConnectionError(str(exc)) from exc
+
+    @staticmethod
+    def _to_dict(payload: Any) -> Dict[str, Any]:
+        if payload is None:
+            return {}
+        if isinstance(payload, dict):
+            return payload
+        if hasattr(payload, "to_dict"):
+            converted = payload.to_dict()
+            if isinstance(converted, dict):
+                return converted
+        if hasattr(payload, "__dict__"):
+            return dict(payload.__dict__)
+        return {}
+
+    def submit_order(self, order: Order) -> Order:
+        if not self._client:
+            order.status = OrderStatus.REJECTED
+            return order
+
+        try:
+            product_id = normalize_symbol(order.symbol, "coinbase")
+            qty = max(float(order.qty), 0.0)
+            if qty <= 0:
+                order.status = OrderStatus.REJECTED
+                return order
+
+            client_order_id = str(uuid.uuid4())
+            if order.side == OrderSide.BUY:
+                response = self._client.market_order_buy(
+                    client_order_id=client_order_id,
+                    product_id=product_id,
+                    base_size=str(qty),
+                )
+            else:
+                response = self._client.market_order_sell(
+                    client_order_id=client_order_id,
+                    product_id=product_id,
+                    base_size=str(qty),
+                )
+
+            payload = self._to_dict(response)
+            order_id = str(
+                payload.get("order_id")
+                or payload.get("id")
+                or payload.get("success_response", {}).get("order_id", "")
+            )
+            order.order_id = order_id
+            if order_id:
+                self._order_symbol_by_id[order_id] = product_id
+
+            status = str(payload.get("status") or payload.get("order_status") or "").upper()
+            if status in {"FILLED", "DONE"}:
+                order.status = OrderStatus.FILLED
+            elif status in {"OPEN", "PENDING", "PENDING_NEW"}:
+                order.status = OrderStatus.PENDING
+            elif status in {"CANCELLED", "CANCELED"}:
+                order.status = OrderStatus.CANCELLED
+            elif status:
+                order.status = OrderStatus.PENDING
+            else:
+                order.status = OrderStatus.PENDING
+
+            filled_price = payload.get("filled_price") or payload.get("average_filled_price")
+            if filled_price is not None:
+                order.filled_price = float(filled_price)
+                order.filled_at = datetime.now(timezone.utc)
+
+            return order
+        except Exception as exc:
+            logger.error("Coinbase submit_order failed: %s", exc)
+            order.status = OrderStatus.REJECTED
+            return order
+
+    def cancel_order(self, order_id: str) -> bool:
+        if not self._client:
+            return False
+        try:
+            response = self._client.cancel_orders(order_ids=[order_id])
+            payload = self._to_dict(response)
+            if "results" in payload and isinstance(payload["results"], list):
+                return any(str(result.get("success", "")).lower() == "true" for result in payload["results"])
+            return True
+        except Exception as exc:
+            logger.error("Coinbase cancel_order failed: %s", exc)
+            return False
+
+    def _product_price(self, product_id: str) -> float:
+        if not self._client:
+            return 0.0
+        try:
+            product = self._client.get_product(product_id=product_id)
+            payload = self._to_dict(product)
+            value = payload.get("price") or payload.get("last_price") or payload.get("mid_market_price")
+            return float(value or 0.0)
+        except Exception:
+            return 0.0
+
+    def get_positions(self) -> Dict[str, Position]:
+        if not self._client:
+            return {}
+
+        try:
+            response = self._client.get_accounts()
+            payload = self._to_dict(response)
+            accounts = payload.get("accounts", []) or payload.get("data", []) or []
+            positions: Dict[str, Position] = {}
+
+            for account in accounts:
+                currency = str(account.get("currency") or account.get("asset") or "").upper()
+                if currency in {"", "GBP"}:
+                    continue
+
+                available = float(account.get("available_balance", {}).get("value", 0.0) or 0.0)
+                hold = float(account.get("hold", {}).get("value", 0.0) or 0.0)
+                qty = available + hold
+                if qty <= 0:
+                    continue
+
+                product_id = normalize_symbol(f"{currency}GBP", "coinbase")
+                mark_price = self._product_price(product_id)
+                if mark_price <= 0:
+                    continue
+
+                positions[product_id] = Position(
+                    symbol=product_id,
+                    qty=qty,
+                    avg_entry_price=mark_price,
+                    current_price=mark_price,
+                )
+            return positions
+        except Exception as exc:
+            logger.error("Coinbase get_positions failed: %s", exc)
+            return {}
+
+    def get_portfolio_value(self) -> float:
+        if not self._client:
+            return 0.0
+
+        try:
+            response = self._client.get_accounts()
+            payload = self._to_dict(response)
+            accounts = payload.get("accounts", []) or payload.get("data", []) or []
+            total_value = 0.0
+
+            for account in accounts:
+                currency = str(account.get("currency") or account.get("asset") or "").upper()
+                available = float(account.get("available_balance", {}).get("value", 0.0) or 0.0)
+                hold = float(account.get("hold", {}).get("value", 0.0) or 0.0)
+                qty = available + hold
+                if qty <= 0:
+                    continue
+
+                if currency == "GBP":
+                    total_value += qty
+                    continue
+
+                product_id = normalize_symbol(f"{currency}GBP", "coinbase")
+                mark_price = self._product_price(product_id)
+                if mark_price > 0:
+                    total_value += qty * mark_price
+
+            return total_value
+        except Exception as exc:
+            logger.error("Coinbase get_portfolio_value failed: %s", exc)
+            return 0.0
+
+    def get_cash(self) -> float:
+        if not self._client:
+            return 0.0
+
+        try:
+            response = self._client.get_accounts()
+            payload = self._to_dict(response)
+            accounts = payload.get("accounts", []) or payload.get("data", []) or []
+            gbp_account = next(
+                (
+                    account
+                    for account in accounts
+                    if str(account.get("currency") or account.get("asset") or "").upper() == "GBP"
+                ),
+                None,
+            )
+            if gbp_account is None:
+                return 0.0
+            return float(gbp_account.get("available_balance", {}).get("value", 0.0) or 0.0)
+        except Exception as exc:
+            logger.error("Coinbase get_cash failed: %s", exc)
             return 0.0
 
 

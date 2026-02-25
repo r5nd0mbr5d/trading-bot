@@ -108,6 +108,8 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("--xgb-presets-path", default="research/experiments/configs/xgb_params_presets.json")
     parser.add_argument("--print-presets", action="store_true")
     parser.add_argument("--calibrate", action="store_true")
+    parser.add_argument("--label-type", choices=["direction", "threshold"], default="direction")
+    parser.add_argument("--threshold-bps", type=float, default=45.0)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--expected-json", default=None)
     parser.add_argument("--tolerance-json", default=None)
@@ -410,6 +412,9 @@ def dispatch(
                 "model_id": config.model_id if config else args.model_id,
                 "xgb_params": resolved_params,
                 "calibrate": config.calibrate if config else args.calibrate,
+                "label_type": config.label_type if config else args.label_type,
+                "threshold_bps": config.threshold_bps if config else args.threshold_bps,
+                "hypothesis": config.hypothesis if config else None,
             }
             print(json.dumps(resolved_config, indent=2))
             raise SystemExit(0)
@@ -430,6 +435,9 @@ def dispatch(
             model_id=config.model_id if config else args.model_id,
             model_params=resolved_params,
             calibrate=config.calibrate if config else args.calibrate,
+            label_type=config.label_type if config else args.label_type,
+            threshold_bps=config.threshold_bps if config else args.threshold_bps,
+            hypothesis=config.hypothesis if config else None,
             walk_forward=config.walk_forward if config else args.walk_forward,
             train_months=config.train_months if config else args.train_months,
             val_months=config.val_months if config else args.val_months,

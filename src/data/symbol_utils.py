@@ -9,7 +9,7 @@ def normalize_symbol(symbol: str, provider: str) -> str:
     symbol
         Symbol as entered by runtime/backtest settings.
     provider
-        Provider identifier: ``yfinance``, ``binance``, ``alpaca``, ``ibkr``.
+        Provider identifier: ``yfinance``, ``binance``, ``coinbase``, ``alpaca``, ``ibkr``.
 
     Returns
     -------
@@ -37,6 +37,11 @@ def normalize_symbol(symbol: str, provider: str) -> str:
     if clean_provider == "binance":
         if clean_symbol in {"BTC-GBP", "BTC/GBP", "BTCGBP"}:
             return "BTCGBP"
+        return clean_symbol
+
+    if clean_provider == "coinbase":
+        if clean_symbol in {"BTCGBP", "BTC/GBP", "BTC-GBP"}:
+            return "BTC-GBP"
         return clean_symbol
 
     if clean_provider == "alpaca":

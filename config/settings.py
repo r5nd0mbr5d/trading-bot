@@ -214,7 +214,7 @@ class WalkForwardConfig:
 
 @dataclass
 class BrokerConfig:
-    provider: str = field(default_factory=lambda: os.getenv("BROKER_PROVIDER", "ibkr"))  # alpaca | ibkr | binance
+    provider: str = field(default_factory=lambda: os.getenv("BROKER_PROVIDER", "ibkr"))  # alpaca | ibkr | binance | coinbase
     api_key: str = field(
         default_factory=lambda: os.getenv("ALPACA_API_KEY", "")
     )
@@ -241,6 +241,18 @@ class BrokerConfig:
     binance_testnet: bool = field(
         default_factory=lambda: os.getenv("BINANCE_TESTNET", "true").strip().lower()
         in {"1", "true", "yes", "on"}
+    )
+    coinbase_api_key_id: str = field(default_factory=lambda: os.getenv("COINBASE_API_KEY_ID", ""))
+    coinbase_private_key: str = field(default_factory=lambda: os.getenv("COINBASE_PRIVATE_KEY", ""))
+    coinbase_sandbox: bool = field(
+        default_factory=lambda: os.getenv("COINBASE_SANDBOX", "true").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    crypto_primary_provider: str = field(
+        default_factory=lambda: os.getenv("CRYPTO_PRIMARY_PROVIDER", "coinbase").strip().lower()
+    )
+    crypto_fallback_provider: str = field(
+        default_factory=lambda: os.getenv("CRYPTO_FALLBACK_PROVIDER", "binance").strip().lower()
     )
     # Optional per-symbol contract routing overrides, e.g.
     # {"HSBA.L": {"ib_symbol": "HSBA", "exchange": "SMART", "currency": "GBP", "primary_exchange": "LSE"}}

@@ -14,6 +14,14 @@
     "max_depth": 4,
     "n_estimators": 300
   },
+  "label_type": "threshold",
+  "threshold_bps": 45.0,
+  "hypothesis": {
+    "hypothesis_id": "xgb-h5-threshold-001",
+    "hypothesis_text": "Threshold labels above round-trip costs improve precision for actionable signals.",
+    "n_prior_tests": 0,
+    "registered_before_test": true
+  },
   "calibrate": false,
   "walk_forward": false,
   "train_months": 6,

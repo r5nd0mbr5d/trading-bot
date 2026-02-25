@@ -18,6 +18,7 @@ from research.data.snapshots import load_snapshot
 from research.data.splits import apply_gap, apply_scaler, build_walk_forward_folds, fit_scaler
 from research.experiments.harness import ExperimentReport, ModelTrainingReport, run_experiment, train_and_save_model
 from research.models.train_xgboost import train_xgboost_model
+from research.training.label_utils import compute_class_weights, compute_threshold_label
 
 
 @dataclass
@@ -206,6 +207,27 @@ def _compute_feature_importance(
     }
 
 
+def _resolve_hypothesis_metadata(hypothesis: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    if not hypothesis:
+        return {
+            "hypothesis_id": "",
+            "hypothesis_text": "",
+            "n_prior_tests": 0,
+            "registered_before_test": True,
+            "adjusted_alpha": 0.05,
+        }
+
+    n_prior_tests = int(hypothesis.get("n_prior_tests", 0) or 0)
+    adjusted_alpha = 0.05 / (n_prior_tests + 1)
+    return {
+        "hypothesis_id": str(hypothesis.get("hypothesis_id", "")),
+        "hypothesis_text": str(hypothesis.get("hypothesis_text", "")),
+        "n_prior_tests": n_prior_tests,
+        "registered_before_test": bool(hypothesis.get("registered_before_test", True)),
+        "adjusted_alpha": float(adjusted_alpha),
+    }
+
+
 def run_xgboost_experiment(
     *,
     snapshot_dir: str,
@@ -222,6 +244,9 @@ def run_xgboost_experiment(
     model_id: Optional[str] = None,
     model_params: Optional[Dict[str, Any]] = None,
     calibrate: bool = False,
+    label_type: str = "direction",
+    threshold_bps: float = 45.0,
+    hypothesis: Optional[Dict[str, Any]] = None,
     walk_forward: bool = False,
     train_months: int = 6,
     val_months: int = 3,
@@ -256,6 +281,12 @@ def run_xgboost_experiment(
         horizon_id=horizon_id,
     )
 
+    resolved_label_type = str(label_type or "direction").strip().lower()
+    if resolved_label_type not in {"direction", "threshold"}:
+        raise ValueError("label_type must be 'direction' or 'threshold'")
+    if resolved_label_type == "threshold":
+        labels["label_binary"] = compute_threshold_label(labels["forward_return"], threshold_bps)
+
     merged = cleaned.join(labels[["label_binary", "forward_return"]], how="inner")
     feature_cols = _select_feature_columns(merged)
     merged = merged.dropna(subset=feature_cols + ["label_binary"])
@@ -284,6 +315,7 @@ def run_xgboost_experiment(
         fold_results = []
         training_reports: list[ModelTrainingReport] = []
         training_payloads: list[dict] = []
+        hypothesis_meta = _resolve_hypothesis_metadata(hypothesis)
 
         for idx, fold in enumerate(folds, start=1):
             train_df = merged.loc[fold["train_start"] : fold["train_end"]]
@@ -306,6 +338,9 @@ def run_xgboost_experiment(
             y_test = test_df["label_binary"].astype(int)
 
             fold_model_id = f"{model_id or experiment_id}_xgb_{fold['fold_id']}"
+            imbalance_info = compute_class_weights(y_train)
+            resolved_params = dict(model_params or {})
+            resolved_params["scale_pos_weight"] = imbalance_info["scale_pos_weight"]
 
             training_report = train_and_save_model(
                 model_id=fold_model_id,
@@ -315,7 +350,7 @@ def run_xgboost_experiment(
                     "y_train": y_train,
                     "X_val": X_val,
                     "y_val": y_val,
-                    "params": model_params,
+                    "params": resolved_params,
                     "calibrate": calibrate,
                 },
                 metadata={
@@ -332,12 +367,21 @@ def run_xgboost_experiment(
                         "val_rows": int(len(val_df)),
                         "test_rows": int(len(test_df)),
                         "fold_id": fold["fold_id"],
+                        "class_distribution": imbalance_info["class_distribution"],
+                        "scale_pos_weight_used": imbalance_info["scale_pos_weight"],
+                        "label_type": resolved_label_type,
+                        "threshold_bps": float(threshold_bps),
+                        "n_prior_tests": hypothesis_meta["n_prior_tests"],
+                        "adjusted_alpha": hypothesis_meta["adjusted_alpha"],
+                        "registered_before_test": hypothesis_meta["registered_before_test"],
                     },
                 },
                 artifacts_root=artifacts_dir,
             )
 
             metrics = training_report.metrics
+            metrics.setdefault("val_pr_auc", 0.0)
+            metrics.setdefault("val_roc_auc", 0.0)
             test_scores = _score_test_split(
                 training_report.model,
                 X_test,
@@ -385,6 +429,8 @@ def run_xgboost_experiment(
                     "profit_factor": test_scores["profit_factor"],
                     "fill_rate": test_scores["fill_rate"],
                     "avg_slippage_pct": float(metrics.get("avg_slippage_pct", 0.0)),
+                    "roc_auc": float(metrics.get("val_roc_auc", 0.0)),
+                    "pr_auc": float(metrics.get("val_pr_auc", 0.0)),
                     "status": status,
                     "passed": status == "pass",
                     "metrics": metrics,
@@ -399,6 +445,13 @@ def run_xgboost_experiment(
                     "model_dir": str(training_report.model_dir),
                     "metrics": training_report.metrics,
                     "metadata": training_report.metadata.__dict__,
+                    "class_distribution": imbalance_info["class_distribution"],
+                    "scale_pos_weight_used": imbalance_info["scale_pos_weight"],
+                    "label_type": resolved_label_type,
+                    "threshold_bps": float(threshold_bps),
+                    "n_prior_tests": hypothesis_meta["n_prior_tests"],
+                    "adjusted_alpha": hypothesis_meta["adjusted_alpha"],
+                    "registered_before_test": hypothesis_meta["registered_before_test"],
                 }
             )
 
@@ -411,6 +464,9 @@ def run_xgboost_experiment(
                 "feature_version": feature_version,
                 "label_version": label_version,
                 "drop_manifest": drop_manifest,
+                "label_type": resolved_label_type,
+                "threshold_bps": float(threshold_bps),
+                "hypothesis": hypothesis_meta,
             },
         )
 
@@ -450,6 +506,10 @@ def run_xgboost_experiment(
     y_test = test_df["label_binary"].astype(int)
 
     model_id = model_id or f"{experiment_id}_xgb"
+    imbalance_info = compute_class_weights(y_train)
+    resolved_params = dict(model_params or {})
+    resolved_params["scale_pos_weight"] = imbalance_info["scale_pos_weight"]
+    hypothesis_meta = _resolve_hypothesis_metadata(hypothesis)
 
     training_report = train_and_save_model(
         model_id=model_id,
@@ -459,7 +519,7 @@ def run_xgboost_experiment(
             "y_train": y_train,
             "X_val": X_val,
             "y_val": y_val,
-            "params": model_params,
+            "params": resolved_params,
             "calibrate": calibrate,
         },
         metadata={
@@ -475,12 +535,21 @@ def run_xgboost_experiment(
                 "train_rows": int(len(train_df)),
                 "val_rows": int(len(val_df)),
                 "test_rows": int(len(test_df)),
+                "class_distribution": imbalance_info["class_distribution"],
+                "scale_pos_weight_used": imbalance_info["scale_pos_weight"],
+                "label_type": resolved_label_type,
+                "threshold_bps": float(threshold_bps),
+                "n_prior_tests": hypothesis_meta["n_prior_tests"],
+                "adjusted_alpha": hypothesis_meta["adjusted_alpha"],
+                "registered_before_test": hypothesis_meta["registered_before_test"],
             },
         },
         artifacts_root=artifacts_dir,
     )
 
     metrics = training_report.metrics
+    metrics.setdefault("val_pr_auc", 0.0)
+    metrics.setdefault("val_roc_auc", 0.0)
     test_scores = _score_test_split(
         training_report.model,
         X_test,
@@ -520,6 +589,8 @@ def run_xgboost_experiment(
             "profit_factor": test_scores["profit_factor"],
             "fill_rate": test_scores["fill_rate"],
             "avg_slippage_pct": float(metrics.get("avg_slippage_pct", 0.0)),
+            "roc_auc": float(metrics.get("val_roc_auc", 0.0)),
+            "pr_auc": float(metrics.get("val_pr_auc", 0.0)),
             "status": status,
             "passed": status == "pass",
             "metrics": metrics,
@@ -537,6 +608,9 @@ def run_xgboost_experiment(
             "model_id": training_report.model_id,
             "artifact_hash": training_report.metadata.artifact_hash,
             "drop_manifest": drop_manifest,
+            "label_type": resolved_label_type,
+            "threshold_bps": float(threshold_bps),
+            "hypothesis": hypothesis_meta,
         },
     )
 
@@ -546,6 +620,13 @@ def run_xgboost_experiment(
         "model_dir": str(training_report.model_dir),
         "metrics": training_report.metrics,
         "metadata": training_report.metadata.__dict__,
+        "class_distribution": imbalance_info["class_distribution"],
+        "scale_pos_weight_used": imbalance_info["scale_pos_weight"],
+        "label_type": resolved_label_type,
+        "threshold_bps": float(threshold_bps),
+        "n_prior_tests": hypothesis_meta["n_prior_tests"],
+        "adjusted_alpha": hypothesis_meta["adjusted_alpha"],
+        "registered_before_test": hypothesis_meta["registered_before_test"],
     }
     training_report_path.write_text(
         json.dumps(training_payload, indent=2),

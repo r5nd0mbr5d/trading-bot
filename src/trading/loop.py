@@ -25,6 +25,42 @@ from src.strategies.base import BaseStrategy
 logger = logging.getLogger(__name__)
 
 
+def build_runtime_broker(settings: Settings) -> BrokerBase:
+    """Build runtime broker with crypto primary/fallback routing."""
+    from src.execution.broker import (
+        AlpacaBroker,
+        BinanceBroker,
+        BrokerConnectionError,
+        CoinbaseBroker,
+    )
+    from src.execution.ibkr_broker import IBKRBroker
+
+    has_crypto_symbol = any(settings.is_crypto(symbol) for symbol in settings.data.symbols)
+    if has_crypto_symbol:
+        primary = str(settings.broker.crypto_primary_provider or "coinbase").strip().lower()
+        fallback = str(settings.broker.crypto_fallback_provider or "binance").strip().lower()
+        provider_map = {
+            "coinbase": CoinbaseBroker,
+            "binance": BinanceBroker,
+        }
+
+        primary_cls = provider_map.get(primary, CoinbaseBroker)
+        fallback_cls = provider_map.get(fallback, BinanceBroker)
+
+        try:
+            return primary_cls(settings)
+        except BrokerConnectionError as exc:
+            logger.warning(
+                "Coinbase unavailable, routing to Binance fallback: %s",
+                exc,
+            )
+            return fallback_cls(settings)
+
+    if settings.broker.provider.lower() == "ibkr":
+        return IBKRBroker(settings)
+    return AlpacaBroker(settings)
+
+
 class TradingLoopHandler:
     """Encapsulates the main bar-processing logic for paper/live trading.
 

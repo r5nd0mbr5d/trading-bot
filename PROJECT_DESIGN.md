@@ -125,12 +125,12 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/47/48/50–56/58)
-- Test suite: **498 tests passing**
+### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/46/47/48/49/50–56/58/59/60/61/63)
+- Test suite: **521 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
 - Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
-- Asset classes: **2** (EQUITY via IBKR/Alpaca paper; CRYPTO via Binance testnet — BTCGBP)
+- Asset classes: **2** (EQUITY via IBKR/Alpaca paper; CRYPTO via Coinbase sandbox primary + Binance testnet fallback — BTCGBP)
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
 
 ---
@@ -389,7 +389,7 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 ---
 
 ### ADR-015: Integrate Spot Crypto (BTCGBP) — Coinbase Primary / Binance Fallback
-**Status:** PROPOSED
+**Status:** ACCEPTED
 **Date:** 2026-02-25
 **Updated:** 2026-02-25 (v3: Coinbase as primary; Binance retained as fallback)
 
@@ -418,14 +418,11 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - ✅ Crypto risk overlay: position cap, ATR stops, BTCGBP in correlation matrix (Step 56)
 
 **Consequences (pending):**
-- ❌ `CoinbaseBroker(BrokerBase)` must be implemented (`coinbase-advanced-py`) — Step 63
-- ❌ `BrokerConfig` needs `coinbase_api_key_id`, `coinbase_private_key`, `coinbase_sandbox`, `crypto_primary_provider`, `crypto_fallback_provider`
-- ❌ `symbol_utils.py` `"coinbase"` provider rule: `BTCGBP` → `BTC-GBP` (minor extension to Step 55)
 - ❌ Crypto live gated behind MO-2 — `coinbase_sandbox` and `binance_testnet` must remain True until equity live gate passes
 
 **Reference:** zach1502 repo — LSTM feature patterns (Step 57), `skorch` PyTorch wrapper.
 
-**Implements:** Steps 54–58 ✅, Step 63 (pending)
+**Implements:** Steps 54–58 ✅, Step 63 ✅
 
 ---
 
@@ -761,6 +758,31 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - IMPLEMENTATION_BACKLOG executive summary: 71→72 total, Completed 61, Not Started 10, 498 tests
 - PROJECT_DESIGN.md version bumped to 1.4
 
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex) — Queue Closure Pass**
+- Completed all Copilot-actionable queue steps: **46, 49, 59, 60, 61, 63**
+- Step 63 completed:
+    - implemented `CoinbaseBroker(BrokerBase)` with sandbox/live URL routing and GBP account parsing
+    - added `BrokerConnectionError` + runtime crypto provider factory (`coinbase` primary, `binance` fallback)
+    - added Coinbase config/env fields and symbol normalisation (`BTCGBP`/`BTC/GBP` → `BTC-GBP`)
+    - added tests: `tests/test_coinbase_broker.py`, `tests/test_broker_factory.py`, symbol normalisation coverage
+- Step 46 completed:
+    - added portable paper daemon (`scripts/daemon.py`) with UK session window checks, crash retry backoff, and `logs/daemon.log`
+    - added launcher `scripts/daemon_start.sh` and `tests/test_daemon.py`
+- Step 49 completed:
+    - added read-only FastAPI scaffold in `src/api/` with `/status`, `/positions`, `/signals`, `/orders`, `/metrics`
+    - added `scripts/api_server.py` and integration test `tests/test_api.py`
+- Steps 59/60/61 completed:
+    - added `research/training/label_utils.py` (`compute_class_weights`, `compute_threshold_label`)
+    - wired `scale_pos_weight` into XGBoost training path; added PR-AUC/ROC-AUC to experiment aggregates
+    - added hypothesis pre-registration schema + Bonferroni metadata propagation to reports
+    - added promotion caution flag for non-preregistered hypotheses
+    - added/revised specs: `FEATURE_LABEL_SPEC.md`, `RESEARCH_PROMOTION_POLICY.md`, `RESEARCH_SPEC.md`
+- Validation:
+    - full regression: `python -m pytest tests/ -v` → **521 passed, 9 warnings**
+- Queue state after pass:
+    - Copilot actionable queue: **0**
+    - Remaining not-started work is Opus-gated (`32`, `57`, `62`) plus operator milestones (MO-2+)
+
 ---
 
 ## §7 Hard Constraints (Never Break Without an ADR)
@@ -860,11 +882,11 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | Step | Name | Agent | Status |
 |---|---|---|---|
 | 32 | LSTM baseline | Claude Opus (architecture) → Copilot (implementation) | Gated: Step 62 first |
-| 46 | Paper trading daemon | Copilot | Ready |
-| 49 | REST API scaffold | Copilot | Ready |
+| 46 | Paper trading daemon | Copilot | ✅ COMPLETED (Feb 25, 2026) |
+| 49 | REST API scaffold | Copilot | ✅ COMPLETED (Feb 25, 2026) |
 | 57 | BTC LSTM features | Claude Opus (design) → Copilot (implementation) | Ready for design |
-| 59 | Class imbalance handling | Copilot | Ready |
-| 60 | Data mining pre-registration | Copilot | Ready |
-| 61 | Threshold target label | Copilot | Depends on Step 59 |
+| 59 | Class imbalance handling | Copilot | ✅ COMPLETED (Feb 25, 2026) |
+| 60 | Data mining pre-registration | Copilot | ✅ COMPLETED (Feb 25, 2026) |
+| 61 | Threshold target label | Copilot | ✅ COMPLETED (Feb 25, 2026) |
 | 62 | MLP baseline | Claude Opus (architecture) → Copilot (implementation) | Ready for design |
-| 63 | CoinbaseBroker | Copilot | Ready |
+| 63 | CoinbaseBroker | Copilot | ✅ COMPLETED (Feb 25, 2026) |

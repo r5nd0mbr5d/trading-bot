@@ -7,11 +7,11 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 ## Executive Summary
 
 **Total Items**: 72 (7 Prompts + 64 Next Steps + Code Style Governance)
-**Completed**: 61 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–58)
+**Completed**: 67 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–63 except 57/62)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 10 (Step 32 LSTM/gated behind Step 62, Steps 46/49/63 daemon/REST/Coinbase, QuantConnect, Steps 59–62 ML methodology)
+**Not Started**: 3 (Step 32 LSTM/gated behind Step 62, Step 57 BTC LSTM features, Step 62 MLP gate)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 498 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8 | **Asset classes**: 2
+**Test suite**: 521 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8 | **Asset classes**: 2
 
 ---
 
@@ -25,12 +25,7 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 | Priority | Step | Name | Effort | Depends on |
 |---|---|---|---|---|
-| HIGH | **63** | CoinbaseBroker (primary crypto broker) | 5–8 hrs | Steps 54/55 ✅ |
-| MEDIUM | **59** | Class imbalance handling (PR-AUC, scale_pos_weight) | 3–5 hrs | — |
-| MEDIUM | **60** | Data mining pre-registration guard | 2–4 hrs | — |
-| MEDIUM | **61** | Cost-aware threshold target label | 3–4 hrs | Step 59 |
-| MEDIUM | **46** | 24/5 paper trading daemon | 3–5 hrs | — |
-| LOW | **49** | REST API dashboard scaffold (FastAPI) | 6–10 hrs | — |
+| — | — | No Copilot-actionable steps remain in this queue. Next items are Opus-gated (32/57/62) or operator milestones (MO-2+). | — | — |
 
 ### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
 
@@ -1828,7 +1823,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 46: 24/5 Paper Trading Daemon
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: MEDIUM — required for continuous paper trial monitoring (Tier 2)
 **Intended Agent**: Copilot
 **Execution Prompt**: Create a systemd-style daemon wrapper for continuous paper trading during UK market hours. The daemon should: (1) start automatically at system boot or scheduled time; (2) check if current time is within LSE market hours (08:00–16:00 UTC, Mon–Fri); (3) if in-window, launch `python main.py paper --profile uk_paper` in a subprocess; (4) if outside window, sleep until next open; (5) restart on crash with exponential backoff (max 3 retries before alerting); (6) write structured logs to `logs/daemon.log` with ISO timestamps. Provide a `scripts/daemon.py` entry point and a `scripts/daemon_start.sh` shell launcher. Do not use `systemd` directly — keep it portable. Tests should mock the subprocess and time checks.
@@ -1839,6 +1834,14 @@ black --check src/ tests/ backtest/ --line-length 100
 - `tests/test_daemon.py` — unit tests
 
 **Estimated Effort**: 3–5 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added `scripts/daemon.py` with `PaperDaemon` + `DaemonConfig`
+- Added market window scheduler (Mon–Fri, 08:00–16:00 UTC), next-open sleep logic, subprocess launch loop, and exponential backoff retries (max 3)
+- Added structured daemon log output to `logs/daemon.log`
+- Added launcher script `scripts/daemon_start.sh`
+- Added `tests/test_daemon.py`
+- Validation: `python -m pytest tests/test_daemon.py -v` → **5 passed**
 
 ---
 
@@ -1889,7 +1892,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 49: REST API Dashboard Scaffold (FastAPI)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: LOW — Tier 3 (Enterprise)
 **Intended Agent**: Copilot (after Step 46 and Step 47 are complete)
 **Execution Prompt**: Scaffold a FastAPI REST API that exposes read-only endpoints over the trading bot's SQLite databases. Endpoints needed: `GET /status` (kill switch state, last heartbeat, active strategy); `GET /positions` (current open positions + P&L); `GET /signals` (last N signals from audit log); `GET /orders` (last N orders + fill status); `GET /metrics` (Sharpe, return, max DD from latest session). The API must be read-only — no write operations. Use `uvicorn` for serving. Add a `scripts/api_server.py` entry point. Write integration tests using `httpx` and `TestClient`. The API should not import `main.py` — it reads directly from the SQLite databases via `src/` modules.
@@ -1901,6 +1904,14 @@ black --check src/ tests/ backtest/ --line-length 100
 - `requirements.txt` — add `fastapi`, `uvicorn`, `httpx`
 
 **Estimated Effort**: 6–10 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added read-only API package `src/api/` (`app.py`, `routes.py`, `schemas.py`)
+- Implemented endpoints: `GET /status`, `GET /positions`, `GET /signals`, `GET /orders`, `GET /metrics`
+- Added `scripts/api_server.py` (`uvicorn` entry point)
+- Added dependencies: `fastapi`, `uvicorn`, `httpx`
+- Added integration tests in `tests/test_api.py` using `TestClient`
+- Validation: `python -m pytest tests/test_api.py -v` → **1 passed**
 
 ---
 
@@ -2135,7 +2146,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 59: Class Imbalance Handling in Research Pipeline
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: MEDIUM — markets are not 50/50 up/down; training without class weighting biases classifiers toward the majority class, producing inflated accuracy but poor recall on actual trade signals
 **Intended Agent**: Copilot
 **Reference**: Robot Wealth / Longmore 2017 — `PERCEPTRON+BALANCED` flag; Prado "Advances in Financial Machine Learning" Ch. 7
@@ -2149,10 +2160,20 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 3–5 hours
 
+**Completion Notes (Feb 25, 2026):**
+- Added `research/training/label_utils.py` with `compute_class_weights()` and warning on minority ratio `< 0.40`
+- Wired class-weight computation into `run_xgboost_experiment()` to enforce `scale_pos_weight` in trainer params
+- Added `val_pr_auc` and `val_roc_auc` propagation through trainer, fold outputs, and aggregate metrics
+- Added `class_distribution` and `scale_pos_weight_used` fields to `training_report.json`
+- Added PR-AUC gate update to `research/specs/RESEARCH_PROMOTION_POLICY.md`
+- Added LSTM class-imbalance note in `research/specs/RESEARCH_SPEC.md`
+- Added tests in `tests/test_label_utils.py` and report assertions in research pipeline tests
+- Validation: targeted research suite + label utils → **23 passed**
+
 ---
 
 ### Step 60: Data Mining Bias Guard (Multiple-Testing Pre-Registration)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: MEDIUM — testing many feature/parameter combinations without correction produces false positives; the most common source of illusory alpha in systematic research
 **Intended Agent**: Claude Opus (methodology design) / Copilot (config scaffolding)
 **Reference**: Robot Wealth / Longmore 2017 conclusion: "considering data mining bias"; Prado "Advances in Financial Machine Learning" Ch. 11
@@ -2167,10 +2188,19 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 2–4 hours
 
+**Completion Notes (Feb 25, 2026):**
+- Added `hypothesis` block support in experiment config schema (`research/experiments/config.py`)
+- Added Bonferroni adjustment guidance to `research/specs/RESEARCH_PROMOTION_POLICY.md`
+- Added `n_prior_tests`, `adjusted_alpha`, `registered_before_test` into training report payloads
+- Extended promotion check output to include prereg metadata and `CAUTION: hypothesis not pre-registered` flag
+- Added pre-registration discipline section to `research/specs/RESEARCH_SPEC.md`
+- Added tests for hypothesis schema validation and promotion caution behavior
+- Validation: targeted config + harness tests → **12 passed**
+
 ---
 
 ### Step 61: Cost-Aware Threshold Target Labeling
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: MEDIUM — raw direction (≥0) as the ML label produces signals that are "correct" in theory but lose money after spread + commission; a cost-aware threshold target encodes "will this trade be profitable after costs?"
 **Intended Agent**: Copilot
 **Reference**: Robot Wealth / Longmore 2017 — Zorro example: `if(priceClose(-5) - priceClose(0) > 200*PIP) ObjLong = 1` as target; not raw direction
@@ -2185,6 +2215,15 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Depends on**: Step 59 (label_utils.py module)
 **Estimated Effort**: 3–4 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added ThresholdLabel definition to `research/specs/FEATURE_LABEL_SPEC.md` §2d
+- Added `label_type` and `threshold_bps` support in experiment config + CLI dispatch path
+- Implemented `compute_threshold_label()` in `research/training/label_utils.py`
+- Wired `label_type == "threshold"` label computation path into XGBoost experiment runner
+- Updated `xgboost_example.json` with threshold-label configuration
+- Added/extended tests for threshold labels and pipeline output fields
+- Validation: `python -m pytest tests/test_label_utils.py tests/test_research_xgboost_pipeline.py -v` → **5 passed**
 
 ---
 
@@ -2208,7 +2247,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 63: CoinbaseBroker (Primary Crypto Broker)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: HIGH — Coinbase replaces Binance as the primary crypto broker; Binance is now the fallback; Coinbase UK Limited is FCA-registered
 **Intended Agent**: Copilot
 **ADR**: ADR-015 (revised to Coinbase primary)
@@ -2226,6 +2265,17 @@ black --check src/ tests/ backtest/ --line-length 100
 **Note**: Coinbase Advanced Trade API uses cloud API keys. Generate at: Settings → API → New API Key → select "trade" permission. The private key is a multi-line PEM string — store in `.env` with escaped newlines or via a secrets file.
 **Depends on**: Steps 54 (is_crypto() routing), 55 (symbol_utils.py exists)
 **Estimated Effort**: 5–8 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Implemented `CoinbaseBroker(BrokerBase)` in `src/execution/broker.py` with market order submit/cancel/positions/portfolio/cash methods
+- Added `BrokerConnectionError` and resilient fallback routing support
+- Added Coinbase broker config fields in `config/settings.py`
+- Added Coinbase symbol normalisation (`BTCGBP`/`BTC/GBP` → `BTC-GBP`) in `src/data/symbol_utils.py`
+- Added broker factory helper in `src/trading/loop.py` using configured `crypto_primary_provider` + `crypto_fallback_provider`
+- Updated runtime broker creation path in `src/cli/runtime.py` to use the centralized factory
+- Added dependency `coinbase-advanced-py>=1.7.0`
+- Added tests: `tests/test_coinbase_broker.py`, `tests/test_broker_factory.py`, and coinbase normalisation coverage in `tests/test_symbol_utils.py`
+- Validation: targeted broker/factory/symbol suite → **26 passed**
 
 ---
 

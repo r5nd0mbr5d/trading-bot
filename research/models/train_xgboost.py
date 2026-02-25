@@ -62,10 +62,21 @@ def train_xgboost_model(
     y_pred = (y_prob >= 0.5).astype(int)
     y_val_np = np.asarray(y_val)
 
+    try:
+        from sklearn.metrics import average_precision_score, roc_auc_score
+
+        val_roc_auc = float(roc_auc_score(y_val_np, y_prob))
+        val_pr_auc = float(average_precision_score(y_val_np, y_prob))
+    except Exception:
+        val_roc_auc = 0.0
+        val_pr_auc = 0.0
+
     metrics = {
         "val_logloss": _binary_log_loss(y_val_np, y_prob),
         "val_accuracy": float(np.mean(y_pred == y_val_np)),
         "val_pos_rate": float(np.mean(y_pred)),
+        "val_roc_auc": val_roc_auc,
+        "val_pr_auc": val_pr_auc,
     }
 
     if calibrate:

@@ -32,6 +32,18 @@ def test_normalize_symbol_for_binance(source_symbol: str, expected: str):
 @pytest.mark.parametrize(
     "source_symbol,expected",
     [
+        ("BTCGBP", "BTC-GBP"),
+        ("BTC/GBP", "BTC-GBP"),
+        ("BTC-GBP", "BTC-GBP"),
+    ],
+)
+def test_normalize_symbol_for_coinbase(source_symbol: str, expected: str):
+    assert normalize_symbol(source_symbol, "coinbase") == expected
+
+
+@pytest.mark.parametrize(
+    "source_symbol,expected",
+    [
         ("BTC-GBP", "BTC/GBP"),
         ("BTCGBP", "BTC/GBP"),
         ("AAPL", "AAPL"),
