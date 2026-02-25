@@ -6,12 +6,12 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 62 (7 Prompts + 54 Next Steps + Code Style Governance)
-**Completed**: 51 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 34, 36, 37–44, 47–48)
+**Total Items**: 66 (7 Prompts + 58 Next Steps + Code Style Governance)
+**Completed**: 57 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–53)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 10 (Steps 32–33, 35-gap, QuantConnect cross-validation, Steps 45–46, 49–53)
+**Not Started**: 8 (Step 32 LSTM/blocked, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–57 crypto)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 445 passing | **main.py**: 62 lines | **Test imports from main**: 0
+**Test suite**: 466 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8
 
 **Special Note** (Feb 25, 2026 00:50 UTC):
 - âœ… **Refactoring Progress**:
@@ -1329,7 +1329,7 @@ Promote carry-forward AT11 by hardening polling stream runtime with explicit lif
 ---
 
 ### Step 33: News Sentiment Feature Integration (P-BENZ)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 24, 2026)
 **Priority**: MEDIUM — ✅ UNBLOCKED on free Massive/Polygon tier
 **Intended Agent**: Copilot
 **Execution Prompt**: Implement `research/data/news_features.py` fetching news articles via the free Polygon endpoint (`GET /v2/reference/news?ticker={symbol}&published_utc.gte={date}&limit=50`, `Authorization: Bearer $POLYGON_API_KEY`). Use the pre-computed `insights[].sentiment` labels (“positive” / “negative” / “neutral”) returned by the API — no manual word-count scoring needed. Compute daily sentiment score (mean of +1/0/−1 per article), daily article count, and an earnings-proximity flag (within 3 days of any article tagged with “earnings”). Optionally filter to Benzinga articles via `publisher.name == “Benzinga”`. Output a per-symbol per-day DataFrame joinable to the main feature set by date. Add to `research/specs/FEATURE_LABEL_SPEC.md` §3 as “News/Sentiment Features” family. Tests: mock API response (`insights` list), sentiment aggregation, date alignment, empty-response guard.
@@ -1344,6 +1344,19 @@ Promote carry-forward AT11 by hardening polling stream runtime with explicit lif
 **Reference**: [docs/MASSIVE_API_REFERENCE.md](docs/MASSIVE_API_REFERENCE.md) §2a News (Free Tier)
 **Rate limit**: 5 calls/min (free); use `time.sleep(12)` between tickers or route through `MarketDataStore` cache
 **Estimated Effort**: 4–6 hours
+
+**Completion Notes (Feb 24, 2026):**
+- Added `research/data/news_features.py` with:
+  - `fetch_news(symbol, start_date, end_date, api_key, benzinga_only=False)`
+  - `compute_sentiment_features(articles, symbol)`
+  - `build_news_feature_table(symbol, start_date, end_date)`
+- Implemented Polygon free-tier news ingestion (`/v2/reference/news`) with Bearer auth, paging support, and free-tier pacing (`time.sleep(12)` between pages)
+- Added feature engineering outputs per day: `sentiment_score`, `article_count`, `benzinga_count`, `earnings_proximity`
+- Added `research/specs/FEATURE_LABEL_SPEC.md` §3g documenting News/Sentiment feature family and join contract
+- Added `tests/test_news_features.py` with mocked HTTP responses (no live API calls)
+- Validation:
+  - `python -m pytest tests/test_news_features.py -v` → **8 passed**
+  - `python -m pytest tests/ -v` → **466 passed**
 
 ---
 
@@ -1941,6 +1954,79 @@ black --check src/ tests/ backtest/ --line-length 100
 - Added targeted critical-gap tests for `src/trading/loop.py` in `tests/test_trading_loop_handler.py`
 - Coverage baseline command run: `python -m pytest tests/ --cov=src --cov-report=term-missing` → **76%** initially; after targeted tests, gate run reports **76.73% (~77%)**; gate remains active and currently fails until further coverage expansion
 - Full regression validation after changes: `python -m pytest tests/ -v` → **458 passed**
+
+---
+
+### Step 54: Asset-Class Metadata + Market Hours Bypass for Crypto
+**Status**: NOT STARTED
+**Priority**: HIGH — prerequisite for all crypto steps; crypto will be blocked by equity session guardrail without this
+**Intended Agent**: Copilot
+**ADR**: ADR-015
+**Execution Prompt**: Add asset-class awareness to the settings and guardrail layers. (1) Add `AssetClass` enum (`EQUITY`, `CRYPTO`) to `src/data/models.py`. (2) Add `symbol_asset_class_map: Dict[str, str]` to `DataConfig` in `config/settings.py` (e.g. `{"BTC/USD": "CRYPTO", "BTC-USD": "CRYPTO"}`). (3) Add a convenience property `Settings.is_crypto(symbol: str) -> bool`. (4) In `PaperGuardrailsConfig`, add `skip_session_window_for_crypto: bool = True`. (5) In the paper guardrail check (wherever session window is enforced), skip the window check if `settings.is_crypto(symbol)`. (6) Update `enforce_market_hours` handling in `src/trading/loop.py` to also check `is_crypto()` before applying the equity session gate. (7) Add tests: verify CRYPTO symbols bypass session window; verify EQUITY symbols still respect it; verify `symbol_asset_class_map` lookup for unknown symbols defaults to EQUITY.
+
+**Scope**:
+- `src/data/models.py` — add `AssetClass` enum
+- `config/settings.py` — add `symbol_asset_class_map`, `is_crypto()` property, `skip_session_window_for_crypto` flag
+- `src/trading/loop.py` — apply crypto bypass in market hours check
+- `tests/test_asset_class.py` — new test file for asset-class guardrail logic
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 55: BTC/USD Symbol Normalisation + Alpaca Crypto Validation
+**Status**: NOT STARTED
+**Priority**: HIGH — Alpaca uses `BTC/USD`; yfinance uses `BTC-USD`; mismatch will cause failed orders without normalisation
+**Intended Agent**: Copilot
+**ADR**: ADR-015
+**Execution Prompt**: (1) Add `normalize_symbol(symbol: str, provider: str) -> str` utility in `src/data/feeds.py` (or new `src/data/symbol_utils.py`). Rules: for provider `"yfinance"` convert `BTC/USD` → `BTC-USD`; for provider `"alpaca"` convert `BTC-USD` → `BTC/USD`; for `"ibkr"` strip exchange suffix (e.g. `HSBA.L` → `HSBA`). (2) Apply normalisation in `AlpacaBroker.submit_order()` before passing symbol to the Alpaca API. (3) Apply normalisation in `DataFeed.fetch()` before passing symbol to yfinance. (4) Add `BTC/USD` to the crypto section of `DataConfig.symbols` (or as a new `DataConfig.crypto_symbols` list — keep equities separate for clarity). (5) Run a paper backtest with `--symbols BTC/USD --strategy ma_crossover --start 2023-01-01 --end 2024-01-01` and verify data is fetched and signals are generated without errors. (6) Tests: normalisation round-trips for all three providers; unknown provider raises `ValueError`.
+
+**Scope**:
+- `src/data/symbol_utils.py` — new utility (or extend `feeds.py`)
+- `src/execution/broker.py` — apply normalisation in `submit_order`
+- `src/data/feeds.py` — apply normalisation in `fetch`
+- `config/settings.py` — add BTC/USD to crypto symbols list
+- `tests/test_symbol_utils.py` — normalisation tests
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 56: Crypto Risk Parameter Overlay + Correlation Matrix Update
+**Status**: NOT STARTED
+**Priority**: MEDIUM — crypto has significantly higher volatility than FTSE equities; using equity risk limits for BTC will produce oversized positions
+**Intended Agent**: Copilot
+**ADR**: ADR-015
+**Execution Prompt**: (1) Add `CryptoRiskConfig` dataclass to `config/settings.py` with crypto-tuned overrides: `max_position_pct = 0.05` (5% vs equity 10%), `stop_loss_pct = 0.08` (8% vs equity 5%), `atr_multiplier = 3.0` (wider stops for crypto volatility), `commission_rate = 0.0025` (Alpaca crypto fee is 0.25% taker). (2) In `RiskManager`, detect asset class via `settings.is_crypto(symbol)` and apply `CryptoRiskConfig` overrides when computing position size and stop levels. (3) Add BTC/USD to `config/uk_correlations.json` with estimated historical correlation values vs FTSE 100 constituents (use approximately 0.10–0.20 for normal regime; set conservatively). (4) Add `SlippageConfig` preset `"crypto"` to `src/execution/slippage.py` with wider spread (50 bps) and 0.25% commission. (5) Add tests: verify crypto symbols use crypto risk limits; verify equity symbols unaffected; verify BTC in correlation matrix.
+
+**Scope**:
+- `config/settings.py` — add `CryptoRiskConfig`; add `Settings.crypto_risk` field
+- `src/risk/manager.py` — apply crypto config branch in `approve_signal` / `_compute_position_size`
+- `config/uk_correlations.json` — add BTC/USD row/column
+- `src/execution/slippage.py` — add `"crypto"` preset
+- `tests/test_crypto_risk.py` — new test file
+
+**Estimated Effort**: 4–6 hours
+
+---
+
+### Step 57: BTC LSTM Feature Engineering (Research Pipeline)
+**Status**: NOT STARTED
+**Priority**: MEDIUM — Tier 2; extends the XGBoost feature set to crypto; reference: zach1502/LSTM-Algorithmic-Trading-Bot
+**Intended Agent**: Copilot (feature engineering) / Claude Opus (model architecture decisions)
+**ADR**: ADR-015
+**Execution Prompt**: Implement `research/data/crypto_features.py` adapting the multi-timeframe indicator approach from [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot). (1) Compute 21 indicators across timeframes (short/medium/long — e.g. 5/20/60 bars) using the `ta` library (already a dependency): EMA, Bollinger Bands, RSI, Ultimate Oscillator, OBV, Accumulation/Distribution, ATR, MFI, and Variance. (2) Use `skorch` (scikit-learn PyTorch wrapper) as the training harness — add `skorch>=0.15.0` to `requirements.txt`. (3) Create `research/experiments/configs/btc_lstm_example.json` based on `xgboost_example.json` structure, adapted for LSTM. (4) Implement confidence-based signal generation: `confidence = (prediction - past_avg_prediction) / past_avg_prediction`; emit BUY if `confidence >= buy_threshold` and `expected_profit_pct >= min_profit_threshold`; emit SELL otherwise. (5) Add to `research/specs/FEATURE_LABEL_SPEC.md` §3 as "Crypto/BTC Feature Set". (6) Tests: mock OHLCV input → all 21 indicators computed; confidence calculation; signal threshold logic.
+
+**Scope**:
+- `research/data/crypto_features.py` — new module (21-indicator multi-timeframe feature set)
+- `research/experiments/configs/btc_lstm_example.json` — new config
+- `research/specs/FEATURE_LABEL_SPEC.md` — add BTC feature family
+- `requirements.txt` — add `skorch>=0.15.0`
+- `tests/test_crypto_features.py` — new test file
+
+**Reference**: [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot) — `feature_engineer.py` for indicator set; `train_lstm.py` for `skorch` + `RandomizedSearchCV` pattern; `paper_trading.py` for confidence-based signal generation
+**Depends on**: Step 32 LSTM baseline architecture (or can proceed independently for feature engineering only)
+**Estimated Effort**: 6–10 hours
 
 ---
 

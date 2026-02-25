@@ -1,6 +1,6 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.2
+**Version:** 1.3
 **Last Updated:** Feb 25, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
@@ -49,7 +49,8 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 
 ### Non-Goals
 - Real-time high-frequency trading (sub-second execution)
-- Options, futures, or crypto (equities only until live gate is passed)
+- Options or futures (derivatives; out of scope indefinitely)
+- Crypto as primary focus — spot crypto (BTC/USD) is a planned secondary asset class (see ADR-015); full crypto support is gated behind MO-2 equity live gate
 - Multi-user / multi-tenant deployment
 - US equities as primary focus (UK-first; US equities only when justified by risk-adjusted return improvement)
 
@@ -124,11 +125,11 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Feb 25, 2026 — post Steps 44/47/48)
-- Test suite: **445 tests passing**
+### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/47/48/50/51/52/53)
+- Test suite: **466 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
-- Strategies registered: 7 (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic)
+- Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
 
 ---
@@ -386,6 +387,36 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 
 ---
 
+### ADR-015: Integrate Spot Crypto (BTC/USD) into Existing Platform
+**Status:** PROPOSED
+**Date:** 2026-02-25
+
+**Context:** User request to evaluate whether BTC should be a separate parallel trading bot or integrated into the existing platform. The existing architecture is built around UK equities (LSE symbols) with Alpaca as the paper broker and equity session guardrails (08:00–16:00 UTC). Crypto trades 24/7, is USD-denominated, and has different volatility characteristics. A reference implementation ([zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot)) was reviewed: it uses a Binance direct integration with 1-second BTC/USDT bars and a single LSTM strategy.
+
+**Decision:** Integrate into the existing platform rather than a separate bot. Rationale:
+1. Alpaca's free paper account already handles `BTC/USD` on the same `TradingClient` API — no second account or broker needed
+2. yfinance supports `BTC-USD` as a ticker — the existing `DataFeed` works unchanged
+3. All 8 strategies (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR) are asset-class agnostic — they operate on OHLCV regardless of asset type
+4. `RiskManager.approve_signal()` already gates everything — crypto just needs different limit values
+5. Two separate bots would mean duplicate audit trails, no cross-asset correlation control, and no unified P&L
+
+**Consequences:**
+- ✅ Single audit trail and unified P&L for equities + crypto
+- ✅ Cross-asset correlation control via `CorrelationConfig` (BTC column added to correlation matrix)
+- ✅ No additional broker integration work — Alpaca `TradingClient` handles both
+- ❌ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) must be bypassable per asset class — crypto is 24/7
+- ❌ `enforce_market_hours = True` in `Settings` must support per-symbol override — see Step 54
+- ❌ Alpaca uses `BTC/USD` format; yfinance uses `BTC-USD` — symbol normalization utility required (Step 55)
+- ❌ Crypto requires different risk calibration: higher stop-loss %, tighter max position %, different slippage preset (Step 56)
+- ❌ BTC correlation with FTSE 100 equities is low in normal regimes but spikes during risk-off events — correlation matrix must include BTC (Step 56)
+- ❌ Crypto integration is gated behind MO-2 (3 in-window equity paper sessions); do not add BTC to live symbols list until equity live gate is passed
+
+**Reference:** zach1502 repo — useful for LSTM feature engineering patterns (Step 57) and `skorch` PyTorch wrapper; not used for broker integration (we use Alpaca, not Binance).
+
+**Implements:** Steps 54–57
+
+---
+
 ## §4 Active RFCs (Change Proposals)
 
 > RFCs are proposals that have not yet been fully implemented. They become ADRs once accepted and completed.
@@ -506,10 +537,10 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 | **TD-008** | `approve_signal()` is 240 lines with no decomposition | LOW | Future | Each risk gate is a nested block; testable only as a whole; not blocking current phase |
 | **TD-009** | `ibkr_python_ws` not yet evaluated as `ib_insync` replacement | LOW | ADR-011 | Deferred until `ib_insync` shows incompatibility with a TWS API version |
 | **TD-010** | Step 1A burn-in not yet signed off | HIGH | MO-2 / RFC-004 | Latest artefact: `signoff_ready=false`, `non_qualifying_test_mode=true` — runs are outside market hours |
-| **TD-011** | No correlation-based position limits | MEDIUM | Step 51 | RiskManager gates individual positions but cannot detect correlated concentration across FTSE 100 sectors |
-| **TD-012** | No ATR volatility-scaled stops | LOW | Step 50 | Fixed % stop-loss only; strategies cannot dynamically scale stops to current volatility regime |
-| **TD-013** | Slippage model is fixed basis points only | LOW | Step 52 | Real-world LSE slippage is bid-ask spread × volume-weighted impact; current model understates costs on illiquid names |
-| **TD-014** | No test coverage threshold enforced | LOW | Step 53 | Enterprise checklist requires 90%+ coverage; no `pytest-cov` in CI; current coverage unknown |
+| **TD-011** | No correlation-based position limits | MEDIUM (RESOLVED) | Step 51 | Resolved Feb 24, 2026 — correlation matrix gate added to `RiskManager` with `CORRELATION_LIMIT` audit events |
+| **TD-012** | No ATR volatility-scaled stops | LOW (RESOLVED) | Step 50 | Resolved Feb 24, 2026 — `ATRStopsStrategy` added with ATR-derived stop metadata |
+| **TD-013** | Slippage model is fixed basis points only | LOW (RESOLVED) | Step 52 | Resolved Feb 24, 2026 — scenario-based spread/impact slippage and IBKR UK commission model added |
+| **TD-014** | No test coverage threshold enforced | LOW (RESOLVED) | Step 53 | Resolved Feb 24, 2026 — `pytest-cov` added with CI gate (`--cov=src --cov-fail-under=90`) and coverage reporting baseline established |
 
 ---
 
@@ -610,6 +641,52 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
     - added `daily_report` CLI mode (`src/cli/arguments.py` + `src/cli/runtime.py`)
     - added `tests/test_daily_report.py`
     - validation: `python -m pytest tests/ -v` → **445 passed**
+
+**[2026-02-24] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Step 51 completed:
+    - added `CorrelationConfig` and static UK matrix config (`config/uk_correlations.json`)
+    - implemented `_check_correlation_limit()` in `RiskManager` (reject/scale modes)
+    - added runtime audit event emission for `CORRELATION_LIMIT` rejections
+    - added `tests/test_risk_correlation.py`
+    - validation: `python -m pytest tests/ -v` → **448 passed**
+- Step 50 completed:
+    - added `ATRConfig` and `ATRStopsStrategy`
+    - registered `atr_stops` in runtime strategy map
+    - added strategy tests for ATR signal and metadata behavior
+    - validation: `python -m pytest tests/ -v` → **451 passed**
+- Step 52 completed:
+    - added `SlippageConfig` and `SlippageModel` with scenario presets (`optimistic`, `realistic`, `pessimistic`)
+    - updated backtest fill logic for volume-weighted spread, market-impact add-on, and IBKR UK commission floor
+    - added `tests/test_slippage.py` regression coverage
+    - validation: `python -m pytest tests/ -v` → **453 passed**
+- Step 45 completed:
+    - added `WalkForwardConfig` and new `WalkForwardHarness` for configurable split windows and in-sample parameter search
+    - added aggregate walk-forward metrics including return, Sharpe, max drawdown, and overfitting ratio
+    - added JSON persistence to `backtest/walk_forward_results.json`
+    - expanded walk-forward tests with mock strategy coverage and compatibility checks
+    - validation: `python -m pytest tests/ -v` → **454 passed**
+- Step 53 completed:
+    - added `pytest-cov` dependency and coverage threshold config (`fail_under = 90`)
+    - added CI workflow gate running `python -m pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=90`
+    - added targeted critical-path tests for `src/trading/loop.py` in `tests/test_trading_loop_handler.py`
+    - current measured source coverage: **76.73%** (gate active and expected to fail until additional coverage work lands)
+    - regression validation: `python -m pytest tests/ -v` → **458 passed**
+- Step 33 completed:
+    - added `research/data/news_features.py` for Polygon news fetch + daily sentiment aggregation
+    - implemented features: `sentiment_score`, `article_count`, `benzinga_count`, `earnings_proximity`
+    - added §3g News/Sentiment Features in `research/specs/FEATURE_LABEL_SPEC.md`
+    - added mocked-news test suite `tests/test_news_features.py`
+    - validation: `python -m pytest tests/test_news_features.py -v` → **8 passed**
+    - regression validation: `python -m pytest tests/ -v` → **466 passed**
+
+**[2026-02-25] Crypto Design Session (Claude Sonnet 4.6)**
+- Reviewed [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot): Binance/BTC LSTM bot with 21-indicator feature set, `skorch` PyTorch wrapper, confidence-scaled signal generation
+- Decision: integrate BTC/USD as a secondary asset class into the existing platform (not a separate bot) — see ADR-015
+- §1 Non-Goals updated: "crypto" removed from absolute non-goals; BTC spot integration gated behind MO-2
+- Key metrics updated: strategies = 8 (ATR Stops added by Copilot in Step 50); tests = 466
+- ADR-015 added: integrated crypto support; Steps 54–57 defined (asset-class metadata, symbol normalization, crypto risk overlay, BTC LSTM features)
+- Step 33 confirmed completed (Copilot); IMPLEMENTATION_BACKLOG executive summary to be updated in next pass
+- `docs/MASSIVE_API_REFERENCE.md`, `IMPLEMENTATION_BACKLOG.md`, `docs/DATA_PROVIDERS_REFERENCE.md` updated in prior commit (`d6971bf`) to reflect free `/v2/reference/news` endpoint for Step 33
 
 ---
 
