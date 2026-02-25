@@ -125,11 +125,12 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/47/48/50/51/52/53)
-- Test suite: **466 tests passing**
+### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/47/48/50–56/58)
+- Test suite: **498 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
 - Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
+- Asset classes: **2** (EQUITY via IBKR/Alpaca paper; CRYPTO via Binance testnet — BTCGBP)
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
 
 ---
@@ -414,12 +415,12 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - ✅ GBP-denominated BTC position — no FX exposure to USD
 - ✅ Binance testnet available for crypto paper trading (separate from Alpaca equity paper)
 - ✅ `python-binance` library already anticipated in `broker.py` comment
-- ❌ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) must be bypassable per asset class — crypto is 24/7 (Step 54)
-- ❌ `enforce_market_hours = True` in `Settings` must support per-symbol override (Step 54)
-- ❌ Binance uses `BTCGBP` format (no slash/dash); yfinance uses `BTC-GBP`; IBKR uses `BTC` — symbol normalisation utility required (Step 55)
-- ❌ `BinanceBroker(BrokerBase)` must be implemented (`python-binance`) with testnet support (Step 58)
-- ❌ Crypto requires different risk calibration: Binance fee 0.1% (vs Alpaca 0%), wider stops (Step 56)
-- ❌ BTC correlation with FTSE 100 equities is low in normal regimes but spikes during risk-off events — correlation matrix must include BTCGBP (Step 56)
+- ✅ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) now bypasses crypto symbols (Step 54)
+- ✅ `enforce_market_hours = True` in `Settings` now supports per-symbol crypto override in trading loop (Step 54)
+- ✅ Symbol normalisation utility added for `BTCGBP`/`BTC-GBP`/`BTC/GBP` across providers (Step 55)
+- ✅ `BinanceBroker(BrokerBase)` implemented with testnet support and lot-size rounding (Step 58)
+- ✅ Crypto risk overlay implemented (position cap, stop calibration, ATR multiplier, crypto exposure cap) (Step 56)
+- ✅ BTCGBP added to correlation matrix with conservative FTSE relationships (Step 56)
 - ❌ Crypto live trading gated behind MO-2 — do not move Binance to `testnet=False` until equity live gate is passed
 
 **Reference:** zach1502 repo — useful for LSTM feature engineering patterns (Step 57) and `skorch` PyTorch wrapper; broker pattern (Binance direct) aligns with this ADR.
@@ -552,6 +553,7 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 | **TD-012** | No ATR volatility-scaled stops | LOW (RESOLVED) | Step 50 | Resolved Feb 24, 2026 — `ATRStopsStrategy` added with ATR-derived stop metadata |
 | **TD-013** | Slippage model is fixed basis points only | LOW (RESOLVED) | Step 52 | Resolved Feb 24, 2026 — scenario-based spread/impact slippage and IBKR UK commission model added |
 | **TD-014** | No test coverage threshold enforced | LOW (RESOLVED) | Step 53 | Resolved Feb 24, 2026 — `pytest-cov` added with CI gate (`--cov=src --cov-fail-under=90`) and coverage reporting baseline established |
+| **TD-015** | ATR warm-up period not enforced in `min_bars_required()` | LOW | Step 50 / future | `ATRStopsStrategy.min_bars_required()` returns `atr_period` but ATR is sensitive to series start date — long lookback bars (2,000+) affect recent ATR values. `min_bars_required()` should enforce a minimum of 3× `atr_period` as burn-in. Noted by Robot Wealth / Longmore 2017 commenter. |
 
 ---
 
@@ -699,6 +701,49 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - ADR-015 added: integrated crypto support via Binance; Steps 54–58 defined (asset-class metadata, symbol normalisation, BinanceBroker, crypto risk overlay, BTC LSTM features)
 - Step 33 confirmed completed (Copilot); IMPLEMENTATION_BACKLOG executive summary updated
 - `docs/MASSIVE_API_REFERENCE.md`, `IMPLEMENTATION_BACKLOG.md`, `docs/DATA_PROVIDERS_REFERENCE.md` updated in prior commit (`d6971bf`) to reflect free `/v2/reference/news` endpoint for Step 33
+
+**[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Step 54 completed:
+    - added `AssetClass` enum in `src/data/models.py`
+    - added `symbol_asset_class_map` and `Settings.is_crypto(symbol)` in `config/settings.py`
+    - added crypto session-window bypass in `PaperGuardrails` and market-hours bypass in `TradingLoopHandler`
+    - added `tests/test_asset_class.py`
+    - validation: focused guardrail + loop suite → **61 passed**
+- Step 55 completed:
+    - added `src/data/symbol_utils.py` with provider-specific normalization rules
+    - wired yfinance normalization in `MarketDataFeed` and Alpaca normalization in `AlpacaBroker`
+    - added `DataConfig.crypto_symbols`
+    - added `tests/test_symbol_utils.py` + data-feed normalization regression
+    - smoke validation: BTCGBP backtest ran successfully (signals/trades generated)
+    - validation: symbol/feed suite → **20 passed**
+- Step 56 completed:
+    - added `CryptoRiskConfig` and wired crypto risk overlays in `RiskManager`
+    - added crypto exposure cap gate (`CRYPTO_EXPOSURE_LIMIT`)
+    - updated `config/uk_correlations.json` with `BTCGBP` row/column
+    - added `crypto` slippage preset (50 bps spread, zero commission floor)
+    - added `tests/test_crypto_risk.py` and slippage regression update
+    - validation: crypto risk + slippage suite → **7 passed**
+- Step 58 completed:
+    - implemented `BinanceBroker(BrokerBase)` in `src/execution/broker.py`
+    - added Binance auth/testnet fields to `BrokerConfig`
+    - added `binance` + `python-binance` dependencies
+    - routed crypto sessions to `BinanceBroker` in runtime broker factory
+    - added mocked `tests/test_binance_broker.py`
+    - validation: binance + broker regression suite → **32 passed**
+- Full regression validation after Steps 54/55/56/58:
+    - `python -m pytest tests/ -v` → **498 passed, 9 warnings**
+
+**[2026-02-25] ML Methodology Review (Claude Sonnet 4.6)**
+- Reviewed Robot Wealth / Longmore 2017 "Getting Started with Neural Networks for Algo Trading"
+- 4 new backlog steps added (Steps 59–62):
+    - Step 59: class imbalance handling (`scale_pos_weight`, PR-AUC gate — `PERCEPTRON+BALANCED` equivalent)
+    - Step 60: data mining bias guard (multiple-testing pre-registration, Bonferroni-adjusted alpha)
+    - Step 61: cost-aware threshold target labeling (profitable-after-costs label, 45 bps threshold)
+    - Step 62: feedforward MLP baseline (pre-LSTM gate — MLP must beat XGBoost before LSTM attempted)
+- TD-015 added: ATR warm-up period not enforced in `min_bars_required()` (Longmore commenter observation)
+- §2 key metrics updated: 498 tests, asset classes = 2 (equity + crypto BTCGBP)
+- Step 32 (LSTM) now gated behind Step 62 (MLP) — complexity must be justified stepwise
+- IMPLEMENTATION_BACKLOG executive summary: 67→71 total, Not Started 9→13
 
 ---
 

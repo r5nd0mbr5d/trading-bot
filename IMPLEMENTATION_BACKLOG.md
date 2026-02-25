@@ -6,10 +6,10 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 67 (7 Prompts + 59 Next Steps + Code Style Governance)
+**Total Items**: 71 (7 Prompts + 63 Next Steps + Code Style Governance)
 **Completed**: 57 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–53)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 9 (Step 32 LSTM/blocked, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–58 crypto)
+**Not Started**: 13 (Step 32 LSTM/blocked by Step 62 MLP gate, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–58 crypto, Steps 59–62 ML methodology)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
 **Test suite**: 466 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8
 
@@ -1958,7 +1958,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 54: Asset-Class Metadata + Market Hours Bypass for Crypto
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: HIGH — prerequisite for all crypto steps; crypto will be blocked by equity session guardrail without this
 **Intended Agent**: Copilot
 **ADR**: ADR-015
@@ -1972,10 +1972,19 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 3–5 hours
 
+**Completion Notes (Feb 25, 2026):**
+- Added `AssetClass` enum (`EQUITY`, `CRYPTO`) to `src/data/models.py`
+- Added `DataConfig.symbol_asset_class_map` and `Settings.is_crypto(symbol)` in `config/settings.py`
+- Added `PaperGuardrailsConfig.skip_session_window_for_crypto` and wired session-window bypass in `src/risk/paper_guardrails.py`
+- Updated `RiskManager` guardrail call path to pass asset class (`is_crypto`) into paper guardrails
+- Updated `src/trading/loop.py` market-hours gate to bypass session filtering for crypto symbols
+- Added `tests/test_asset_class.py` covering crypto/equity session behavior and unknown-symbol default behavior
+- Validation: `python -m pytest tests/test_asset_class.py tests/test_paper_guardrails.py tests/test_risk_guardrails_integration.py tests/test_trading_loop.py -v` → **61 passed**
+
 ---
 
 ### Step 55: Symbol Normalisation (BTCGBP/Binance format)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: HIGH — Binance uses `BTCGBP` (no slash/dash); yfinance uses `BTC-GBP`; IBKR uses `BTC`; mismatch will cause failed orders without normalisation
 **Intended Agent**: Copilot
 **ADR**: ADR-015
@@ -1990,10 +1999,19 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Estimated Effort**: 3–5 hours
 
+**Completion Notes (Feb 25, 2026):**
+- Added `src/data/symbol_utils.py` with `normalize_symbol(symbol, provider)` for `yfinance`, `binance`, `alpaca`, and `ibkr`
+- Applied yfinance symbol normalization in `src/data/feeds.py` fetch path
+- Applied Alpaca symbol normalization in `src/execution/broker.py` (`AlpacaBroker.submit_order`)
+- Added `DataConfig.crypto_symbols` with `BTCGBP` default
+- Added tests in `tests/test_symbol_utils.py` and yfinance integration regression in `tests/test_data_feed.py`
+- Smoke run: `python main.py backtest --symbols BTCGBP --strategy ma_crossover --start 2023-01-01 --end 2024-01-01` → backtest executed with signals/trades generated
+- Validation: `python -m pytest tests/test_symbol_utils.py tests/test_data_feed.py -v` → **20 passed**
+
 ---
 
 ### Step 56: Crypto Risk Parameter Overlay + Correlation Matrix Update
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: MEDIUM — crypto has significantly higher volatility than FTSE equities; using equity risk limits for BTC will produce oversized positions
 **Intended Agent**: Copilot
 **ADR**: ADR-015
@@ -2007,6 +2025,15 @@ black --check src/ tests/ backtest/ --line-length 100
 - `tests/test_crypto_risk.py` — new test file
 
 **Estimated Effort**: 4–6 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added `CryptoRiskConfig` in `config/settings.py` and wired `Settings.crypto_risk`
+- Updated `RiskManager` to apply crypto overlays for max position %, stop-loss %, ATR stop multiplier, and portfolio crypto exposure cap
+- Added `CRYPTO_EXPOSURE_LIMIT` rejection path for projected crypto concentration breaches
+- Updated `config/uk_correlations.json` to include `BTCGBP` row/column with conservative FTSE correlations
+- Added `crypto` slippage preset in `src/execution/slippage.py` (50 bps spread, higher impact, zero commission floor)
+- Added tests in `tests/test_crypto_risk.py` and crypto commission floor regression in `tests/test_slippage.py`
+- Validation: `python -m pytest tests/test_crypto_risk.py tests/test_slippage.py -v` → **7 passed**
 
 ---
 
@@ -2031,7 +2058,7 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 58: BinanceBroker (BrokerBase implementation)
-**Status**: NOT STARTED
+**Status**: COMPLETE (Feb 25, 2026)
 **Priority**: HIGH — required for live and paper crypto trading; Alpaca handles equities, Binance handles BTCGBP
 **Intended Agent**: Copilot
 **ADR**: ADR-015
@@ -2047,6 +2074,93 @@ black --check src/ tests/ backtest/ --line-length 100
 **Auth env vars**: `BINANCE_API_KEY`, `BINANCE_SECRET_KEY`, `BINANCE_TESTNET` (default `true`)
 **Testnet**: Create free testnet API keys at https://testnet.binance.vision (separate from main Binance account)
 **Depends on**: Step 54 (asset-class metadata for `is_crypto()` routing), Step 55 (symbol normalisation)
+**Estimated Effort**: 5–8 hours
+
+**Completion Notes (Feb 25, 2026):**
+- Added Binance settings in `BrokerConfig`: `binance_api_key`, `binance_secret_key`, `binance_testnet`
+- Added dependencies to `requirements.txt`: `binance`, `python-binance>=1.0.19`
+- Implemented `BinanceBroker(BrokerBase)` in `src/execution/broker.py` with:
+  - `_connect()` testnet/live routing
+  - market buy/sell submission
+  - order cancellation
+  - position parsing from balances
+  - GBP cash and portfolio valuation helpers
+  - LOT_SIZE step-size quantity rounding
+- Applied `normalize_symbol(..., "binance")` before Binance API operations
+- Updated runtime broker factory in `src/cli/runtime.py` to route crypto symbol sessions to `BinanceBroker`
+- Added mocked test suite `tests/test_binance_broker.py` (no live API calls)
+- Validation: `python -m pytest tests/test_binance_broker.py tests/test_ibkr_broker.py tests/test_symbol_utils.py -v` → **32 passed**
+
+---
+
+### Step 59: Class Imbalance Handling in Research Pipeline
+**Status**: NOT STARTED
+**Priority**: MEDIUM — markets are not 50/50 up/down; training without class weighting biases classifiers toward the majority class, producing inflated accuracy but poor recall on actual trade signals
+**Intended Agent**: Copilot
+**Reference**: Robot Wealth / Longmore 2017 — `PERCEPTRON+BALANCED` flag; Prado "Advances in Financial Machine Learning" Ch. 7
+**Execution Prompt**: (1) Create `research/training/label_utils.py` with `compute_class_weights(y: pd.Series) -> dict` that returns `{"scale_pos_weight": negative_count / positive_count, "class_distribution": {...}}`. Emit a `logging.warning` if minority class is below 40%. (2) In the XGBoost training runner, read `scale_pos_weight` from `compute_class_weights()` and pass it to the XGBoost params (overrides any hardcoded value). (3) Add `pr_auc` (`sklearn.metrics.average_precision_score`) to all evaluation reports alongside existing ROC-AUC; update `aggregate_summary.json` schema. (4) Add `class_distribution` and `scale_pos_weight_used` fields to `training_report.json`. (5) Add to `research/specs/RESEARCH_PROMOTION_POLICY.md`: minimum PR-AUC ≥ 0.55 required for Gate A (raw signal quality gate above random baseline for imbalanced classes). (6) Note in `research/specs/RESEARCH_SPEC.md` that future LSTM training must use `torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([scale_pos_weight]))`. (7) Tests in `tests/test_label_utils.py`: 80/20 class split → verify `scale_pos_weight` computed correctly; verify PR-AUC present in report; verify warning emitted below 40% threshold.
+
+**Scope**:
+- `research/training/label_utils.py` — new module
+- XGBoost training runner — apply `scale_pos_weight`
+- `research/specs/RESEARCH_PROMOTION_POLICY.md` — add PR-AUC gate
+- `tests/test_label_utils.py` — new test file
+
+**Estimated Effort**: 3–5 hours
+
+---
+
+### Step 60: Data Mining Bias Guard (Multiple-Testing Pre-Registration)
+**Status**: NOT STARTED
+**Priority**: MEDIUM — testing many feature/parameter combinations without correction produces false positives; the most common source of illusory alpha in systematic research
+**Intended Agent**: Claude Opus (methodology design) / Copilot (config scaffolding)
+**Reference**: Robot Wealth / Longmore 2017 conclusion: "considering data mining bias"; Prado "Advances in Financial Machine Learning" Ch. 11
+**Execution Prompt**: (1) Add a `hypothesis` block to the experiment config schema: fields `hypothesis_id` (string), `hypothesis_text` (string — researcher states prediction before seeing results), `n_prior_tests` (int — number of variants tested on this dataset before this run), `registered_before_test` (bool). (2) Add Bonferroni-adjusted significance threshold to `RESEARCH_PROMOTION_POLICY.md`: effective alpha = `0.05 / (n_prior_tests + 1)`. (3) Add `n_prior_tests`, `adjusted_alpha`, and `registered_before_test` to `training_report.json` output. (4) In `promotion_check.json` generation: if `registered_before_test = false`, add a `CAUTION: hypothesis not pre-registered` flag (visible warning, not a hard block). (5) Add §1 "Pre-Registration Discipline" to `research/specs/RESEARCH_SPEC.md`: "State the hypothesis — features, target, model — before running the experiment. Do not back-fill the hypothesis after seeing results." (6) Tests: `promotion_check.json` contains flag when `registered_before_test=false`; adjusted alpha correctly computed for N=5 prior tests.
+
+**Scope**:
+- `research/experiments/configs/xgboost_example.json` — add `hypothesis` block
+- `research/specs/RESEARCH_PROMOTION_POLICY.md` — add multiple-testing section
+- `research/specs/RESEARCH_SPEC.md` — add §1 pre-registration note
+- Promotion check generator — `CAUTION` flag and adjusted alpha field
+- `tests/test_promotion_check.py` — extend existing tests
+
+**Estimated Effort**: 2–4 hours
+
+---
+
+### Step 61: Cost-Aware Threshold Target Labeling
+**Status**: NOT STARTED
+**Priority**: MEDIUM — raw direction (≥0) as the ML label produces signals that are "correct" in theory but lose money after spread + commission; a cost-aware threshold target encodes "will this trade be profitable after costs?"
+**Intended Agent**: Copilot
+**Reference**: Robot Wealth / Longmore 2017 — Zorro example: `if(priceClose(-5) - priceClose(0) > 200*PIP) ObjLong = 1` as target; not raw direction
+**Execution Prompt**: (1) Add `ThresholdLabel` to `research/specs/FEATURE_LABEL_SPEC.md` §2: `label = 1 if forward_return_bps > (round_trip_cost_bps + target_return_bps) else 0`. Both `round_trip_cost_bps` and `target_return_bps` are configurable per experiment. (2) Add `label_type: "direction" | "threshold"` and `threshold_bps: float` to the experiment config schema. (3) Implement `compute_threshold_label(returns_series: pd.Series, threshold_bps: float) -> pd.Series` in `research/training/label_utils.py` (extend Step 59's module). (4) Wire `label_type` into the training runner: select `compute_threshold_label()` when `label_type == "threshold"`, existing direction label otherwise. (5) Run a side-by-side comparison: train XGBoost with `direction` vs `threshold` (threshold = round-trip spread ~25 bps + 20 bps profit target = 45 bps); compare PR-AUC. (6) Tests: threshold label with `threshold_bps=45` on synthetic returns; `direction` label regression; label distribution fields in report.
+
+**Scope**:
+- `research/specs/FEATURE_LABEL_SPEC.md` — add §2 Threshold Label
+- `research/training/label_utils.py` — add `compute_threshold_label()` (extend Step 59)
+- `research/experiments/configs/xgboost_example.json` — add `label_type` / `threshold_bps`
+- `tests/test_label_utils.py` — extend from Step 59
+
+**Depends on**: Step 59 (label_utils.py module)
+**Estimated Effort**: 3–4 hours
+
+---
+
+### Step 62: Feedforward ANN Baseline (MLP — pre-LSTM gate)
+**Status**: NOT STARTED
+**Priority**: MEDIUM — Tier 2 ML; correct intermediate step between XGBoost and LSTM; if a 3-layer MLP cannot beat XGBoost, LSTM is unlikely to either; "start simple, add complexity only when justified" (Longmore 2017)
+**Intended Agent**: Copilot (implementation) / Claude Opus (architecture review)
+**Reference**: Robot Wealth / Longmore 2017 — perceptron → multi-layer ANN progression; zach1502 repo `skorch` wrapper
+**Execution Prompt**: Implement `research/models/mlp_classifier.py`. (1) Architecture: 3 hidden layers (input → 128 → 64 → 32 → 1), ReLU activations, Dropout(0.3), sigmoid output. (2) Use `skorch.NeuralNetBinaryClassifier` as the scikit-learn wrapper (`skorch>=0.15.0` in `requirements.txt`). (3) `train_mlp(X_train, y_train, config) -> fitted_model` — same interface as XGBoost runner so it slots into the existing `WalkForwardHarness` (Step 45). (4) Add `ExponentialLR(gamma=0.9)` learning rate scheduler applied per epoch (learning rate decay — Longmore's key insight). (5) Create `research/experiments/configs/mlp_example.json` based on `xgboost_example.json` structure. (6) Evaluate on same walk-forward folds as XGBoost baseline; report Sharpe, ROC-AUC, PR-AUC side by side in `aggregate_summary.json`. (7) Add MLP gate to `RESEARCH_PROMOTION_POLICY.md`: MLP must achieve PR-AUC ≥ 0.55 AND Sharpe ≥ 0.8 on out-of-sample folds before Step 32 (LSTM) is initiated. (8) Tests: mock OHLCV → MLP outputs predictions in [0,1]; scheduler applied; WalkForwardHarness compatibility.
+
+**Scope**:
+- `research/models/mlp_classifier.py` — new module
+- `research/experiments/configs/mlp_example.json` — new config
+- `research/specs/RESEARCH_PROMOTION_POLICY.md` — add MLP-before-LSTM gate
+- `requirements.txt` — verify `skorch>=0.15.0`
+- `tests/test_mlp_classifier.py` — new test file
+
+**Precedes**: Step 32 (LSTM) — MLP gate must pass first
 **Estimated Effort**: 5–8 hours
 
 ---
