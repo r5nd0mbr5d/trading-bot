@@ -6,10 +6,10 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 66 (7 Prompts + 58 Next Steps + Code Style Governance)
+**Total Items**: 67 (7 Prompts + 59 Next Steps + Code Style Governance)
 **Completed**: 57 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–53)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 8 (Step 32 LSTM/blocked, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–57 crypto)
+**Not Started**: 9 (Step 32 LSTM/blocked, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–58 crypto)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
 **Test suite**: 466 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8
 
@@ -1974,18 +1974,18 @@ black --check src/ tests/ backtest/ --line-length 100
 
 ---
 
-### Step 55: BTC/USD Symbol Normalisation + Alpaca Crypto Validation
+### Step 55: Symbol Normalisation (BTCGBP/Binance format)
 **Status**: NOT STARTED
-**Priority**: HIGH — Alpaca uses `BTC/USD`; yfinance uses `BTC-USD`; mismatch will cause failed orders without normalisation
+**Priority**: HIGH — Binance uses `BTCGBP` (no slash/dash); yfinance uses `BTC-GBP`; IBKR uses `BTC`; mismatch will cause failed orders without normalisation
 **Intended Agent**: Copilot
 **ADR**: ADR-015
-**Execution Prompt**: (1) Add `normalize_symbol(symbol: str, provider: str) -> str` utility in `src/data/feeds.py` (or new `src/data/symbol_utils.py`). Rules: for provider `"yfinance"` convert `BTC/USD` → `BTC-USD`; for provider `"alpaca"` convert `BTC-USD` → `BTC/USD`; for `"ibkr"` strip exchange suffix (e.g. `HSBA.L` → `HSBA`). (2) Apply normalisation in `AlpacaBroker.submit_order()` before passing symbol to the Alpaca API. (3) Apply normalisation in `DataFeed.fetch()` before passing symbol to yfinance. (4) Add `BTC/USD` to the crypto section of `DataConfig.symbols` (or as a new `DataConfig.crypto_symbols` list — keep equities separate for clarity). (5) Run a paper backtest with `--symbols BTC/USD --strategy ma_crossover --start 2023-01-01 --end 2024-01-01` and verify data is fetched and signals are generated without errors. (6) Tests: normalisation round-trips for all three providers; unknown provider raises `ValueError`.
+**Execution Prompt**: (1) Create `src/data/symbol_utils.py` with `normalize_symbol(symbol: str, provider: str) -> str`. Rules: for `"yfinance"` convert `BTCGBP` → `BTC-GBP` and keep `.L` suffixes (e.g. `HSBA.L` unchanged); for `"binance"` convert `BTC-GBP` → `BTCGBP` and `BTC/GBP` → `BTCGBP`; for `"alpaca"` convert `BTC-GBP` → `BTC/GBP`; for `"ibkr"` strip `.L` suffix and convert `BTCGBP` → `BTC`. Unknown provider raises `ValueError`. (2) Apply `normalize_symbol(symbol, "yfinance")` in `DataFeed.fetch()`. (3) Apply `normalize_symbol(symbol, "alpaca")` in `AlpacaBroker.submit_order()` (equity paper trading). (4) Add `BTCGBP` to `DataConfig.crypto_symbols: List[str]` (new field — keep crypto separate from equity `symbols`). (5) Run a backtest with `--symbols BTCGBP --strategy ma_crossover --start 2023-01-01 --end 2024-01-01` (yfinance fetches `BTC-GBP`) and confirm signals are generated. (6) Tests: round-trip normalisation for all four providers; unknown provider raises `ValueError`; `.L` suffix preservation; `BTCGBP ↔ BTC-GBP` conversion.
 
 **Scope**:
-- `src/data/symbol_utils.py` — new utility (or extend `feeds.py`)
-- `src/execution/broker.py` — apply normalisation in `submit_order`
-- `src/data/feeds.py` — apply normalisation in `fetch`
-- `config/settings.py` — add BTC/USD to crypto symbols list
+- `src/data/symbol_utils.py` — new utility module
+- `src/data/feeds.py` — apply normalisation in `fetch()`
+- `src/execution/broker.py` — apply normalisation in `AlpacaBroker.submit_order()`
+- `config/settings.py` — add `crypto_symbols: List[str]` to `DataConfig`
 - `tests/test_symbol_utils.py` — normalisation tests
 
 **Estimated Effort**: 3–5 hours
@@ -1997,12 +1997,12 @@ black --check src/ tests/ backtest/ --line-length 100
 **Priority**: MEDIUM — crypto has significantly higher volatility than FTSE equities; using equity risk limits for BTC will produce oversized positions
 **Intended Agent**: Copilot
 **ADR**: ADR-015
-**Execution Prompt**: (1) Add `CryptoRiskConfig` dataclass to `config/settings.py` with crypto-tuned overrides: `max_position_pct = 0.05` (5% vs equity 10%), `stop_loss_pct = 0.08` (8% vs equity 5%), `atr_multiplier = 3.0` (wider stops for crypto volatility), `commission_rate = 0.0025` (Alpaca crypto fee is 0.25% taker). (2) In `RiskManager`, detect asset class via `settings.is_crypto(symbol)` and apply `CryptoRiskConfig` overrides when computing position size and stop levels. (3) Add BTC/USD to `config/uk_correlations.json` with estimated historical correlation values vs FTSE 100 constituents (use approximately 0.10–0.20 for normal regime; set conservatively). (4) Add `SlippageConfig` preset `"crypto"` to `src/execution/slippage.py` with wider spread (50 bps) and 0.25% commission. (5) Add tests: verify crypto symbols use crypto risk limits; verify equity symbols unaffected; verify BTC in correlation matrix.
+**Execution Prompt**: (1) Add `CryptoRiskConfig` dataclass to `config/settings.py` with crypto-tuned overrides: `max_position_pct = 0.05` (5% vs equity 10%), `stop_loss_pct = 0.08` (8% vs equity 5%), `atr_multiplier = 3.0` (wider stops for crypto volatility), `commission_rate = 0.001` (Binance standard maker/taker 0.1%), `max_portfolio_crypto_pct = 0.15` (cap total crypto exposure at 15%). (2) In `RiskManager`, detect asset class via `settings.is_crypto(symbol)` and apply `CryptoRiskConfig` overrides when computing position size and stop levels. (3) Add `BTCGBP` to `config/uk_correlations.json` with estimated historical correlation values vs FTSE 100 constituents (use approximately 0.10–0.20 for normal regime; set conservatively). (4) Add `SlippageConfig` preset `"crypto"` to `src/execution/slippage.py` with wider spread (50 bps), zero minimum commission (Binance is percentage-only). (5) Add tests: verify crypto symbols use crypto risk limits; verify equity symbols unaffected; verify BTCGBP in correlation matrix.
 
 **Scope**:
 - `config/settings.py` — add `CryptoRiskConfig`; add `Settings.crypto_risk` field
 - `src/risk/manager.py` — apply crypto config branch in `approve_signal` / `_compute_position_size`
-- `config/uk_correlations.json` — add BTC/USD row/column
+- `config/uk_correlations.json` — add BTCGBP row/column
 - `src/execution/slippage.py` — add `"crypto"` preset
 - `tests/test_crypto_risk.py` — new test file
 
@@ -2027,6 +2027,27 @@ black --check src/ tests/ backtest/ --line-length 100
 **Reference**: [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot) — `feature_engineer.py` for indicator set; `train_lstm.py` for `skorch` + `RandomizedSearchCV` pattern; `paper_trading.py` for confidence-based signal generation
 **Depends on**: Step 32 LSTM baseline architecture (or can proceed independently for feature engineering only)
 **Estimated Effort**: 6–10 hours
+
+---
+
+### Step 58: BinanceBroker (BrokerBase implementation)
+**Status**: NOT STARTED
+**Priority**: HIGH — required for live and paper crypto trading; Alpaca handles equities, Binance handles BTCGBP
+**Intended Agent**: Copilot
+**ADR**: ADR-015
+**Execution Prompt**: Implement `BinanceBroker(BrokerBase)` in `src/execution/broker.py`. (1) Add `binance_api_key: str`, `binance_secret_key: str`, `binance_testnet: bool = True` to `BrokerConfig` in `config/settings.py` (read from env vars `BINANCE_API_KEY`, `BINANCE_SECRET_KEY`, `BINANCE_TESTNET`). (2) Add `binance` and `python-binance>=1.0.19` to `requirements.txt`. (3) Implement `BinanceBroker(BrokerBase)` with all 5 abstract methods: `submit_order` (market orders only initially, using `client.order_market_buy` / `order_market_sell`), `cancel_order` (using `client.cancel_order`), `get_positions` (parse `client.get_account()["balances"]` into `Dict[str, Position]`), `get_portfolio_value` (sum GBP-valued balances), `get_cash` (return free GBP balance). (4) In `_connect()`, use testnet base URL `https://testnet.binance.vision` when `binance_testnet=True`; standard `https://api.binance.com` when False. (5) Apply `normalize_symbol(symbol, "binance")` from Step 55 before any API call. (6) Quantity precision: Binance enforces lot-size filters — use `client.get_symbol_info(symbol)["filters"]` to find `LOT_SIZE` stepSize and round quantity accordingly. (7) Add `BinanceBroker` to the broker factory in the trading loop: when `settings.is_crypto(symbol)`, instantiate `BinanceBroker`; otherwise use existing `AlpacaBroker` / `IBKRBroker`. (8) Tests (all mocked — no live API calls): connect to testnet, submit buy order, submit sell order, cancel order, get positions (parse balance response), quantity rounding for lot-size filter.
+
+**Scope**:
+- `src/execution/broker.py` — add `BinanceBroker(BrokerBase)`
+- `config/settings.py` — add Binance fields to `BrokerConfig`
+- `requirements.txt` — add `python-binance>=1.0.19`
+- `src/trading/loop.py` — broker factory: route crypto symbols to `BinanceBroker`
+- `tests/test_binance_broker.py` — mocked broker tests
+
+**Auth env vars**: `BINANCE_API_KEY`, `BINANCE_SECRET_KEY`, `BINANCE_TESTNET` (default `true`)
+**Testnet**: Create free testnet API keys at https://testnet.binance.vision (separate from main Binance account)
+**Depends on**: Step 54 (asset-class metadata for `is_crypto()` routing), Step 55 (symbol normalisation)
+**Estimated Effort**: 5–8 hours
 
 ---
 

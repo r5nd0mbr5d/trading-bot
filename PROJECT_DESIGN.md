@@ -387,33 +387,44 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 
 ---
 
-### ADR-015: Integrate Spot Crypto (BTC/USD) into Existing Platform
+### ADR-015: Integrate Spot Crypto (BTCGBP) — Binance as Crypto Broker
 **Status:** PROPOSED
 **Date:** 2026-02-25
+**Updated:** 2026-02-25 (revised to Binance; GBP pair selected)
 
-**Context:** User request to evaluate whether BTC should be a separate parallel trading bot or integrated into the existing platform. The existing architecture is built around UK equities (LSE symbols) with Alpaca as the paper broker and equity session guardrails (08:00–16:00 UTC). Crypto trades 24/7, is USD-denominated, and has different volatility characteristics. A reference implementation ([zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot)) was reviewed: it uses a Binance direct integration with 1-second BTC/USDT bars and a single LSTM strategy.
+**Context:** User request to evaluate whether BTC should be a separate parallel trading bot or integrated into the existing platform. The operator is UK-based, working in GBP. The existing architecture is built around UK equities (LSE symbols) with IBKR as the live broker and Alpaca as the paper/simulation broker. Crypto trades 24/7, and has significantly different volatility characteristics vs FTSE equities. A reference implementation ([zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot)) was reviewed: it uses Binance directly with BTC/USDT 1-second bars. Alpaca is regulated by SEC/FINRA and is available to UK residents for crypto, but the operator has directed that **Binance be used for crypto** to avoid USD FX exposure and align with the GBP base currency.
 
-**Decision:** Integrate into the existing platform rather than a separate bot. Rationale:
-1. Alpaca's free paper account already handles `BTC/USD` on the same `TradingClient` API — no second account or broker needed
-2. yfinance supports `BTC-USD` as a ticker — the existing `DataFeed` works unchanged
-3. All 8 strategies (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR) are asset-class agnostic — they operate on OHLCV regardless of asset type
-4. `RiskManager.approve_signal()` already gates everything — crypto just needs different limit values
-5. Two separate bots would mean duplicate audit trails, no cross-asset correlation control, and no unified P&L
+**Decision:** Integrate into the existing platform, using **Binance** as the crypto broker and **BTCGBP** as the primary pair. Rationale:
+1. `broker.py:8` already explicitly anticipated this: `"To add Binance (crypto): implement BrokerBase using python-binance"`
+2. `BTCGBP` pair on Binance avoids USD/GBP FX conversion — natural for a GBP-base portfolio
+3. yfinance supports `BTC-GBP` as a ticker — historical data for backtesting works unchanged
+4. All 8 strategies are asset-class agnostic — OHLCV is OHLCV regardless of asset
+5. `RiskManager.approve_signal()` already gates everything — crypto just needs calibrated limits
+6. Binance testnet (`testnet.binance.vision`) provides a free crypto paper-trading sandbox
+7. Two separate bots = duplicate audit trails, no cross-asset correlation control, no unified P&L
+
+**Broker architecture (post-ADR-015):**
+| Mode | Equities | Crypto |
+|---|---|---|
+| Paper / simulation | `AlpacaBroker` (paper=True) | `BinanceBroker` (testnet=True) |
+| Live | `IBKRBroker` | `BinanceBroker` (testnet=False) — gated behind MO-2 |
 
 **Consequences:**
 - ✅ Single audit trail and unified P&L for equities + crypto
-- ✅ Cross-asset correlation control via `CorrelationConfig` (BTC column added to correlation matrix)
-- ✅ No additional broker integration work — Alpaca `TradingClient` handles both
-- ❌ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) must be bypassable per asset class — crypto is 24/7
-- ❌ `enforce_market_hours = True` in `Settings` must support per-symbol override — see Step 54
-- ❌ Alpaca uses `BTC/USD` format; yfinance uses `BTC-USD` — symbol normalization utility required (Step 55)
-- ❌ Crypto requires different risk calibration: higher stop-loss %, tighter max position %, different slippage preset (Step 56)
-- ❌ BTC correlation with FTSE 100 equities is low in normal regimes but spikes during risk-off events — correlation matrix must include BTC (Step 56)
-- ❌ Crypto integration is gated behind MO-2 (3 in-window equity paper sessions); do not add BTC to live symbols list until equity live gate is passed
+- ✅ GBP-denominated BTC position — no FX exposure to USD
+- ✅ Binance testnet available for crypto paper trading (separate from Alpaca equity paper)
+- ✅ `python-binance` library already anticipated in `broker.py` comment
+- ❌ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) must be bypassable per asset class — crypto is 24/7 (Step 54)
+- ❌ `enforce_market_hours = True` in `Settings` must support per-symbol override (Step 54)
+- ❌ Binance uses `BTCGBP` format (no slash/dash); yfinance uses `BTC-GBP`; IBKR uses `BTC` — symbol normalisation utility required (Step 55)
+- ❌ `BinanceBroker(BrokerBase)` must be implemented (`python-binance`) with testnet support (Step 58)
+- ❌ Crypto requires different risk calibration: Binance fee 0.1% (vs Alpaca 0%), wider stops (Step 56)
+- ❌ BTC correlation with FTSE 100 equities is low in normal regimes but spikes during risk-off events — correlation matrix must include BTCGBP (Step 56)
+- ❌ Crypto live trading gated behind MO-2 — do not move Binance to `testnet=False` until equity live gate is passed
 
-**Reference:** zach1502 repo — useful for LSTM feature engineering patterns (Step 57) and `skorch` PyTorch wrapper; not used for broker integration (we use Alpaca, not Binance).
+**Reference:** zach1502 repo — useful for LSTM feature engineering patterns (Step 57) and `skorch` PyTorch wrapper; broker pattern (Binance direct) aligns with this ADR.
 
-**Implements:** Steps 54–57
+**Implements:** Steps 54–58
 
 ---
 
@@ -681,11 +692,12 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 
 **[2026-02-25] Crypto Design Session (Claude Sonnet 4.6)**
 - Reviewed [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot): Binance/BTC LSTM bot with 21-indicator feature set, `skorch` PyTorch wrapper, confidence-scaled signal generation
-- Decision: integrate BTC/USD as a secondary asset class into the existing platform (not a separate bot) — see ADR-015
-- §1 Non-Goals updated: "crypto" removed from absolute non-goals; BTC spot integration gated behind MO-2
+- Decision: integrate BTC as a secondary asset class into the existing platform (not a separate bot) — see ADR-015
+- **Revised to Binance** (not Alpaca) as the crypto broker: operator is UK/GBP-based; `BTCGBP` pair selected to avoid USD FX exposure; Binance testnet for paper crypto simulation
+- §1 Non-Goals updated: "crypto" removed from absolute non-goals; BTC spot gated behind MO-2 equity live gate
 - Key metrics updated: strategies = 8 (ATR Stops added by Copilot in Step 50); tests = 466
-- ADR-015 added: integrated crypto support; Steps 54–57 defined (asset-class metadata, symbol normalization, crypto risk overlay, BTC LSTM features)
-- Step 33 confirmed completed (Copilot); IMPLEMENTATION_BACKLOG executive summary to be updated in next pass
+- ADR-015 added: integrated crypto support via Binance; Steps 54–58 defined (asset-class metadata, symbol normalisation, BinanceBroker, crypto risk overlay, BTC LSTM features)
+- Step 33 confirmed completed (Copilot); IMPLEMENTATION_BACKLOG executive summary updated
 - `docs/MASSIVE_API_REFERENCE.md`, `IMPLEMENTATION_BACKLOG.md`, `docs/DATA_PROVIDERS_REFERENCE.md` updated in prior commit (`d6971bf`) to reflect free `/v2/reference/news` endpoint for Step 33
 
 ---
