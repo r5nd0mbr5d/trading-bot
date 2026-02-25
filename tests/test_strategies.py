@@ -6,6 +6,7 @@ import pytest
 
 from config.settings import Settings
 from src.data.models import Bar, SignalType
+from src.strategies.atr_stops import ATRStopsStrategy
 from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
@@ -210,6 +211,42 @@ class TestMACDCrossoverStrategy:
             assert "macd" in sig.metadata
             assert "signal_line" in sig.metadata
             assert "histogram" in sig.metadata
+
+
+# ── ATR Stops ───────────────────────────────────────────────────────────────
+
+
+class TestATRStopsStrategy:
+
+    def setup_method(self):
+        settings = Settings()
+        settings.atr.period = 5
+        settings.atr.fast_ma_period = 3
+        settings.atr.slow_ma_period = 5
+        settings.atr.low_vol_threshold_pct = 0.05
+        settings.atr.stop_multiplier = 2.0
+        self.strategy = ATRStopsStrategy(settings)
+
+    def test_no_signal_before_min_bars(self):
+        for i in range(self.strategy.min_bars_required() - 1):
+            sig = self.strategy.on_bar(make_bar("AAPL", 100 + i, i))
+        assert sig is None
+
+    def test_signal_generation_does_not_error(self):
+        prices = [100, 101, 102, 103, 104, 104.5, 105, 105.2, 105.4, 105.6, 105.8]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        assert sig is None or sig.signal_type in (
+            SignalType.LONG,
+            SignalType.CLOSE,
+            SignalType.HOLD,
+        )
+
+    def test_metadata_contains_atr_and_stop_price_when_signal_emitted(self):
+        prices = [100, 101, 102, 103, 104, 104.3, 104.6, 104.9, 105.2, 105.5, 105.8]
+        sig = feed_prices(self.strategy, "AAPL", prices)
+        if sig is not None:
+            assert "atr_value" in sig.metadata
+            assert "stop_price" in sig.metadata
 
 
 # ── OBV Momentum ─────────────────────────────────────────────────────────────

@@ -29,6 +29,11 @@ class SignalType(str, Enum):
     HOLD = "hold"  # No action
 
 
+class AssetClass(str, Enum):
+    EQUITY = "equity"
+    CRYPTO = "crypto"
+
+
 @dataclass
 class Bar:
     """A single OHLCV price bar."""

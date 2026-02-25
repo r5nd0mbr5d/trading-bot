@@ -1,6 +1,6 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.3
+**Version:** 1.4
 **Last Updated:** Feb 25, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
@@ -388,44 +388,44 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 
 ---
 
-### ADR-015: Integrate Spot Crypto (BTCGBP) — Binance as Crypto Broker
+### ADR-015: Integrate Spot Crypto (BTCGBP) — Coinbase Primary / Binance Fallback
 **Status:** PROPOSED
 **Date:** 2026-02-25
-**Updated:** 2026-02-25 (revised to Binance; GBP pair selected)
+**Updated:** 2026-02-25 (v3: Coinbase as primary; Binance retained as fallback)
 
-**Context:** User request to evaluate whether BTC should be a separate parallel trading bot or integrated into the existing platform. The operator is UK-based, working in GBP. The existing architecture is built around UK equities (LSE symbols) with IBKR as the live broker and Alpaca as the paper/simulation broker. Crypto trades 24/7, and has significantly different volatility characteristics vs FTSE equities. A reference implementation ([zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot)) was reviewed: it uses Binance directly with BTC/USDT 1-second bars. Alpaca is regulated by SEC/FINRA and is available to UK residents for crypto, but the operator has directed that **Binance be used for crypto** to avoid USD FX exposure and align with the GBP base currency.
+**Context:** UK-based operator working in GBP. Integration of BTC spot trading into the existing platform. Initial decision was Binance (Steps 54–58, all completed). Operator revised to **Coinbase as primary crypto broker** with Binance retained as fallback. Rationale: Coinbase UK Limited is FCA-registered as a crypto asset firm; Binance's UK regulated entity was required to cease regulated activities by the FCA (2021). Coinbase Advanced Trade API uses `BTC-GBP` product IDs (dash format), which is identical to yfinance's ticker format — no extra normalisation for data feeds.
 
-**Decision:** Integrate into the existing platform, using **Binance** as the crypto broker and **BTCGBP** as the primary pair. Rationale:
-1. `broker.py:8` already explicitly anticipated this: `"To add Binance (crypto): implement BrokerBase using python-binance"`
-2. `BTCGBP` pair on Binance avoids USD/GBP FX conversion — natural for a GBP-base portfolio
-3. yfinance supports `BTC-GBP` as a ticker — historical data for backtesting works unchanged
-4. All 8 strategies are asset-class agnostic — OHLCV is OHLCV regardless of asset
-5. `RiskManager.approve_signal()` already gates everything — crypto just needs calibrated limits
-6. Binance testnet (`testnet.binance.vision`) provides a free crypto paper-trading sandbox
-7. Two separate bots = duplicate audit trails, no cross-asset correlation control, no unified P&L
+**Decision:** Integrate into the existing platform using **Coinbase as primary crypto broker** and **BTCGBP/BTC-GBP** as the primary pair. Binance is retained as a fallback broker (already implemented). Rationale:
+1. `CoinbaseBroker` uses `BTC-GBP` symbol format — matches yfinance natively, no normalisation overhead
+2. Coinbase UK Limited FCA-registered — more appropriate for a UK/GBP operator
+3. `BinanceBroker` already implemented (Step 58) — zero wasted work; becomes the fallback
+4. All 8 strategies are asset-class agnostic — OHLCV is OHLCV regardless of broker
+5. `RiskManager.approve_signal()` gates everything — broker switch is transparent to risk layer
+6. Coinbase Advanced Trade API sandbox available for paper crypto testing
 
 **Broker architecture (post-ADR-015):**
-| Mode | Equities | Crypto |
-|---|---|---|
-| Paper / simulation | `AlpacaBroker` (paper=True) | `BinanceBroker` (testnet=True) |
-| Live | `IBKRBroker` | `BinanceBroker` (testnet=False) — gated behind MO-2 |
+| Mode | Equities | Crypto (primary) | Crypto (fallback) |
+|---|---|---|---|
+| Paper / simulation | `AlpacaBroker` (paper=True) | `CoinbaseBroker` (sandbox=True) | `BinanceBroker` (testnet=True) |
+| Live | `IBKRBroker` | `CoinbaseBroker` (sandbox=False) — gated MO-2 | `BinanceBroker` (testnet=False) |
 
-**Consequences:**
-- ✅ Single audit trail and unified P&L for equities + crypto
-- ✅ GBP-denominated BTC position — no FX exposure to USD
-- ✅ Binance testnet available for crypto paper trading (separate from Alpaca equity paper)
-- ✅ `python-binance` library already anticipated in `broker.py` comment
-- ✅ `PaperGuardrailsConfig` session window (08:00–16:00 UTC) now bypasses crypto symbols (Step 54)
-- ✅ `enforce_market_hours = True` in `Settings` now supports per-symbol crypto override in trading loop (Step 54)
-- ✅ Symbol normalisation utility added for `BTCGBP`/`BTC-GBP`/`BTC/GBP` across providers (Step 55)
-- ✅ `BinanceBroker(BrokerBase)` implemented with testnet support and lot-size rounding (Step 58)
-- ✅ Crypto risk overlay implemented (position cap, stop calibration, ATR multiplier, crypto exposure cap) (Step 56)
-- ✅ BTCGBP added to correlation matrix with conservative FTSE relationships (Step 56)
-- ❌ Crypto live trading gated behind MO-2 — do not move Binance to `testnet=False` until equity live gate is passed
+**Fallback routing:** `BrokerConfig.crypto_primary_provider = "coinbase"`, `BrokerConfig.crypto_fallback_provider = "binance"`. The broker factory attempts primary; on `BrokerConnectionError` it logs a warning and routes to the fallback.
 
-**Reference:** zach1502 repo — useful for LSTM feature engineering patterns (Step 57) and `skorch` PyTorch wrapper; broker pattern (Binance direct) aligns with this ADR.
+**Consequences (completed):**
+- ✅ `AssetClass` enum + `is_crypto()` + session-window bypass (Step 54)
+- ✅ Symbol normalisation (`src/data/symbol_utils.py`) for BTCGBP/BTC-GBP across providers (Step 55)
+- ✅ `BinanceBroker(BrokerBase)` with testnet support (Step 58) — now the fallback
+- ✅ Crypto risk overlay: position cap, ATR stops, BTCGBP in correlation matrix (Step 56)
 
-**Implements:** Steps 54–58
+**Consequences (pending):**
+- ❌ `CoinbaseBroker(BrokerBase)` must be implemented (`coinbase-advanced-py`) — Step 63
+- ❌ `BrokerConfig` needs `coinbase_api_key_id`, `coinbase_private_key`, `coinbase_sandbox`, `crypto_primary_provider`, `crypto_fallback_provider`
+- ❌ `symbol_utils.py` `"coinbase"` provider rule: `BTCGBP` → `BTC-GBP` (minor extension to Step 55)
+- ❌ Crypto live gated behind MO-2 — `coinbase_sandbox` and `binance_testnet` must remain True until equity live gate passes
+
+**Reference:** zach1502 repo — LSTM feature patterns (Step 57), `skorch` PyTorch wrapper.
+
+**Implements:** Steps 54–58 ✅, Step 63 (pending)
 
 ---
 
@@ -745,6 +745,22 @@ src/cli/arguments.py         — ArgumentParser + dispatch table
 - Step 32 (LSTM) now gated behind Step 62 (MLP) — complexity must be justified stepwise
 - IMPLEMENTATION_BACKLOG executive summary: 67→71 total, Not Started 9→13
 
+**[2026-02-25] Coinbase + LPDD Autonomy Session (Claude Sonnet 4.6 → GitHub Copilot)**
+- ADR-015 revised (v3): **Coinbase as primary crypto broker**, Binance retained as fallback
+  - Rationale: Coinbase UK Limited is FCA-registered; Binance UK entity ceased regulated activities per FCA (2021)
+  - `BTC-GBP` product ID matches yfinance ticker natively — zero normalisation overhead for data feeds
+- Broker architecture updated: `CoinbaseBroker(sandbox=True)` primary, `BinanceBroker(testnet=True)` fallback; factory routes with `BrokerConnectionError` fallback
+- Step 63 (CoinbaseBroker) added to IMPLEMENTATION_BACKLOG — HIGH priority, NOT STARTED
+- **LPDD Copilot autonomous pickup system added:**
+  - `## Copilot Task Queue` section added to IMPLEMENTATION_BACKLOG.md (3 sub-tables: Immediately Actionable / Needs Claude Opus / Operational)
+  - `.github/copilot-instructions.md` fully rewritten with 8-step Task Pickup Protocol + escalation criteria
+  - §10 Agent Assignment Matrix added to PROJECT_DESIGN.md (task → agent routing table + per-step assignments)
+- **PDF research review** — two papers analysed for design insights:
+  - *Peng et al. 2022* (AishaRL.pdf): PPO-based crypto trading bot with CNN-LSTM; key insight — bounded-range indicators (RSI, CMF) preferred for RL over time-dependent indicators (Bollinger Bands) to avoid temporal bias in experience replay; different indicator categories minimise correlated features; market-cycle-aware train/test splitting
+  - *Azhikodan et al. 2019* (ICICSE.pdf): DDPG stock trading bot with RCNN sentiment analysis; key insight — binary reward functions outperformed continuous reward (avoidance of local minima); news sentiment as additional environment observation boosted RL agent performance; validates Step 33 (news features) + Step 61 (binary threshold labels)
+- IMPLEMENTATION_BACKLOG executive summary: 71→72 total, Completed 61, Not Started 10, 498 tests
+- PROJECT_DESIGN.md version bumped to 1.4
+
 ---
 
 ## §7 Hard Constraints (Never Break Without an ADR)
@@ -809,3 +825,46 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 **Critical path:** MO-2 blocks promotion to live trading. MO-3/MO-4 gate full research pipeline. MO-5/MO-6 are the final human sign-off layer before Gate B (live). MO-7/MO-8 are research-specific governance requirements.
 
 **Current blocker (Feb 25, 2026):** MO-2 Step 1A burn-in artefacts show `non_qualifying_test_mode=true` — sessions are running outside LSE market hours. Operator must schedule 3 runs during 08:00–16:00 UTC, Mon–Fri. See RFC-004 and `UK_OPERATIONS.md`.
+
+---
+
+## §10 Agent Assignment Matrix
+
+> Defines which LLM agent handles which category of work.
+> **GitHub Copilot** works autonomously from the IMPLEMENTATION_BACKLOG Copilot Task Queue.
+> **Claude Opus (this chat)** handles tasks requiring architectural judgment or research methodology decisions.
+> **Operator** handles milestones requiring human action.
+
+### Assignment Rules
+
+| Task Category | Agent | Rationale |
+|---|---|---|
+| Implementing a clearly-specced backlog step | **Copilot** | Clear inputs/outputs; follows existing patterns |
+| Extending an existing module (new method, new config field) | **Copilot** | Pattern already established |
+| Writing tests for completed code | **Copilot** | Deterministic; follows existing test patterns |
+| Adding a new broker (`BrokerBase` subclass) | **Copilot** | Pattern: follow `BinanceBroker` |
+| Adding a new strategy (`BaseStrategy` subclass) | **Copilot** | Pattern: follow `ma_crossover.py` |
+| Updating LPDD after step completion | **Copilot** | Mechanical; instructions in `copilot-instructions.md` |
+| Designing a new module interface from scratch | **Claude Opus** | Requires trade-off analysis |
+| ML architecture decisions (layers, loss, regularisation) | **Claude Opus** | Domain knowledge + project context required |
+| Research methodology (feature selection, target design, evaluation) | **Claude Opus** | High impact on model validity |
+| Multi-file refactors with subtle coupling risks | **Claude Opus** | Risk of breaking invariants |
+| Evaluating provider/broker trade-offs | **Claude Opus** | Regulatory + technical + cost considerations |
+| Reviewing article/paper for backlog additions | **Claude Opus** | Synthesis + project fit judgement |
+| Scheduling paper sessions | **Operator** | Human action only |
+| Signing off promotion gate evidence | **Operator** | Human accountability required |
+| Populating `.env` with credentials | **Operator** | Security — never commit secrets |
+
+### Currently Not-Started Step Assignments
+
+| Step | Name | Agent | Status |
+|---|---|---|---|
+| 32 | LSTM baseline | Claude Opus (architecture) → Copilot (implementation) | Gated: Step 62 first |
+| 46 | Paper trading daemon | Copilot | Ready |
+| 49 | REST API scaffold | Copilot | Ready |
+| 57 | BTC LSTM features | Claude Opus (design) → Copilot (implementation) | Ready for design |
+| 59 | Class imbalance handling | Copilot | Ready |
+| 60 | Data mining pre-registration | Copilot | Ready |
+| 61 | Threshold target label | Copilot | Depends on Step 59 |
+| 62 | MLP baseline | Claude Opus (architecture) → Copilot (implementation) | Ready for design |
+| 63 | CoinbaseBroker | Copilot | Ready |

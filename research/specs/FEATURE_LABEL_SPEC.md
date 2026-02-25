@@ -112,6 +112,20 @@ All features are computed as of the **bar[t] close** using only data from bars [
 
 **Cross-sectional features require** simultaneous computation across all universe symbols. They introduce a subtle leakage risk if any symbol in the cross-section has survivorship issues. Document carefully.
 
+### 3g. News/Sentiment Features
+
+| Feature | Type | Definition | Notes |
+|---------|------|------------|-------|
+| sentiment_score | float | Mean sentiment for symbol/day using Polygon `insights[].sentiment` mapped as `positive=+1`, `neutral=0`, `negative=-1` | `NaN` when no news articles for that symbol/day |
+| article_count | int | Count of all news articles for symbol/day across all publishers | `0` when no articles |
+| benzinga_count | int | Count of symbol/day articles where `publisher.name == "Benzinga"` | `0` when no Benzinga articles |
+| earnings_proximity | bool | `True` when the date is within ±3 calendar days of any article containing the token `"earnings"` in title/description in the fetched window | `False` otherwise |
+
+**Join key and index contract**
+- Output frame index is a UTC-aware `DatetimeIndex` with date-only granularity (`00:00:00+00:00`).
+- Feature family joins to the main feature table by `(symbol, date)`; `date` must align with bar-close date index.
+- Source endpoint: `GET /v2/reference/news` (Polygon/Massive free tier) with Bearer auth.
+
 ---
 
 ## 4. Leakage Traps and Mitigation Rules

@@ -17,6 +17,7 @@ from config.settings import Settings
 from src.data.market_data_store import MarketDataStore
 from src.data.models import Bar
 from src.data.providers import HistoricalDataProvider, get_provider
+from src.data.symbol_utils import normalize_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -174,27 +175,36 @@ class MarketDataFeed:
         start: str = None,
         end: str = None,
     ) -> pd.DataFrame:
-        providers: List[tuple[str, HistoricalDataProvider]] = [
-            (self.settings.data.source, self._primary_provider),
-            *[(f"fallback:{i+1}", provider) for i, provider in enumerate(self._fallback_providers)],
+        fallback_sources = getattr(self.settings.data, "fallback_sources", []) or []
+        providers: List[tuple[str, str, HistoricalDataProvider]] = [
+            (self.settings.data.source, self.settings.data.source, self._primary_provider),
+            *[
+                (f"fallback:{index+1}", str(source), provider)
+                for index, (source, provider) in enumerate(
+                    zip(fallback_sources, self._fallback_providers)
+                )
+            ],
         ]
 
         last_error: Exception | None = None
-        for provider_name, provider in providers:
+        for provider_label, provider_source, provider in providers:
             try:
+                symbol_for_provider = symbol
+                if provider_source.strip().lower() == "yfinance":
+                    symbol_for_provider = normalize_symbol(symbol, "yfinance")
                 df = provider.fetch_historical(
-                    symbol=symbol,
+                    symbol=symbol_for_provider,
                     period=period,
                     interval=interval,
                     start=start,
                     end=end,
                 )
                 if df.empty:
-                    raise ValueError(f"Empty dataset from provider '{provider_name}'")
+                    raise ValueError(f"Empty dataset from provider '{provider_label}'")
                 if provider is not self._primary_provider:
                     logger.warning(
                         "Primary data provider failed; using %s for %s",
-                        provider_name,
+                        provider_label,
                         symbol,
                     )
                 return df
@@ -202,7 +212,7 @@ class MarketDataFeed:
                 last_error = exc
                 logger.warning(
                     "Data provider '%s' failed for %s: %s",
-                    provider_name,
+                    provider_label,
                     symbol,
                     exc,
                 )

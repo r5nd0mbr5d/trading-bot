@@ -1,0 +1,58 @@
+{
+  "HSBA.L": {
+    "BARC.L": 0.83,
+    "LLOY.L": 0.79,
+    "BP.L": 0.31,
+    "SHEL.L": 0.28,
+    "VOD.L": 0.22,
+    "BTCGBP": 0.15
+  },
+  "BARC.L": {
+    "HSBA.L": 0.83,
+    "LLOY.L": 0.76,
+    "BP.L": 0.26,
+    "SHEL.L": 0.25,
+    "VOD.L": 0.21,
+    "BTCGBP": 0.14
+  },
+  "LLOY.L": {
+    "HSBA.L": 0.79,
+    "BARC.L": 0.76,
+    "BP.L": 0.24,
+    "SHEL.L": 0.23,
+    "VOD.L": 0.18,
+    "BTCGBP": 0.13
+  },
+  "BP.L": {
+    "SHEL.L": 0.74,
+    "HSBA.L": 0.31,
+    "BARC.L": 0.26,
+    "LLOY.L": 0.24,
+    "VOD.L": 0.19,
+    "BTCGBP": 0.12
+  },
+  "SHEL.L": {
+    "BP.L": 0.74,
+    "HSBA.L": 0.28,
+    "BARC.L": 0.25,
+    "LLOY.L": 0.23,
+    "VOD.L": 0.17,
+    "BTCGBP": 0.12
+  },
+  "VOD.L": {
+    "HSBA.L": 0.22,
+    "BARC.L": 0.21,
+    "LLOY.L": 0.18,
+    "BP.L": 0.19,
+    "SHEL.L": 0.17,
+    "BTCGBP": 0.10
+  },
+  "BTCGBP": {
+    "HSBA.L": 0.15,
+    "BARC.L": 0.14,
+    "LLOY.L": 0.13,
+    "BP.L": 0.12,
+    "SHEL.L": 0.12,
+    "VOD.L": 0.10
+  }
+}

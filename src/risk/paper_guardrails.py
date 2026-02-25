@@ -73,9 +73,12 @@ class PaperGuardrails:
 
         return ""
 
-    def check_session_window(self) -> str:
+    def check_session_window(self, symbol: str = "", is_crypto: bool = False) -> str:
         """Return reason if outside trading session window, else empty string."""
         if self.config.skip_session_window or not self.config.enabled:
+            return ""
+
+        if is_crypto and self.config.skip_session_window_for_crypto:
             return ""
 
         now_utc = self._now_utc()
@@ -116,7 +119,7 @@ class PaperGuardrails:
 
         return ""
 
-    def all_checks(self, symbol: str) -> list[str]:
+    def all_checks(self, symbol: str, is_crypto: bool = False) -> list[str]:
         """Run all checks and return list of reasons for any that fail."""
         reasons = []
 
@@ -126,7 +129,7 @@ class PaperGuardrails:
             reasons.append(reject_reason)
         if cooldown_reason := self.check_symbol_cooldown(symbol):
             reasons.append(cooldown_reason)
-        if session_reason := self.check_session_window():
+        if session_reason := self.check_session_window(symbol=symbol, is_crypto=is_crypto):
             reasons.append(session_reason)
         if stop_reason := self.should_auto_stop():
             reasons.append(stop_reason)

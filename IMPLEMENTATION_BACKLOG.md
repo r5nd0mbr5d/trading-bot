@@ -6,12 +6,52 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 71 (7 Prompts + 63 Next Steps + Code Style Governance)
-**Completed**: 57 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–53)
+**Total Items**: 72 (7 Prompts + 64 Next Steps + Code Style Governance)
+**Completed**: 61 (Prompts 1–7 + Steps 1–28 except 1A + Steps 29–31, 33, 34, 36–45, 47–48, 50–58)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 13 (Step 32 LSTM/blocked by Step 62 MLP gate, Steps 46/49 daemon/REST API, QuantConnect cross-validation, Steps 54–58 crypto, Steps 59–62 ML methodology)
+**Not Started**: 10 (Step 32 LSTM/gated behind Step 62, Steps 46/49/63 daemon/REST/Coinbase, QuantConnect, Steps 59–62 ML methodology)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 466 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8
+**Test suite**: 498 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 8 | **Asset classes**: 2
+
+---
+
+## Copilot Task Queue
+
+> **For GitHub Copilot:** This section is your entry point. Start here every session.
+> Read `PROJECT_DESIGN.md`, `CLAUDE.md`, and `.python-style-guide.md` first, then pick the top item from the table below.
+> When done: mark the step COMPLETED in this file, append to `PROJECT_DESIGN.md §6`, run full test suite.
+
+### ✅ Immediately Actionable — Pick Up Now
+
+| Priority | Step | Name | Effort | Depends on |
+|---|---|---|---|---|
+| HIGH | **63** | CoinbaseBroker (primary crypto broker) | 5–8 hrs | Steps 54/55 ✅ |
+| MEDIUM | **59** | Class imbalance handling (PR-AUC, scale_pos_weight) | 3–5 hrs | — |
+| MEDIUM | **60** | Data mining pre-registration guard | 2–4 hrs | — |
+| MEDIUM | **61** | Cost-aware threshold target label | 3–4 hrs | Step 59 |
+| MEDIUM | **46** | 24/5 paper trading daemon | 3–5 hrs | — |
+| LOW | **49** | REST API dashboard scaffold (FastAPI) | 6–10 hrs | — |
+
+### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
+
+| Step | Name | What Claude Opus Must Decide First |
+|---|---|---|
+| **62** | Feedforward MLP baseline | Architecture review (layer sizes, regularisation, `skorch` config) |
+| **57** | BTC LSTM feature engineering | Feature set design and multi-timeframe window selection |
+| **32** | LSTM baseline model | Gated behind Step 62 MLP gate; architecture decisions throughout |
+
+> **Escalation rule:** If you encounter an ambiguous architectural decision, a test that cannot be fixed without design changes, or a task marked "Claude Opus" above — **stop, commit what you have, and leave a clear note in the step's Completion Notes field explaining the blocker.** Do not guess at architecture.
+
+### 🔵 Operational — Human/Operator Action Required (Not for Agents)
+
+| ID | Action | Status |
+|---|---|---|
+| MO-2 | 3 consecutive in-window paper sessions (08:00–16:00 UTC, Mon–Fri) | ⏳ OPEN — current blocker |
+| MO-3 | Populate `.env` with Massive/Polygon API key; test fetch | ⏳ OPEN |
+| MO-4 | Run backfill commands for target symbols | ⏳ OPEN |
+| MO-5/6 | Human review of promotion gate evidence | ⏳ OPEN — post MO-4 |
+
+---
 
 **Special Note** (Feb 25, 2026 00:50 UTC):
 - âœ… **Refactoring Progress**:
@@ -2052,6 +2092,7 @@ black --check src/ tests/ backtest/ --line-length 100
 - `tests/test_crypto_features.py` — new test file
 
 **Reference**: [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot) — `feature_engineer.py` for indicator set; `train_lstm.py` for `skorch` + `RandomizedSearchCV` pattern; `paper_trading.py` for confidence-based signal generation
+**Research Note (Peng et al. 2022 — AishaRL.pdf)**: Prefer **bounded-range indicators** (RSI 0–100, CMF zero-centered, ATR) over time-dependent indicators (e.g. raw Bollinger Bands values) — unbounded values introduce temporal bias in experience replay. Different indicator *categories* (volatility, momentum, volume) minimise correlated features. Add **Chaikin Money Flow (CMF)** as a volume indicator alongside OBV. Use **market-cycle-aware train/test splitting** (e.g. split at BTC halving dates) rather than arbitrary date cutoffs.
 **Depends on**: Step 32 LSTM baseline architecture (or can proceed independently for feature engineering only)
 **Estimated Effort**: 6–10 hours
 
@@ -2133,6 +2174,7 @@ black --check src/ tests/ backtest/ --line-length 100
 **Priority**: MEDIUM — raw direction (≥0) as the ML label produces signals that are "correct" in theory but lose money after spread + commission; a cost-aware threshold target encodes "will this trade be profitable after costs?"
 **Intended Agent**: Copilot
 **Reference**: Robot Wealth / Longmore 2017 — Zorro example: `if(priceClose(-5) - priceClose(0) > 200*PIP) ObjLong = 1` as target; not raw direction
+**Research Note (Azhikodan et al. 2019 — ICICSE.pdf)**: Binary reward functions outperformed continuous reward in DDPG trading agents — continuous reward caused local-minima traps. This independently validates the binary threshold label approach over raw directional returns.
 **Execution Prompt**: (1) Add `ThresholdLabel` to `research/specs/FEATURE_LABEL_SPEC.md` §2: `label = 1 if forward_return_bps > (round_trip_cost_bps + target_return_bps) else 0`. Both `round_trip_cost_bps` and `target_return_bps` are configurable per experiment. (2) Add `label_type: "direction" | "threshold"` and `threshold_bps: float` to the experiment config schema. (3) Implement `compute_threshold_label(returns_series: pd.Series, threshold_bps: float) -> pd.Series` in `research/training/label_utils.py` (extend Step 59's module). (4) Wire `label_type` into the training runner: select `compute_threshold_label()` when `label_type == "threshold"`, existing direction label otherwise. (5) Run a side-by-side comparison: train XGBoost with `direction` vs `threshold` (threshold = round-trip spread ~25 bps + 20 bps profit target = 45 bps); compare PR-AUC. (6) Tests: threshold label with `threshold_bps=45` on synthetic returns; `direction` label regression; label distribution fields in report.
 
 **Scope**:
@@ -2161,6 +2203,28 @@ black --check src/ tests/ backtest/ --line-length 100
 - `tests/test_mlp_classifier.py` — new test file
 
 **Precedes**: Step 32 (LSTM) — MLP gate must pass first
+**Estimated Effort**: 5–8 hours
+
+---
+
+### Step 63: CoinbaseBroker (Primary Crypto Broker)
+**Status**: NOT STARTED
+**Priority**: HIGH — Coinbase replaces Binance as the primary crypto broker; Binance is now the fallback; Coinbase UK Limited is FCA-registered
+**Intended Agent**: Copilot
+**ADR**: ADR-015 (revised to Coinbase primary)
+**Execution Prompt**: Implement `CoinbaseBroker(BrokerBase)` in `src/execution/broker.py`, following the exact same pattern as the existing `BinanceBroker`. (1) Add to `BrokerConfig` in `config/settings.py`: `coinbase_api_key_id: str` (env `COINBASE_API_KEY_ID`), `coinbase_private_key: str` (env `COINBASE_PRIVATE_KEY` — PEM-formatted EC private key), `coinbase_sandbox: bool = True` (env `COINBASE_SANDBOX`), `crypto_primary_provider: str = "coinbase"` (env `CRYPTO_PRIMARY_PROVIDER`), `crypto_fallback_provider: str = "binance"` (env `CRYPTO_FALLBACK_PROVIDER`). (2) Add `coinbase-advanced-py>=1.7.0` to `requirements.txt`. (3) Implement `CoinbaseBroker(BrokerBase)` with all 5 methods: `submit_order` (market orders via `client.market_order_buy` / `market_order_sell`), `cancel_order`, `get_positions` (parse portfolio holdings), `get_portfolio_value`, `get_cash` (return GBP free balance). Sandbox URL: `https://api-public.sandbox.exchange.coinbase.com`; live URL: `https://api.coinbase.com`. (4) Add `"coinbase"` to `normalize_symbol()` in `src/data/symbol_utils.py`: `BTCGBP` → `BTC-GBP`; `BTC/GBP` → `BTC-GBP`; `BTC-GBP` unchanged. (5) Update the broker factory in `src/trading/loop.py`: when `settings.is_crypto(symbol)`, instantiate `CoinbaseBroker` (primary) with a `try/except BrokerConnectionError` that falls back to `BinanceBroker`; log `WARNING: Coinbase unavailable, routing to Binance fallback`. (6) Tests in `tests/test_coinbase_broker.py` (all mocked — no live API calls): connect to sandbox, submit buy, submit sell, cancel order, get positions, GBP balance parsing, normalisation round-trip (`BTC-GBP` passes unchanged), fallback routing triggered on `BrokerConnectionError`.
+
+**Scope**:
+- `src/execution/broker.py` — add `CoinbaseBroker(BrokerBase)`
+- `config/settings.py` — add Coinbase + fallback fields to `BrokerConfig`
+- `src/data/symbol_utils.py` — add `"coinbase"` provider rule
+- `src/trading/loop.py` — update broker factory with fallback routing
+- `requirements.txt` — add `coinbase-advanced-py>=1.7.0`
+- `tests/test_coinbase_broker.py` — mocked broker tests
+
+**Auth env vars**: `COINBASE_API_KEY_ID`, `COINBASE_PRIVATE_KEY`, `COINBASE_SANDBOX` (default `true`)
+**Note**: Coinbase Advanced Trade API uses cloud API keys. Generate at: Settings → API → New API Key → select "trade" permission. The private key is a multi-line PEM string — store in `.env` with escaped newlines or via a secrets file.
+**Depends on**: Steps 54 (is_crypto() routing), 55 (symbol_utils.py exists)
 **Estimated Effort**: 5–8 hours
 
 ---

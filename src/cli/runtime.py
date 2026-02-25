@@ -33,6 +33,7 @@ from research.bridge.strategy_bridge import load_candidate_bundle, register_cand
 from src.risk.kill_switch import KillSwitch
 from src.risk.manager import RiskManager
 from src.strategies.adx_filter import ADXFilterStrategy
+from src.strategies.atr_stops import ATRStopsStrategy
 from src.strategies.base import BaseStrategy
 from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
@@ -51,6 +52,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 STRATEGIES = {
+    "atr_stops": ATRStopsStrategy,
     "bollinger_bands": BollingerBandsStrategy,
     "ma_crossover": MACrossoverStrategy,
     "macd_crossover": MACDCrossoverStrategy,
@@ -879,7 +881,7 @@ def cmd_uk_health_check(
 
 
 async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool = True) -> None:
-    from src.execution.broker import AlpacaBroker
+    from src.execution.broker import AlpacaBroker, BinanceBroker
     from src.execution.ibkr_broker import IBKRBroker
     from src.portfolio.tracker import PortfolioTracker
     from src.risk.data_quality import DataQualityGuard
@@ -905,7 +907,10 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
     
     # Use pre-created broker if provided, otherwise create new one
     if broker is None:
-        if settings.broker.provider.lower() == "ibkr":
+        has_crypto_symbol = any(settings.is_crypto(symbol) for symbol in settings.data.symbols)
+        if has_crypto_symbol:
+            broker = BinanceBroker(settings)
+        elif settings.broker.provider.lower() == "ibkr":
             broker = IBKRBroker(settings)
         else:
             broker = AlpacaBroker(settings)

@@ -72,10 +72,37 @@ def _load_sector_map(path: str) -> Dict[str, str]:
     return sector_map
 
 
+def _load_correlation_matrix(path: str) -> Dict[str, Dict[str, float]]:
+    if not path:
+        return {}
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Correlation matrix load failed (%s): %s", path, exc)
+        return {}
+
+    if not isinstance(payload, dict):
+        return {}
+
+    matrix: Dict[str, Dict[str, float]] = {}
+    for src_symbol, raw_row in payload.items():
+        if not isinstance(raw_row, dict):
+            continue
+        row: Dict[str, float] = {}
+        for dst_symbol, raw_corr in raw_row.items():
+            if isinstance(raw_corr, (int, float)) and -1.0 <= float(raw_corr) <= 1.0:
+                row[_normalize_symbol(dst_symbol)] = float(raw_corr)
+        matrix[_normalize_symbol(src_symbol)] = row
+
+    return matrix
+
+
 class RiskManager:
 
     def __init__(self, settings: Settings):
+        self._settings = settings
         self.cfg = settings.risk
+        self._crypto_cfg = settings.crypto_risk
         self._peak_value: float = settings.initial_capital
         self._lock = threading.Lock()
 
@@ -95,6 +122,8 @@ class RiskManager:
             window=self.cfg.var_window,
         )
         self._sector_map = _load_sector_map(self.cfg.sector_map_path)
+        self._correlation_cfg = settings.correlation
+        self._correlation_matrix = _load_correlation_matrix(self._correlation_cfg.matrix_path)
         self._last_rejection_code: str = ""
         self._last_rejection_reason: str = ""
 
@@ -186,7 +215,10 @@ class RiskManager:
 
         # --- Paper-trading guardrails (only in paper mode, not backtest) ---
         if self._is_paper_mode:
-            guardrail_reasons = self._paper_guardrails.all_checks(signal.symbol)
+            guardrail_reasons = self._paper_guardrails.all_checks(
+                signal.symbol,
+                is_crypto=self._settings.is_crypto(signal.symbol),
+            )
             if guardrail_reasons:
                 reason_str = "; ".join(guardrail_reasons)
                 logger.warning(f"PAPER GUARDRAIL [signal rejected]: {reason_str}")
@@ -218,6 +250,8 @@ class RiskManager:
         price: float,
         open_positions: Dict[str, Position],
     ) -> Optional[Order]:
+        is_crypto_symbol = self._settings.is_crypto(signal.symbol)
+
         if signal.symbol in open_positions:
             logger.debug(f"Already holding {signal.symbol}, skipping")
             return None
@@ -229,10 +263,25 @@ class RiskManager:
             )
             return None
 
+        adjusted_strength, correlation_reason = self._check_correlation_limit(
+            signal.symbol,
+            signal.strength,
+            open_positions,
+        )
+        if adjusted_strength <= 0.0:
+            self._last_rejection_code = "CORRELATION_LIMIT"
+            self._last_rejection_reason = correlation_reason
+            logger.warning("RISK GATE [correlation]: %s", correlation_reason)
+            return None
+
         # --- ATR-based stops (preferred) or fall back to fixed % ---
         atr = signal.metadata.get("atr") if signal.metadata else None
+        atr_multiplier = (
+            self._crypto_cfg.atr_multiplier if is_crypto_symbol else self.cfg.atr_multiplier
+        )
+        stop_loss_pct = self._crypto_cfg.stop_loss_pct if is_crypto_symbol else self.cfg.stop_loss_pct
         if self.cfg.use_atr_stops and atr and atr > 0 and price > 0:
-            stop_loss = round(max(price - self.cfg.atr_multiplier * atr, 0.0001), 4)
+            stop_loss = round(max(price - atr_multiplier * atr, 0.0001), 4)
             take_profit = round(price + self.cfg.atr_tp_multiplier * atr, 4)
             # Effective stop % for position sizing (replaces fixed stop_loss_pct)
             effective_stop_pct = (price - stop_loss) / price
@@ -242,13 +291,36 @@ class RiskManager:
                 f"TP=${take_profit:.4f}"
             )
         else:
-            stop_loss = round(price * (1 - self.cfg.stop_loss_pct), 4)
+            stop_loss = round(price * (1 - stop_loss_pct), 4)
             take_profit = round(price * (1 + self.cfg.take_profit_pct), 4)
-            effective_stop_pct = self.cfg.stop_loss_pct
+            effective_stop_pct = stop_loss_pct
 
-        qty = self._size_position(portfolio_value, price, signal.strength, effective_stop_pct)
+        max_position_pct = self._crypto_cfg.max_position_pct if is_crypto_symbol else self.cfg.max_position_pct
+        qty = self._size_position(
+            portfolio_value,
+            price,
+            adjusted_strength,
+            effective_stop_pct,
+            max_position_pct=max_position_pct,
+        )
         if qty <= 0:
             return None
+
+        if is_crypto_symbol:
+            projected_crypto_pct = self._projected_crypto_exposure_pct(
+                signal.symbol,
+                open_positions,
+                portfolio_value,
+                qty * price,
+            )
+            if projected_crypto_pct > self._crypto_cfg.max_portfolio_crypto_pct:
+                self._last_rejection_code = "CRYPTO_EXPOSURE_LIMIT"
+                self._last_rejection_reason = (
+                    f"crypto exposure would be {projected_crypto_pct:.1%} "
+                    f"(limit {self._crypto_cfg.max_portfolio_crypto_pct:.1%})"
+                )
+                logger.warning("RISK GATE [crypto exposure]: %s", self._last_rejection_reason)
+                return None
 
         if reason := self._check_sector_concentration(
             signal.symbol,
@@ -269,12 +341,70 @@ class RiskManager:
             take_profit=take_profit,
         )
 
+    def _check_correlation_limit(
+        self,
+        symbol: str,
+        signal_strength: float,
+        open_positions: Dict[str, Position],
+    ) -> tuple[float, str]:
+        symbol_norm = _normalize_symbol(symbol)
+        if not symbol_norm or not open_positions or not self._correlation_matrix:
+            return signal_strength, ""
+
+        threshold = abs(float(self._correlation_cfg.threshold))
+        if threshold <= 0:
+            return signal_strength, ""
+
+        max_abs_corr = 0.0
+        max_peer = ""
+        for peer_symbol in open_positions:
+            peer_norm = _normalize_symbol(peer_symbol)
+            if not peer_norm:
+                continue
+            corr = self._lookup_correlation(symbol_norm, peer_norm)
+            if abs(corr) > max_abs_corr:
+                max_abs_corr = abs(corr)
+                max_peer = peer_norm
+
+        if max_abs_corr <= threshold:
+            return signal_strength, ""
+
+        mode = str(self._correlation_cfg.mode or "reject").strip().lower()
+        if mode == "scale":
+            scale_factor = max(0.0, 1.0 - ((max_abs_corr - threshold) / max(1.0 - threshold, 1e-9)))
+            adjusted_strength = max(0.0, min(1.0, signal_strength * scale_factor))
+            if adjusted_strength > 0.0:
+                logger.info(
+                    "RISK GATE [correlation]: scaling signal strength for %s due to corr %.2f with %s",
+                    symbol_norm,
+                    max_abs_corr,
+                    max_peer,
+                )
+                return adjusted_strength, ""
+
+        reason = (
+            f"{symbol_norm} correlation {max_abs_corr:.2f} with {max_peer} "
+            f"exceeds threshold {threshold:.2f}"
+        )
+        return 0.0, reason
+
+    def _lookup_correlation(self, symbol_a: str, symbol_b: str) -> float:
+        row_a = self._correlation_matrix.get(symbol_a, {})
+        if symbol_b in row_a:
+            return float(row_a[symbol_b])
+        row_b = self._correlation_matrix.get(symbol_b, {})
+        if symbol_a in row_b:
+            return float(row_b[symbol_a])
+        return 0.0
+
     def _size_position(
         self,
         portfolio_value: float,
         price: float,
         signal_strength: float = 1.0,
         stop_pct: Optional[float] = None,
+        max_position_pct: Optional[float] = None,
+        max_portfolio_risk_pct: Optional[float] = None,
     ) -> float:
         """
         Fixed-fractional sizing:
@@ -298,11 +428,40 @@ class RiskManager:
             return 0.0
         signal_strength = max(0.0, min(1.0, signal_strength))
 
-        risk_dollars = portfolio_value * self.cfg.max_portfolio_risk_pct * signal_strength
+        effective_max_position_pct = (
+            self.cfg.max_position_pct if max_position_pct is None else max_position_pct
+        )
+        effective_max_portfolio_risk_pct = (
+            self.cfg.max_portfolio_risk_pct
+            if max_portfolio_risk_pct is None
+            else max_portfolio_risk_pct
+        )
+
+        risk_dollars = portfolio_value * effective_max_portfolio_risk_pct * signal_strength
         qty_from_risk = risk_dollars / (price * effective_stop)
-        qty_from_cap = (portfolio_value * self.cfg.max_position_pct) / price
+        qty_from_cap = (portfolio_value * effective_max_position_pct) / price
         qty = min(qty_from_risk, qty_from_cap)
         return max(0.0, round(qty, 4))
+
+    def _projected_crypto_exposure_pct(
+        self,
+        symbol: str,
+        open_positions: Dict[str, Position],
+        portfolio_value: float,
+        new_position_value: float,
+    ) -> float:
+        if portfolio_value <= 0:
+            return 0.0
+
+        crypto_value = 0.0
+        for open_symbol, position in open_positions.items():
+            if self._settings.is_crypto(open_symbol):
+                crypto_value += position.market_value
+
+        if self._settings.is_crypto(symbol):
+            crypto_value += new_position_value
+
+        return crypto_value / portfolio_value
 
     def _check_sector_concentration(
         self,

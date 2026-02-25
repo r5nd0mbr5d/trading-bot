@@ -11,10 +11,12 @@ To add Binance (crypto):    implement BrokerBase using python-binance.
 import logging
 import uuid
 from abc import ABC, abstractmethod
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Any, Dict
 
 from src.data.models import Order, OrderSide, OrderStatus, Position
+from src.data.symbol_utils import normalize_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +80,7 @@ class AlpacaBroker(BrokerBase):
             from alpaca.trading.requests import MarketOrderRequest
 
             req = MarketOrderRequest(
-                symbol=order.symbol,
+                symbol=normalize_symbol(order.symbol, "alpaca"),
                 qty=order.qty,
                 side=AS.BUY if order.side == OrderSide.BUY else AS.SELL,
                 time_in_force=TimeInForce.DAY,
@@ -148,6 +150,217 @@ class AlpacaBroker(BrokerBase):
 
     def is_live_mode(self) -> bool:
         return not self.is_paper_mode()
+
+
+class BinanceBroker(BrokerBase):
+    """Binance broker adapter (spot) with optional testnet routing."""
+
+    def __init__(self, settings):
+        self.cfg = settings.broker
+        self._client = None
+        self._order_symbol_by_id: Dict[str, str] = {}
+        self._connect()
+
+    def _connect(self) -> None:
+        try:
+            from binance.client import Client
+
+            self._client = Client(
+                self.cfg.binance_api_key,
+                self.cfg.binance_secret_key,
+                testnet=self.cfg.binance_testnet,
+            )
+            if self.cfg.binance_testnet:
+                self._client.API_URL = "https://testnet.binance.vision/api"
+            logger.info(
+                "Connected to Binance (%s)",
+                "testnet" if self.cfg.binance_testnet else "live",
+            )
+        except ImportError:
+            logger.warning("python-binance not installed: pip install python-binance")
+            self._client = None
+        except Exception as exc:
+            logger.error("Binance connection failed: %s", exc)
+            self._client = None
+
+    def _round_quantity(self, symbol: str, quantity: float) -> float:
+        if self._client is None:
+            return 0.0
+        try:
+            symbol_info = self._client.get_symbol_info(symbol) or {}
+            filters = symbol_info.get("filters", []) or []
+            lot_filter = next((flt for flt in filters if flt.get("filterType") == "LOT_SIZE"), None)
+            if lot_filter is None:
+                return max(0.0, round(float(quantity), 8))
+
+            step_size = str(lot_filter.get("stepSize", "0"))
+            min_qty = float(lot_filter.get("minQty", "0") or 0.0)
+            if float(quantity) < min_qty:
+                return 0.0
+
+            step = Decimal(step_size)
+            if step <= 0:
+                return max(0.0, round(float(quantity), 8))
+
+            qty_dec = Decimal(str(max(float(quantity), 0.0)))
+            rounded_qty = (qty_dec // step) * step
+            if rounded_qty < Decimal(str(min_qty)):
+                return 0.0
+            return float(rounded_qty)
+        except (InvalidOperation, ValueError, TypeError):
+            return max(0.0, round(float(quantity), 8))
+        except Exception as exc:
+            logger.error("Binance quantity rounding failed for %s: %s", symbol, exc)
+            return max(0.0, round(float(quantity), 8))
+
+    def _symbol_price(self, symbol: str) -> float:
+        if not self._client:
+            return 0.0
+        try:
+            ticker = self._client.get_symbol_ticker(symbol=symbol)
+            return float(ticker.get("price", 0.0) or 0.0)
+        except Exception:
+            return 0.0
+
+    def submit_order(self, order: Order) -> Order:
+        if not self._client:
+            order.status = OrderStatus.REJECTED
+            return order
+
+        try:
+            symbol = normalize_symbol(order.symbol, "binance")
+            qty = self._round_quantity(symbol, order.qty)
+            if qty <= 0:
+                order.status = OrderStatus.REJECTED
+                return order
+
+            if order.side == OrderSide.BUY:
+                response: Dict[str, Any] = self._client.order_market_buy(symbol=symbol, quantity=qty)
+            else:
+                response = self._client.order_market_sell(symbol=symbol, quantity=qty)
+
+            order_id = str(response.get("orderId", ""))
+            order.order_id = order_id
+            if order_id:
+                self._order_symbol_by_id[order_id] = symbol
+
+            status = str(response.get("status", "")).upper()
+            order.status = OrderStatus.FILLED if status == "FILLED" else OrderStatus.PENDING
+
+            fills = response.get("fills", []) or []
+            if fills:
+                total_qty = 0.0
+                weighted_notional = 0.0
+                for fill in fills:
+                    fill_qty = float(fill.get("qty", 0.0) or 0.0)
+                    fill_price = float(fill.get("price", 0.0) or 0.0)
+                    total_qty += fill_qty
+                    weighted_notional += fill_qty * fill_price
+                if total_qty > 0:
+                    order.filled_price = weighted_notional / total_qty
+                    order.filled_at = datetime.now(timezone.utc)
+
+            return order
+        except Exception as exc:
+            logger.error("Binance submit_order failed: %s", exc)
+            order.status = OrderStatus.REJECTED
+            return order
+
+    def cancel_order(self, order_id: str) -> bool:
+        if not self._client:
+            return False
+
+        symbol = self._order_symbol_by_id.get(str(order_id), "")
+        if not symbol:
+            return False
+
+        try:
+            self._client.cancel_order(symbol=symbol, orderId=int(order_id))
+            return True
+        except Exception as exc:
+            logger.error("Binance cancel_order failed: %s", exc)
+            return False
+
+    def get_positions(self) -> Dict[str, Position]:
+        if not self._client:
+            return {}
+
+        positions: Dict[str, Position] = {}
+        try:
+            account = self._client.get_account() or {}
+            balances = account.get("balances", []) or []
+            for balance in balances:
+                asset = str(balance.get("asset", "")).upper()
+                free_qty = float(balance.get("free", 0.0) or 0.0)
+                locked_qty = float(balance.get("locked", 0.0) or 0.0)
+                total_qty = free_qty + locked_qty
+                if asset in {"", "GBP"} or total_qty <= 0:
+                    continue
+
+                symbol = normalize_symbol(f"{asset}GBP", "binance")
+                mark_price = self._symbol_price(symbol)
+                if mark_price <= 0:
+                    continue
+
+                positions[symbol] = Position(
+                    symbol=symbol,
+                    qty=total_qty,
+                    avg_entry_price=mark_price,
+                    current_price=mark_price,
+                )
+            return positions
+        except Exception as exc:
+            logger.error("Binance get_positions failed: %s", exc)
+            return {}
+
+    def get_portfolio_value(self) -> float:
+        if not self._client:
+            return 0.0
+
+        try:
+            account = self._client.get_account() or {}
+            balances = account.get("balances", []) or []
+            total_value = 0.0
+
+            for balance in balances:
+                asset = str(balance.get("asset", "")).upper()
+                free_qty = float(balance.get("free", 0.0) or 0.0)
+                locked_qty = float(balance.get("locked", 0.0) or 0.0)
+                total_qty = free_qty + locked_qty
+                if total_qty <= 0:
+                    continue
+
+                if asset == "GBP":
+                    total_value += total_qty
+                    continue
+
+                symbol = normalize_symbol(f"{asset}GBP", "binance")
+                mark_price = self._symbol_price(symbol)
+                if mark_price > 0:
+                    total_value += total_qty * mark_price
+
+            return total_value
+        except Exception as exc:
+            logger.error("Binance get_portfolio_value failed: %s", exc)
+            return 0.0
+
+    def get_cash(self) -> float:
+        if not self._client:
+            return 0.0
+
+        try:
+            account = self._client.get_account() or {}
+            balances = account.get("balances", []) or []
+            gbp_balance = next(
+                (balance for balance in balances if str(balance.get("asset", "")).upper() == "GBP"),
+                None,
+            )
+            if gbp_balance is None:
+                return 0.0
+            return float(gbp_balance.get("free", 0.0) or 0.0)
+        except Exception as exc:
+            logger.error("Binance get_cash failed: %s", exc)
+            return 0.0
 
 
 class PaperBroker(BrokerBase):

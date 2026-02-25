@@ -22,6 +22,14 @@ class DataConfig:
     symbols: List[str] = field(
         default_factory=lambda: ["HSBA.L", "LLOY.L", "BP.L", "RIO.L", "GLEN.L"]  # UK LSE symbols
     )
+    symbol_asset_class_map: Dict[str, str] = field(
+        default_factory=lambda: {
+            "BTCGBP": "CRYPTO",
+            "BTC-GBP": "CRYPTO",
+            "BTC/GBP": "CRYPTO",
+        }
+    )
+    crypto_symbols: List[str] = field(default_factory=lambda: ["BTCGBP"])
     timeframe: str = "1d"              # 1m | 5m | 15m | 1h | 1d
     lookback_days: int = 365
     cache_dir: str = "data/cache"
@@ -30,7 +38,7 @@ class DataConfig:
 
 @dataclass
 class StrategyConfig:
-    name: str = "ma_crossover"         # ma_crossover | rsi_momentum | obv_momentum | stochastic_oscillator
+    name: str = "ma_crossover"         # ma_crossover | rsi_momentum | atr_stops | obv_momentum | stochastic_oscillator
     # Moving Average Crossover
     fast_period: int = 20
     slow_period: int = 50
@@ -66,6 +74,17 @@ class StochasticConfig:
     smooth_window: int = 3
     oversold: float = 20.0
     overbought: float = 80.0
+
+
+@dataclass
+class ATRConfig:
+    """ATR volatility-scaled strategy parameters."""
+
+    period: int = 14
+    fast_ma_period: int = 20
+    slow_ma_period: int = 50
+    low_vol_threshold_pct: float = 0.03
+    stop_multiplier: float = 2.0
 
 
 @dataclass
@@ -105,6 +124,26 @@ class RiskConfig:
 
 
 @dataclass
+class CryptoRiskConfig:
+    """Crypto-specific risk overlays applied per-symbol via asset-class metadata."""
+
+    max_position_pct: float = 0.05
+    stop_loss_pct: float = 0.08
+    atr_multiplier: float = 3.0
+    commission_rate: float = 0.001
+    max_portfolio_crypto_pct: float = 0.15
+
+
+@dataclass
+class CorrelationConfig:
+    """Correlation-based portfolio concentration controls."""
+
+    matrix_path: str = "config/uk_correlations.json"
+    threshold: float = 0.7
+    mode: str = "reject"  # reject | scale
+
+
+@dataclass
 class PaperGuardrailsConfig:
     """Paper-trading-only runtime safeguards (disabled in backtest)."""
     enabled: bool = True
@@ -127,6 +166,7 @@ class PaperGuardrailsConfig:
     skip_cooldown: bool = False
     skip_session_window: bool = False
     skip_auto_stop: bool = False
+    skip_session_window_for_crypto: bool = True
 
 
 @dataclass
@@ -148,8 +188,33 @@ class ReconciliationConfig:
 
 
 @dataclass
+class SlippageConfig:
+    """Configurable slippage and commission assumptions for backtesting."""
+
+    preset: str = "realistic"  # optimistic | realistic | pessimistic
+    spread_bps: float = 8.0
+    impact_bps: float = 12.0
+    impact_threshold_adv_frac: float = 0.01
+    commission_rate: float = 0.0005
+    commission_min: float = 1.70
+    fallback_adv: float = 1_000_000.0
+
+
+@dataclass
+class WalkForwardConfig:
+    """Walk-forward validation harness settings."""
+
+    n_splits: int = 8
+    in_sample_ratio: float = 0.7
+    window_type: str = "expanding"  # expanding | rolling
+    score_metric: str = "sharpe_ratio"
+    output_path: str = "backtest/walk_forward_results.json"
+    param_grid: Dict[str, List[Any]] = field(default_factory=dict)
+
+
+@dataclass
 class BrokerConfig:
-    provider: str = field(default_factory=lambda: os.getenv("BROKER_PROVIDER", "ibkr"))  # alpaca | ibkr
+    provider: str = field(default_factory=lambda: os.getenv("BROKER_PROVIDER", "ibkr"))  # alpaca | ibkr | binance
     api_key: str = field(
         default_factory=lambda: os.getenv("ALPACA_API_KEY", "")
     )
@@ -171,6 +236,12 @@ class BrokerConfig:
     outage_backoff_jitter_seconds: float = field(default_factory=lambda: float(os.getenv("BROKER_OUTAGE_BACKOFF_JITTER_SECONDS", "0.1")))
     outage_consecutive_failure_limit: int = field(default_factory=lambda: int(os.getenv("BROKER_OUTAGE_CONSECUTIVE_FAILURE_LIMIT", "3")))
     outage_skip_retries: bool = field(default_factory=lambda: os.getenv("BROKER_OUTAGE_SKIP_RETRIES", "false").strip().lower() in {"1", "true", "yes", "on"})
+    binance_api_key: str = field(default_factory=lambda: os.getenv("BINANCE_API_KEY", ""))
+    binance_secret_key: str = field(default_factory=lambda: os.getenv("BINANCE_SECRET_KEY", ""))
+    binance_testnet: bool = field(
+        default_factory=lambda: os.getenv("BINANCE_TESTNET", "true").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
     # Optional per-symbol contract routing overrides, e.g.
     # {"HSBA.L": {"ib_symbol": "HSBA", "exchange": "SMART", "currency": "GBP", "primary_exchange": "LSE"}}
     ibkr_symbol_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
@@ -180,12 +251,17 @@ class BrokerConfig:
 class Settings:
     data: DataConfig = field(default_factory=DataConfig)
     strategy: StrategyConfig = field(default_factory=StrategyConfig)
+    atr: ATRConfig = field(default_factory=ATRConfig)
     obv: OBVConfig = field(default_factory=OBVConfig)
     stochastic: StochasticConfig = field(default_factory=StochasticConfig)
     data_quality: DataQualityConfig = field(default_factory=DataQualityConfig)
     risk: RiskConfig = field(default_factory=RiskConfig)
+    crypto_risk: CryptoRiskConfig = field(default_factory=CryptoRiskConfig)
+    correlation: CorrelationConfig = field(default_factory=CorrelationConfig)
     paper_guardrails: PaperGuardrailsConfig = field(default_factory=PaperGuardrailsConfig)
     reconciliation: ReconciliationConfig = field(default_factory=ReconciliationConfig)
+    slippage: SlippageConfig = field(default_factory=SlippageConfig)
+    walk_forward: WalkForwardConfig = field(default_factory=WalkForwardConfig)
     broker: BrokerConfig = field(default_factory=BrokerConfig)
     initial_capital: float = 100_000.0
     base_currency: str = field(default_factory=lambda: os.getenv("BASE_CURRENCY", "GBP"))  # GBP for UK, USD for US
@@ -219,3 +295,17 @@ class Settings:
     paper_db_archive_dir: str = field(
         default_factory=lambda: os.getenv("PAPER_DB_ARCHIVE_DIR", "archives/db")
     )
+
+    def is_crypto(self, symbol: str) -> bool:
+        """Return True when a symbol is configured as crypto asset class."""
+        normalized_symbol = (symbol or "").strip().upper()
+        if not normalized_symbol:
+            return False
+
+        symbol_map = self.data.symbol_asset_class_map or {}
+        mapped_value = symbol_map.get(normalized_symbol)
+        if mapped_value is None:
+            return False
+
+        normalized_asset = str(mapped_value).strip().upper()
+        return normalized_asset in {"CRYPTO", "ASSETCLASS.CRYPTO"}

@@ -26,6 +26,7 @@ from config.settings import Settings
 from src.data.feeds import MarketDataFeed
 from src.data.models import Bar, Signal
 from src.execution.broker import PaperBroker
+from src.execution.slippage import SlippageModel
 from src.risk.manager import RiskManager
 from src.strategies.base import BaseStrategy
 
@@ -139,13 +140,12 @@ class BacktestEngine:
         entry_prices: Dict[str, float] = {}
         # Orders buffered at bar[t] close, filled at bar[t+1] open
         pending_orders: list = []
-
-        slippage = self.settings.broker.slippage_pct
-        commission_per_share = self.settings.broker.commission_per_share
+        slippage_model = SlippageModel(self.settings.slippage)
 
         for date in all_dates:
             open_prices: Dict[str, float] = {}
             close_prices: Dict[str, float] = {}
+            daily_volumes: Dict[str, float] = {}
 
             for symbol, df in all_data.items():
                 if date not in df.index:
@@ -153,6 +153,7 @@ class BacktestEngine:
                 row = df.loc[date]
                 open_prices[symbol] = float(row["open"])
                 close_prices[symbol] = float(row["close"])
+                daily_volumes[symbol] = float(row.get("volume", 0.0) or 0.0)
 
             # --- Fill pending orders from previous bar at today's open ---
             still_pending: list = []
@@ -163,11 +164,14 @@ class BacktestEngine:
                     still_pending.append(entry)
                     continue
                 raw_open = open_prices[sym]
-                if order.side.value == "buy":
-                    fill_price = raw_open * (1 + slippage)
-                else:
-                    fill_price = raw_open * (1 - slippage)
-                commission = order.qty * commission_per_share
+                adv = daily_volumes.get(sym, 0.0) or float(self.settings.slippage.fallback_adv)
+                fill_price = slippage_model.estimate_fill_price(
+                    order.side.value,
+                    raw_open,
+                    order.qty,
+                    adv,
+                )
+                commission = slippage_model.estimate_commission(order.qty, fill_price)
                 filled = self.broker.fill_order_at_price(order, fill_price, commission)
                 trade = {
                     "date": date,

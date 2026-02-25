@@ -134,8 +134,12 @@ class TradingLoopHandler:
         if not self._check_data_quality(bar):
             return
 
-        if self.settings.enforce_market_hours and not is_market_open(
+        if (
+            self.settings.enforce_market_hours
+            and not self.settings.is_crypto(bar.symbol)
+            and not is_market_open(
             bar.symbol, bar.timestamp
+            )
         ):
             logger.debug(
                 "Skipping %s bar at %s: market closed",
@@ -245,6 +249,14 @@ class TradingLoopHandler:
             if rejection.get("code") == "SECTOR_CONCENTRATION_REJECTED":
                 self.enqueue_audit(
                     "SECTOR_CONCENTRATION_REJECTED",
+                    {"reason": rejection.get("reason", "")},
+                    symbol=signal.symbol,
+                    strategy=signal.strategy_name,
+                    severity="warning",
+                )
+            if rejection.get("code") == "CORRELATION_LIMIT":
+                self.enqueue_audit(
+                    "CORRELATION_LIMIT",
                     {"reason": rejection.get("reason", "")},
                     symbol=signal.symbol,
                     strategy=signal.strategy_name,

@@ -114,3 +114,25 @@ def test_to_bars_emits_utc_aware_timestamps():
     assert len(bars) == 2
     assert bars[0].timestamp.tzinfo is not None
     assert bars[0].timestamp.tzinfo == timezone.utc
+
+
+def test_fetch_historical_normalizes_btcgbp_for_yfinance_provider():
+    class CapturingProvider:
+        def __init__(self):
+            self.captured_symbol = ""
+
+        def fetch_historical(self, **kwargs):
+            self.captured_symbol = kwargs["symbol"]
+            idx = pd.DatetimeIndex(["2024-01-01", "2024-01-02"], tz="UTC")
+            return _sample_df(idx)
+
+    settings = Settings()
+    settings.data.source = "yfinance"
+    settings.data.cache_enabled = False
+    feed = MarketDataFeed(settings)
+    provider = CapturingProvider()
+    feed._primary_provider = provider
+
+    _ = feed.fetch_historical("BTCGBP", period="1y", interval="1d")
+
+    assert provider.captured_symbol == "BTC-GBP"
