@@ -2649,6 +2649,9 @@ black --check src/ tests/ backtest/ --line-length 100
   2. Confirm new keys are only stored locally and never committed.
   3. Validate with `git ls-files .env` (should return nothing) and `git ls-files .env.example` (should remain tracked).
 
+**Operator Attestation (Feb 26, 2026):**
+- Current `.env` has no sensitive credential material; rotation is not required at this time.
+
 ### Week of Feb 23 (This Week)
 - [x] Prompt 1: Paper session summary â€” COMPLETE
 - [x] Prompt 6: Paper trial mode + manifest â€” COMPLETE

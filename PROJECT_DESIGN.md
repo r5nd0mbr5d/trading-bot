@@ -665,7 +665,7 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 | **TD-017** | UK intraday symbol availability instability can block MO-2 fills | MEDIUM (RESOLVED) | Step 72 | Resolved Feb 25, 2026 — added symbol-universe health evaluation, strict paper-trial block by availability threshold, and optional deterministic remediation with audit visibility. |
 | **TD-018** | No request-type-specific yfinance retry policy; local cache sizing decision undocumented | MEDIUM | Step 73 / RFC-005 | Intermittent provider false negatives may cause avoidable run instability; design/implementation tracked under Step 73 with explicit feasibility note requirement. |
 | **TD-019** | Step1A runs rely on manual IBKR client-id selection, causing avoidable collision failures | MEDIUM (RESOLVED) | Step 74 / RFC-006 | Resolved Feb 25, 2026 — added auto client-id wrapper with bounded retry on collision evidence and non-collision fail-fast behavior. |
-| **TD-020** | Git/repository hygiene risk: tracked `.env`, tracked runtime DB artifacts, mixed stash content, and CI/pre-commit policy drift | HIGH | Step 76 / ops secret rotation | Step 76 completed (Feb 26, 2026): `.env` and runtime DB artifacts untracked, CI policy checks added, and stash/commit hygiene runbook added. **Remaining blocker:** operator credential rotation and post-rotation verification. |
+| **TD-020** | Git/repository hygiene risk: tracked `.env`, tracked runtime DB artifacts, mixed stash content, and CI/pre-commit policy drift | HIGH (RESOLVED) | Step 76 | Step 76 completed (Feb 26, 2026): `.env` and runtime DB artifacts untracked, CI policy checks added, and stash/commit hygiene runbook added. Operator attestation recorded: current `.env` contains no sensitive values; no credential rotation required at this time. |
 
 ---
 
@@ -724,6 +724,10 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
     - added CI policy-check stage (black/isort/flake8 + LPDD consistency checker) before test-and-coverage job
     - added operator runbook section for stash-safe restore categories and strict commit boundaries
     - carried forward operator-only secret rotation checklist as the remaining TD-020 closure requirement
+
+**[2026-02-26] Session (Operator confirmation)**
+- Operator confirmed current `.env` has no sensitive credentials; credential rotation is not required at this time.
+- TD-020 marked resolved from governance perspective (Git hygiene controls in place and no active secret-rotation blocker).
 
 **[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
 - Added IBKR TWS API hardening mapping into the operational Step 1A runbook (`IMPLEMENTATION_BACKLOG.md`):
