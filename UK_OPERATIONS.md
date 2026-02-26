@@ -259,6 +259,24 @@ Lists FX pairs used during conversion and configured rates.
 7. `python main.py paper_reconcile --profile uk_paper --db-path trading.db --expected-json reports/session/expected_kpis.json --output-dir reports/reconcile --strict-reconcile`
 8. Archive `reports/uk_tax`, `reports/session`, and `reports/reconcile` with run date and strategy metadata.
 
+---
+
+## 10) Git Hygiene (Operator Quick Rules)
+
+Use non-destructive stash restore by category to avoid reintroducing runtime noise:
+- Code only: `git checkout 'stash@{0}' -- src tests config scripts`
+- Docs only: `git checkout 'stash@{0}' -- *.md docs`
+- Runtime artifacts only (only when explicitly needed): `git checkout 'stash@{0}' -- reports`
+
+Keep commit boundaries strict:
+- Commit A: Git hygiene and policy files only (`.gitignore`, CI workflow, runbook updates)
+- Commit B: application/runtime code changes only
+- Commit C: docs-only updates (LPDD/session logs/backlog)
+
+Do not commit local secret/runtime files:
+- `.env` (keep `.env.example` tracked)
+- local DB/runtime artifacts (`*.db`, `*.sqlite`, `*.sqlite3`)
+
 Tip: Replace `expected_kpis.json`/`tolerances.json` with one of the files in `reports/session/presets/` to choose conservative, standard, or aggressive drift policy.
 Tip: For repeatable ops, replace steps 3-7 with a single `paper_trial` run.
 

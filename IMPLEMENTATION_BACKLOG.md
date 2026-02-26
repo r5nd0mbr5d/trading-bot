@@ -6,8 +6,8 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 84 (7 Prompts + 76 Next Steps + Code Style Governance)
-**Completed**: 76 (Prompts 1–7 + completed steps listed in their individual entries)
+**Total Items**: 85 (7 Prompts + 77 Next Steps + Code Style Governance)
+**Completed**: 77 (Prompts 1–7 + completed steps listed in their individual entries)
 **In Progress**: 1 (Step 1A burn-in)
 **Not Started**: 5 (Steps 32, 57, 62, 67, 68)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
@@ -25,7 +25,7 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 | Priority | Step | Name | Effort | Depends on |
 |---|---|---|---|---|
-| MEDIUM | **70** | Further Research: literature deep-review synthesis pack | 4–8h | 64 |
+| — | — | No unblocked Copilot implementation steps (remaining items are Opus-gated or operator milestones) | — | — |
 
 ### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
 
@@ -2612,6 +2612,42 @@ black --check src/ tests/ backtest/ --line-length 100
 - Created `.vscode/settings.json` with `chat.viewSessions.enabled`, `chat.agentsControl.enabled`, `chat.agent.enabled`
 - Added ADR-017, updated §10 agent matrix with custom agent roles table
 - Updated governance doc references (copilot-instructions, DOCUMENTATION_INDEX)
+
+---
+
+### Step 76: Git/Repo Hygiene Hardening + Secret/Artifact De-risk
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — current Git hygiene audit indicates non-production-ready repository state due tracked `.env`, tracked runtime DB artifacts, mixed stash risk, and CI policy drift from documented governance
+**Intended Agent**: Copilot (implementation) + Operator (secret rotation)
+**Execution Prompt**: Execute a minimal, non-destructive Git hygiene hardening pass. (1) Update `.gitignore` to cover `.env`, local DB/runtime artifacts, cache/coverage outputs, and temporary archives without introducing broad ignores that hide source changes. (2) Untrack sensitive/runtime files using cache-only removal (`git rm --cached`) while preserving local files. (3) Add a dedicated CI check stage that enforces documented repository policy parity (pre-commit/lint and LPDD consistency checker) before test execution. (4) Add/refresh a short operator runbook note for stash-safe restore categories (code/docs/artifacts) and commit boundaries. (5) Do not rotate credentials in code; instead emit explicit operator-required rotation checklist in completion notes.
+
+**Scope**:
+- `.gitignore` — targeted ignore additions only
+- `.github/workflows/ci.yml` — policy-aligned gates
+- `UK_OPERATIONS.md` or `DEVELOPMENT_GUIDE.md` — concise stash/commit hygiene note
+- `PROJECT_DESIGN.md` §6 — evolution log entry on completion
+
+**Validation Criteria**:
+- `.env` is no longer tracked by Git and `.env.example` remains tracked
+- Runtime DB artifacts are no longer tracked unless explicitly designated as fixtures
+- CI enforces at least one formatting/lint gate plus LPDD consistency check in addition to tests
+- Working tree noise is reduced with no destructive file deletion
+- Completion notes include operator secret-rotation checklist and stash restore strategy
+
+**Dependencies**: Step 71, Step 75
+**Estimated Effort**: 1–2 hours
+
+**Completion Notes (Feb 26, 2026):**
+- `.gitignore` hardened with targeted rules for local env files (`.env`), runtime DB artifacts, and local cache/coverage outputs while preserving `.env.example` tracking.
+- Non-destructive cache-only untracking applied (`git rm --cached`) for `.env` and tracked runtime DB files; local files preserved on disk.
+- CI workflow updated with policy-check stage before test execution:
+  - lint gates: `black --check`, `isort --check-only`, `flake8`
+  - governance gate: `python scripts/lpdd_consistency_check.py --root .`
+- `UK_OPERATIONS.md` updated with stash-safe restore categories and strict commit-boundary guidance.
+- Operator secret-rotation checklist (required, out-of-band):
+  1. Rotate all credentials that may have existed in historical `.env` commits.
+  2. Confirm new keys are only stored locally and never committed.
+  3. Validate with `git ls-files .env` (should return nothing) and `git ls-files .env.example` (should remain tracked).
 
 ### Week of Feb 23 (This Week)
 - [x] Prompt 1: Paper session summary â€” COMPLETE

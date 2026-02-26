@@ -1,3 +1,38 @@
 data/cache/
 __pycache__/
 *.py[cod]
+
+# Environment files (keep template tracked)
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Generated runtime/session artifacts
+reports/uk_tax/mo2_orchestrator/session_*/
+reports/uk_tax/step1a_burnin/session_*/
+reports/uk_tax/step1a_preflight/
+
+# Local research stores/snapshots
+research/data/local_store/
+research/data/snapshots/
+
+# Local runtime databases/artifacts
+*.db
+*.sqlite
+*.sqlite3
+
+# Local test/cache/coverage outputs
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local temporary archives
+tmp/*.zip

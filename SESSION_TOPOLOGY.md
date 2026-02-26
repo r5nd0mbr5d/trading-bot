@@ -113,14 +113,14 @@ follow the corresponding protocol.
 
 | Field | Value |
 |---|---|
-| **Purpose** | External source review, documentation consolidation, queue hygiene, LPDD maintenance |
+| **Purpose** | External source review, documentation consolidation, queue hygiene, LPDD maintenance, Git/repository governance audits |
 | **Agent** | Claude Opus (external review) or Copilot (documentation maintenance) |
-| **Pre-reads** | `DOCUMENTATION_INDEX.md`, `PROJECT_DESIGN.md` (§1–§3), `SESSION_LOG.md` (last 3 entries) |
+| **Pre-reads** | `DOCUMENTATION_INDEX.md`, `PROJECT_DESIGN.md` (§1–§3), `SESSION_LOG.md` (last 3 entries), `.gitignore`, `pyproject.toml`, `requirements.txt`, `.github/workflows/ci.yml` |
 | **Artifacts** | Updated docs, reclassified queue items, archived stale files, scorecard entries |
 | **Handoff** | Updated queue counts, index refreshes, write `SESSION_LOG.md` entry |
 | **Scope guard** | Do not write production code. Consolidate, archive, and organize. |
 
-**Trigger phrases:** "review these sources...", "clean up the docs", "update the queues", "consolidate..."
+**Trigger phrases:** "review these sources...", "clean up the docs", "update the queues", "consolidate...", "git hygiene audit", "repository governance review"
 
 ---
 

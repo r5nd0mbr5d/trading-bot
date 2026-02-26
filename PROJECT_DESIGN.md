@@ -1,7 +1,7 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
 **Version:** 1.5
-**Last Updated:** Feb 25, 2026
+**Last Updated:** Feb 26, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
 > This is the canonical design document for the trading bot project.
@@ -665,6 +665,7 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 | **TD-017** | UK intraday symbol availability instability can block MO-2 fills | MEDIUM (RESOLVED) | Step 72 | Resolved Feb 25, 2026 — added symbol-universe health evaluation, strict paper-trial block by availability threshold, and optional deterministic remediation with audit visibility. |
 | **TD-018** | No request-type-specific yfinance retry policy; local cache sizing decision undocumented | MEDIUM | Step 73 / RFC-005 | Intermittent provider false negatives may cause avoidable run instability; design/implementation tracked under Step 73 with explicit feasibility note requirement. |
 | **TD-019** | Step1A runs rely on manual IBKR client-id selection, causing avoidable collision failures | MEDIUM (RESOLVED) | Step 74 / RFC-006 | Resolved Feb 25, 2026 — added auto client-id wrapper with bounded retry on collision evidence and non-collision fail-fast behavior. |
+| **TD-020** | Git/repository hygiene risk: tracked `.env`, tracked runtime DB artifacts, mixed stash content, and CI/pre-commit policy drift | HIGH | Step 76 / ops secret rotation | Step 76 completed (Feb 26, 2026): `.env` and runtime DB artifacts untracked, CI policy checks added, and stash/commit hygiene runbook added. **Remaining blocker:** operator credential rotation and post-rotation verification. |
 
 ---
 
@@ -708,6 +709,21 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 
 **[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
 - Added RFC-006 and resolved TD-019 to formalize Step1A client-id collision mitigation in LPDD.
+
+**[2026-02-26] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Integrated Git/repository-governance audit findings into LPDD process:
+    - added TD-020 to track Git hygiene production-readiness gap (tracked `.env`, tracked runtime DB artifacts, mixed stash risk, CI/pre-commit alignment drift)
+    - added Step 76 in `IMPLEMENTATION_BACKLOG.md` for non-destructive hygiene hardening and commit-boundary enforcement
+    - extended `SESSION_TOPOLOGY.md` REVIEW scope to include Git hygiene audits with mandatory repo-policy pre-reads
+    - clarified agent ownership in §10 for Git hygiene auditing, implementation, and secret rotation decisions
+
+**[2026-02-26] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Completed Step 76: Git/Repo hygiene hardening + secret/artifact de-risk (non-destructive):
+    - updated `.gitignore` with targeted env/runtime/cache/coverage ignore rules while retaining `.env.example`
+    - untracked `.env` and local runtime DB artifacts via `git rm --cached` (local files preserved)
+    - added CI policy-check stage (black/isort/flake8 + LPDD consistency checker) before test-and-coverage job
+    - added operator runbook section for stash-safe restore categories and strict commit boundaries
+    - carried forward operator-only secret rotation checklist as the remaining TD-020 closure requirement
 
 **[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
 - Added IBKR TWS API hardening mapping into the operational Step 1A runbook (`IMPLEMENTATION_BACKLOG.md`):
@@ -1136,6 +1152,10 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 | Adding a new strategy (`BaseStrategy` subclass) | **Copilot** | Pattern: follow `ma_crossover.py` |
 | Updating LPDD after step completion | **Copilot** | Mechanical; instructions in `copilot-instructions.md` |
 | LPDD consistency audit / governance drift check | **LPDD Auditor** (custom agent) | Scope-guarded to docs-only; runs consistency check |
+| Git/repository hygiene audit and evidence scoring | **LPDD Auditor** (custom agent) | Read-first governance audit with no code mutation |
+| Git ignore policy hardening and non-destructive untracking | **Copilot** | Deterministic implementation task with bounded scope |
+| Secret rotation and credential lifecycle actions | **Operator** | Human accountability; credential issuance authority |
+| Policy-level Git workflow changes (branch model, protected checks, merge policy) | **Claude Opus** | Requires trade-off and governance decision judgment |
 | Running MO-* paper trials and burn-in sessions | **Ops Runner** (custom agent) | Scope-guarded to scripts + evidence; no code edits |
 | ML experiment review / external paper assessment | **Research Reviewer** (custom agent) | Scope-guarded to research/; enforces claim-integrity |
 | Designing a new module interface from scratch | **Claude Opus** | Requires trade-off analysis |

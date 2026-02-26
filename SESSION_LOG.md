@@ -846,3 +846,67 @@
 **Handoff Notes:**
 > Highest-priority unblocked IMPL ticket is now closed (Step 73).
 > Next highest-priority unblocked Copilot task is Step 70 (MEDIUM).
+
+---
+
+## [2026-02-26 00:00 UTC] — REVIEW — Copilot (GPT-5.3-Codex)
+
+**Goal:** Incorporate Git/repository-governance audit findings into LPDD process with explicit agent ownership and remediation routing.
+
+**Outcome:**
+- Added LPDD technical-debt tracking for Git hygiene risk (`TD-020`) covering tracked `.env`, tracked runtime DB artifacts, mixed stash risk, and CI/pre-commit policy drift.
+- Added a new backlog ticket (`Step 76`) as the authoritative Copilot-actionable remediation path for non-destructive Git hygiene hardening.
+- Extended session topology REVIEW scope to include Git/repository governance audits with mandatory repo-policy pre-reads.
+- Expanded agent assignment matrix to clarify who audits, who implements, who decides policy, and who rotates credentials.
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- Steps blocked: none
+- MO-* updates: none
+
+**Files Modified:**
+- `PROJECT_DESIGN.md` — `TD-020`, evolution log entry, and §10 agent assignment additions for Git governance
+- `IMPLEMENTATION_BACKLOG.md` — added Step 76 and promoted it to Immediately Actionable queue; summary counts updated
+- `SESSION_TOPOLOGY.md` — REVIEW session type expanded with Git-governance scope and pre-read list
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** docs/process changes only; no runtime code paths modified
+
+**Handoff Notes:**
+> Repository remains non-production-ready for Git hygiene until Step 76 closes and operator completes credential rotation.
+> Recommended sequencing: Step 76 implementation (Copilot) → operator key rotation → final LPDD/CI verification pass.
+
+---
+
+## [2026-02-26 00:20 UTC] — IMPL — Copilot (GPT-5.3-Codex)
+
+**Goal:** Execute Step 76 as a minimal, non-destructive Git hygiene hardening pass and prepare clean commit boundaries.
+
+**Outcome:**
+- Completed Step 76 implementation scope:
+	- `.gitignore` hardened for `.env`, runtime DB artifacts, and local cache/coverage outputs
+	- `.env` and tracked runtime DB artifacts untracked using cache-only removal (`git rm --cached`)
+	- CI updated with policy-check stage (`black --check`, `isort --check-only`, `flake8`, LPDD consistency check) before tests
+	- `UK_OPERATIONS.md` updated with stash-safe restore categories and strict commit-boundary guidance
+- LPDD updated: Step 76 marked COMPLETED, queue counts synchronized, and PROJECT_DESIGN evolution/debt notes aligned.
+
+**Queue Changes:**
+- Steps started: 76
+- Steps completed: 76
+- Steps blocked: none
+- MO-* updates: none
+
+**Files Modified:**
+- `.gitignore` — targeted ignore additions
+- `.github/workflows/ci.yml` — policy-check job + dependency wiring
+- `UK_OPERATIONS.md` — Git hygiene operator quick rules
+- `IMPLEMENTATION_BACKLOG.md` — Step 76 completed + summary/queue updates
+- `PROJECT_DESIGN.md` — TD-020 note + §6 evolution entry
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** Not re-run in this step (Git/CI/doc-process change set only)
+
+**Handoff Notes:**
+> Remaining TD-020 closure is operator-owned credential rotation and verification.
+> Recommended commit order: (1) tracked-file untracking + `.gitignore`, (2) CI policy update, (3) LPDD/runbook docs.
