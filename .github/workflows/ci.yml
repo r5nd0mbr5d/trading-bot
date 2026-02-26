@@ -31,6 +31,9 @@ jobs:
       - name: Run LPDD consistency check
         run: python scripts/lpdd_consistency_check.py --root .
 
+      - name: Run async runtime hygiene check
+        run: python scripts/async_runtime_hygiene_check.py --root .
+
   test-and-coverage:
     needs: policy-checks
     runs-on: ubuntu-latest

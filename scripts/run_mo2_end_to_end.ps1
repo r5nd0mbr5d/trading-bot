@@ -35,6 +35,35 @@ function Test-InWindow {
     return ($hour -ge $WindowStartUtcHour -and $hour -lt $WindowEndUtcHour)
 }
 
+function Get-EndpointProfileTag {
+    param([string]$ProfileName)
+
+    $host = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($host)) {
+        $host = "127.0.0.1"
+    }
+
+    $port = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($port)) {
+        if ($ProfileName -eq "uk_paper") {
+            $port = "7497"
+        }
+        else {
+            $port = "7496"
+        }
+    }
+
+    $mode = "custom"
+    if ($port -eq "7497") {
+        $mode = "paper"
+    }
+    elseif ($port -eq "7496") {
+        $mode = "live"
+    }
+
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+}
+
 function Write-JsonFile {
     param(
         [string]$Path,
@@ -75,9 +104,12 @@ if (-not (Test-Path $marketScript)) {
     throw "Market runner script not found: $marketScript"
 }
 
+$endpointProfileTag = Get-EndpointProfileTag -ProfileName $Profile
+
 Write-Host "MO-2 orchestration start (UTC): $($startUtc.ToString('yyyy-MM-dd HH:mm:ss'))"
 Write-Host "Session directory: $sessionDir"
 Write-Host "Guardrails: profile=uk_paper, window=${WindowStartUtcHour}:00-${WindowEndUtcHour}:00 UTC"
+Write-Host "Endpoint profile tag: $endpointProfileTag"
 Write-Host "Run settings: runs=$Runs, paper_duration_seconds=$PaperDurationSeconds, min_filled_orders=$MinFilledOrders"
 if (-not $SkipSymbolAvailabilityPreflight) {
     Write-Host "Preflight gate: enabled, min_data_availability_ratio=$MinSymbolDataAvailabilityRatio, min_bars_per_symbol=$PreflightMinBarsPerSymbol, period=$PreflightPeriod, interval=$PreflightInterval"
@@ -137,6 +169,7 @@ $orchestratorReport = [ordered]@{
     duration_seconds = $durationSeconds
     session_id = $sessionId
     profile = $Profile
+    endpoint_profile_tag = $endpointProfileTag
     required_window_utc = "$WindowStartUtcHour`:00-$WindowEndUtcHour`:00"
     guardrails = [ordered]@{
         profile_locked_to_uk_paper = $true

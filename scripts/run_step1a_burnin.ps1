@@ -33,6 +33,88 @@ function Test-InWindow {
     return ($hour -ge 8 -and $hour -lt 16)
 }
 
+function Get-EndpointProfileTag {
+    param([string]$ProfileName)
+
+    $host = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($host)) {
+        $host = "127.0.0.1"
+    }
+
+    $port = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($port)) {
+        if ($ProfileName -eq "uk_paper") {
+            $port = "7497"
+        }
+        else {
+            $port = "7496"
+        }
+    }
+
+    $mode = "custom"
+    if ($port -eq "7497") {
+        $mode = "paper"
+    }
+    elseif ($port -eq "7496") {
+        $mode = "live"
+    }
+
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+}
+
+function Get-HandshakeDiagnostics {
+    param(
+        [string]$LogPath,
+        [bool]$EventLoopErrorSeen,
+        [bool]$ClientIdErrorSeen,
+        [string]$EndpointProfileTag
+    )
+
+    $hints = New-Object System.Collections.Generic.List[string]
+
+    if ($EventLoopErrorSeen) {
+        $hints.Add("event_loop_already_running")
+    }
+    if ($ClientIdErrorSeen) {
+        $hints.Add("client_id_in_use")
+    }
+
+    if (Test-Path $LogPath) {
+        if (Select-String -Path $LogPath -Pattern "Connection refused" -SimpleMatch -Quiet) {
+            $hints.Add("endpoint_connection_refused")
+        }
+        if (Select-String -Path $LogPath -Pattern "timed out" -SimpleMatch -Quiet) {
+            $hints.Add("endpoint_timeout")
+        }
+        if (Select-String -Path $LogPath -Pattern "Not connected" -SimpleMatch -Quiet) {
+            $hints.Add("broker_not_connected")
+        }
+        if (Select-String -Path $LogPath -Pattern "account mismatch" -SimpleMatch -Quiet) {
+            $hints.Add("account_mode_mismatch")
+        }
+    }
+
+    $hintBucket = "none"
+    if ($hints.Contains("client_id_in_use")) {
+        $hintBucket = "collision"
+    }
+    elseif ($hints.Contains("event_loop_already_running")) {
+        $hintBucket = "event_loop"
+    }
+    elseif ($hints.Contains("endpoint_connection_refused") -or $hints.Contains("endpoint_timeout") -or $hints.Contains("broker_not_connected")) {
+        $hintBucket = "network_or_endpoint"
+    }
+    elseif ($hints.Contains("account_mode_mismatch")) {
+        $hintBucket = "account_policy"
+    }
+
+    return [ordered]@{
+        endpoint_profile_tag = $EndpointProfileTag
+        hint_bucket = $hintBucket
+        rejection_signature_hints = @($hints)
+    }
+}
+
 function Invoke-StepCommand {
     param(
         [string]$Label,
@@ -297,6 +379,8 @@ New-Item -ItemType Directory -Path $sessionDir -Force | Out-Null
 Write-Host "Step 1A burn-in session: $sessionId"
 Write-Host "Output directory: $sessionDir"
 Write-Host "Required window: 08:00-16:00 UTC"
+$endpointProfileTag = Get-EndpointProfileTag -ProfileName $Profile
+Write-Host "Endpoint profile tag: $endpointProfileTag"
 if ($NonQualifyingTestMode) {
     Write-Host "Mode: NON-QUALIFYING TEST (window gate bypassed; sign-off remains false)"
     Write-Host "Effective duration (seconds): $effectivePaperDurationSeconds"
@@ -500,6 +584,7 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
 
         $eventLoopErrorSeen = Select-String -Path $trialLog -Pattern "This event loop is already running" -SimpleMatch -Quiet
         $clientIdErrorSeen = Select-String -Path $trialLog -Pattern "client id is already in use" -SimpleMatch -Quiet
+        $handshakeDiagnostics = Get-HandshakeDiagnostics -LogPath $trialLog -EventLoopErrorSeen $eventLoopErrorSeen -ClientIdErrorSeen $clientIdErrorSeen -EndpointProfileTag $endpointProfileTag
 
         $preSnapshotConnected = ($snapshotPre.ok -eq $true)
         $postSnapshotConnected = ($snapshotPost.ok -eq $true)
@@ -545,6 +630,8 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             broker_snapshot_post = $snapshotPost
             broker_snapshot_connected_ok = ($preSnapshotConnected -and $postSnapshotConnected)
             broker_snapshot_nonzero_ok = $gateSnapshots
+            endpoint_profile_tag = $endpointProfileTag
+            handshake_diagnostics = $handshakeDiagnostics
             non_qualifying_test_mode = [bool]$NonQualifyingTestMode
             preflight_gate_enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
             preflight_gate_passed = $preflightGatePassed
@@ -575,6 +662,12 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             commands_passed = $false
             passed = $false
             reason = "command_failed"
+            endpoint_profile_tag = $endpointProfileTag
+            handshake_diagnostics = [ordered]@{
+                endpoint_profile_tag = $endpointProfileTag
+                hint_bucket = "command_failed"
+                rejection_signature_hints = @("command_failed")
+            }
             error = $_.Exception.Message
             run_dir = $runDir
             logs = [ordered]@{
@@ -610,6 +703,7 @@ $report = [ordered]@{
     runs_passed = $passedRuns
     paper_duration_seconds = $effectivePaperDurationSeconds
     min_filled_orders_required = $(if ($NonQualifyingTestMode) { 0 } else { $MinFilledOrders })
+    endpoint_profile_tag = $endpointProfileTag
     symbol_data_preflight = [ordered]@{
         enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
         min_symbol_data_availability_ratio = $MinSymbolDataAvailabilityRatio

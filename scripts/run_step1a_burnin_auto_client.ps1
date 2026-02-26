@@ -15,9 +15,13 @@ param(
     [switch]$AllowOutsideWindow,
     [switch]$NonQualifyingTestMode,
     [switch]$ClearKillSwitchBeforeEachRun,
-    [int]$InitialClientId = 70,
+    [int]$InitialClientId = 5000,
     [int]$MaxClientIdAttempts = 8,
     [int]$ClientIdStep = 1,
+    [int]$RuntimeClientIdStart = 1,
+    [int]$RuntimeClientIdEnd = 499,
+    [int]$AssistantClientIdStart = 5000,
+    [int]$AssistantClientIdEnd = 5099,
     [string]$LatestReportPath = "reports/uk_tax/step1a_burnin/step1a_burnin_latest.json"
 )
 
@@ -68,15 +72,77 @@ function Test-ClientIdCollisionFromReport {
     return $false
 }
 
+function Get-EndpointProfileTag {
+    param([string]$ProfileName)
+
+    $host = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($host)) {
+        $host = "127.0.0.1"
+    }
+
+    $port = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($port)) {
+        if ($ProfileName -eq "uk_paper") {
+            $port = "7497"
+        }
+        else {
+            $port = "7496"
+        }
+    }
+
+    $mode = "custom"
+    if ($port -eq "7497") {
+        $mode = "paper"
+    }
+    elseif ($port -eq "7496") {
+        $mode = "live"
+    }
+
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+}
+
+function Test-ClientIdRangesOverlap {
+    param(
+        [int]$StartA,
+        [int]$EndA,
+        [int]$StartB,
+        [int]$EndB
+    )
+
+    return ($StartA -le $EndB -and $StartB -le $EndA)
+}
+
+if ($RuntimeClientIdStart -gt $RuntimeClientIdEnd) {
+    throw "RuntimeClientIdStart must be <= RuntimeClientIdEnd"
+}
+
+if ($AssistantClientIdStart -gt $AssistantClientIdEnd) {
+    throw "AssistantClientIdStart must be <= AssistantClientIdEnd"
+}
+
+if (Test-ClientIdRangesOverlap -StartA $RuntimeClientIdStart -EndA $RuntimeClientIdEnd -StartB $AssistantClientIdStart -EndB $AssistantClientIdEnd) {
+    throw "Assistant client-id range overlaps runtime range. Adjust RuntimeClientId* or AssistantClientId* values."
+}
+
+if ($InitialClientId -lt $AssistantClientIdStart -or $InitialClientId -gt $AssistantClientIdEnd) {
+    throw "InitialClientId must be inside assistant client-id range [$AssistantClientIdStart, $AssistantClientIdEnd]"
+}
+
+$lastCandidateClientId = $InitialClientId + (($MaxClientIdAttempts - 1) * $ClientIdStep)
+if ($lastCandidateClientId -gt $AssistantClientIdEnd) {
+    throw "Configured attempts exceed assistant client-id range upper bound ($AssistantClientIdEnd)."
+}
+
 $originalClientId = $env:IBKR_CLIENT_ID
 $lastExitCode = 1
+$endpointProfileTag = Get-EndpointProfileTag -ProfileName $Profile
 
 try {
     for ($attempt = 0; $attempt -lt $MaxClientIdAttempts; $attempt++) {
         $candidateClientId = $InitialClientId + ($attempt * $ClientIdStep)
         $env:IBKR_CLIENT_ID = "$candidateClientId"
 
-        Write-Host "[Step1A AutoClient] Attempt $($attempt + 1)/$MaxClientIdAttempts using IBKR_CLIENT_ID=$candidateClientId"
+        Write-Host "[Step1A AutoClient][$endpointProfileTag] Attempt $($attempt + 1)/$MaxClientIdAttempts using IBKR_CLIENT_ID=$candidateClientId"
 
         $invokeParams = @{
             Profile = $Profile
@@ -101,20 +167,20 @@ try {
         $lastExitCode = $LASTEXITCODE
 
         if ($lastExitCode -eq 0) {
-            Write-Host "[Step1A AutoClient] Success with IBKR_CLIENT_ID=$candidateClientId"
+            Write-Host "[Step1A AutoClient][$endpointProfileTag] Success with IBKR_CLIENT_ID=$candidateClientId"
             exit 0
         }
 
         $clientIdCollision = Test-ClientIdCollisionFromReport -ReportPath $LatestReportPath
         if (-not $clientIdCollision) {
-            Write-Host "[Step1A AutoClient] Non-collision failure (exit=$lastExitCode). Stopping retries."
+            Write-Host "[Step1A AutoClient][$endpointProfileTag] Non-collision failure (exit=$lastExitCode). Stopping retries."
             exit $lastExitCode
         }
 
-        Write-Host "[Step1A AutoClient] Detected client-id collision in report, retrying with next client id..."
+        Write-Host "[Step1A AutoClient][$endpointProfileTag] Detected client-id collision in report, retrying with next client id..."
     }
 
-    Write-Host "[Step1A AutoClient] Exhausted client-id attempts ($MaxClientIdAttempts)."
+    Write-Host "[Step1A AutoClient][$endpointProfileTag] Exhausted client-id attempts ($MaxClientIdAttempts)."
     exit $lastExitCode
 }
 finally {
