@@ -128,7 +128,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ```
 
 ### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/46/47/48/49/50–56/58/59/60/61/63)
-- Test suite: **551 tests passing**
+- Test suite: **561 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
 - Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
@@ -728,6 +728,15 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 **[2026-02-26] Session (Operator confirmation)**
 - Operator confirmed current `.env` has no sensitive credentials; credential rotation is not required at this time.
 - TD-020 marked resolved from governance perspective (Git hygiene controls in place and no active secret-rotation blocker).
+
+**[2026-02-26] Session (GitHub Copilot / GPT-5.3-Codex)**
+- Completed bundled intake execution (REVIEW→IMPL) for five Copilot-compatible tickets:
+    - RIBAPI-04: Step1A preflight evidence enriched with endpoint profile tags + handshake diagnostics hint buckets (observability only, no pass/fail logic change)
+    - IBMCP-03: async runtime hygiene checklist + enforceable checker (`scripts/async_runtime_hygiene_check.py`) added and wired into CI policy gate
+    - IBMCP-04: assistant client-id range policy enforcement and endpoint profile tagging across Step1A/MO-2 status outputs
+    - IBKR-DKR-05: container-mode operator runbook coverage added to `UK_OPERATIONS.md`
+    - IBMCP-05: read-only report-schema compatibility adapter (`src/reporting/report_schema_adapter.py`) with resource-level tests
+- Validation: targeted stage tests passed; full suite passed (`561/561`); LPDD consistency gate passed before and after implementation.
 
 **[2026-02-25] Session (GitHub Copilot / GPT-5.3-Codex)**
 - Added IBKR TWS API hardening mapping into the operational Step 1A runbook (`IMPLEMENTATION_BACKLOG.md`):

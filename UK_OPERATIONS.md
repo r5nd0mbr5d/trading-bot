@@ -300,6 +300,52 @@ Operational note:
 - Use PowerShell wrappers above only when running MO-2/Step 1A operational closure tasks.
 - Safety lock: these Step 1A wrapper scripts now fail-fast unless `Profile=uk_paper`.
 
+### 9c) Container Mode (IBKR-DKR-05)
+
+Use container mode only for reproducible orchestration wrappers and report processing.
+IBKR TWS/Gateway remains an operator-managed endpoint and must be reachable from the container network.
+
+Startup checklist:
+- Start TWS/IB Gateway in paper mode (`DU...`) on the host.
+- Ensure container can resolve/connect to `IBKR_HOST` + `IBKR_PORT`.
+- Run `python main.py uk_health_check --profile uk_paper --strict-health` before session commands.
+
+Verification checkpoints:
+- `broker_provider` check reports IBKR for `uk_paper`.
+- Step1A/MO-2 outputs include endpoint profile tag (`ibkr:<profile>:<mode>:<host>:<port>`).
+- Latest burn-in pointer exists: `reports/uk_tax/step1a_burnin/step1a_burnin_latest.json`.
+
+Recovery signatures:
+- `client id is already in use` → use auto-client wrapper path (already default in Step1A market wrapper).
+- `Connection refused` / timeout → verify host/port exposure and TWS API settings.
+- `symbol_data_preflight_failed` → adjust run window or symbol availability threshold per policy.
+
+Security notes:
+- Do not bake `.env` into container images.
+- Mount report/output directories as writable volumes; keep credentials local/operator-managed.
+- Keep `coinbase_sandbox` and `binance_testnet` true unless explicitly gated closed.
+
+### 9d) Report-Schema Compatibility Adapter (IBMCP-05)
+
+Read-only adapter utility: `src/reporting/report_schema_adapter.py`
+
+Operator usefulness:
+- Normalizes key report outputs without broker/API calls.
+- Exposes stable resources for tooling integration:
+  - `step1a_latest`
+  - `paper_session_summary`
+  - `mo2_latest`
+
+Example usage:
+
+```python
+from src.reporting.report_schema_adapter import ReportSchemaAdapter
+
+adapter = ReportSchemaAdapter(".")
+resources = adapter.list_resources()
+payload = adapter.get_resource("step1a_latest")
+```
+
 ### One-Command MO-2 Orchestrator (Recommended)
 
 Run the full MO-2 sequence end-to-end (3 in-window runs) with explicit guardrails

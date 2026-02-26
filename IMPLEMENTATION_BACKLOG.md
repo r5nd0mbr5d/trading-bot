@@ -6,12 +6,12 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 85 (7 Prompts + 77 Next Steps + Code Style Governance)
-**Completed**: 77 (Prompts 1–7 + completed steps listed in their individual entries)
+**Total Items**: 90 (7 Prompts + 82 Next Steps + Code Style Governance)
+**Completed**: 82 (Prompts 1–7 + completed steps listed in their individual entries)
 **In Progress**: 1 (Step 1A burn-in)
 **Not Started**: 5 (Steps 32, 57, 62, 67, 68)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 551 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 9 | **Asset classes**: 2
+**Test suite**: 561 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 9 | **Asset classes**: 2
 
 ---
 
@@ -2651,6 +2651,120 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Operator Attestation (Feb 26, 2026):**
 - Current `.env` has no sensitive credential material; rotation is not required at this time.
+
+---
+
+### Step 77: RIBAPI-04 Handshake Diagnostics Enrichment (Preflight Evidence)
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — observability hardening for Step1A/MO-2 triage without changing pass/fail semantics
+**Intended Agent**: Copilot
+**In-Progress Marker**: STARTED by Copilot REVIEW→IMPL session, 2026-02-26 UTC
+
+**Progress Notes:**
+- Identified Step1A burn-in report as authoritative preflight evidence surface (`scripts/run_step1a_burnin.ps1`).
+- Added endpoint-tag derivation and handshake diagnostics payload assembly with hint buckets.
+- Preserved existing run gate semantics; diagnostics are additive only.
+
+**Completion Notes (Feb 26, 2026):**
+- Added `endpoint_profile_tag` and `handshake_diagnostics` payload in `scripts/run_step1a_burnin.ps1` run results.
+- Added rejection-signature hints and buckets (`collision`, `event_loop`, `network_or_endpoint`, `account_policy`, `none`).
+- Added focused contract tests:
+  - `tests/test_step1a_handshake_diagnostics_contract.py`
+- Validation:
+  - `runTests` on handshake contract + checker tests → **4 passed**
+
+---
+
+### Step 78: IBMCP-03 Async Runtime Hygiene Checklist + Enforceable Checks
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — enforce async-safe integration behavior in CI and operator workflows
+**Intended Agent**: Copilot
+**In-Progress Marker**: STARTED by Copilot REVIEW→IMPL session, 2026-02-26 UTC
+
+**Progress Notes:**
+- Created static checker for blocking calls inside `async def` bodies.
+- Added documentation checklist and remediation guidance.
+- Integrated checker into CI policy stage.
+
+**Completion Notes (Feb 26, 2026):**
+- Added checker utility: `scripts/async_runtime_hygiene_check.py`
+- Added checklist doc: `docs/ASYNC_RUNTIME_HYGIENE_CHECKLIST.md`
+- Added CI gate in `.github/workflows/ci.yml`:
+  - `python scripts/async_runtime_hygiene_check.py --root .`
+- Added tests:
+  - `tests/test_async_runtime_hygiene_check.py`
+- Validation:
+  - `runTests` targeted file → **2 passed**
+  - `python scripts/async_runtime_hygiene_check.py --root .` → `passed=true`, `violation_count=0`
+
+---
+
+### Step 79: IBMCP-04 Assistant Client-ID + Endpoint Profile Policy
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — prevent client-id overlap and improve endpoint traceability in status outputs
+**Intended Agent**: Copilot
+**In-Progress Marker**: STARTED by Copilot REVIEW→IMPL session, 2026-02-26 UTC
+
+**Progress Notes:**
+- Reserved assistant probe client-id band and enforced non-overlap against runtime range in auto-client wrapper.
+- Added endpoint profile tagging to Step1A/MO-2 status outputs.
+- Added policy helper module + validation tests.
+
+**Completion Notes (Feb 26, 2026):**
+- Updated `scripts/run_step1a_burnin_auto_client.ps1`:
+  - default assistant probe start moved to `5000`
+  - added runtime/assistant range validation and overlap rejection
+  - endpoint-profile-tagged status messages
+- Updated `scripts/run_step1a_burnin.ps1` and `scripts/run_mo2_end_to_end.ps1` to emit endpoint profile tags.
+- Added helper module: `src/execution/assistant_tool_policy.py`
+- Added tests:
+  - `tests/test_assistant_tool_policy.py`
+- Validation:
+  - `runTests` targeted file → **3 passed**
+
+---
+
+### Step 80: IBKR-DKR-05 Container Mode Operator Runbook Coverage
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: MEDIUM — improve operational readiness for containerized wrapper execution
+**Intended Agent**: Copilot
+**In-Progress Marker**: STARTED by Copilot REVIEW→IMPL session, 2026-02-26 UTC
+
+**Progress Notes:**
+- Added concise container mode startup/verification/recovery/security guidance.
+- Kept guidance aligned with existing scripts and policy terms.
+
+**Completion Notes (Feb 26, 2026):**
+- Updated `UK_OPERATIONS.md` with section `9c) Container Mode (IBKR-DKR-05)`:
+  - startup checklist
+  - verification checkpoints
+  - recovery signatures
+  - security notes
+
+---
+
+### Step 81: IBMCP-05 Minimal Report-Schema Compatibility Spike
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: MEDIUM — provide read-only integration surface from existing report artifacts without broker/API coupling
+**Intended Agent**: Copilot
+**In-Progress Marker**: STARTED by Copilot REVIEW→IMPL session, 2026-02-26 UTC
+
+**Progress Notes:**
+- Implemented file-only compatibility adapter exposing stable resources.
+- Added tests for missing-file contract and normalized payload shape.
+- Added operator usefulness note in runbook.
+
+**Completion Notes (Feb 26, 2026):**
+- Added adapter module: `src/reporting/report_schema_adapter.py`
+- Exposed read-only resources:
+  - `step1a_latest`
+  - `paper_session_summary`
+  - `mo2_latest`
+- Added tests:
+  - `tests/test_report_schema_adapter.py`
+- Added operator note in `UK_OPERATIONS.md` section `9d) Report-Schema Compatibility Adapter (IBMCP-05)`
+- Validation:
+  - `runTests` targeted file → **3 passed**
 
 ### Week of Feb 23 (This Week)
 - [x] Prompt 1: Paper session summary â€” COMPLETE
