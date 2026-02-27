@@ -21,6 +21,7 @@ class ExperimentConfig:
     gap_days: int = 0
     feature_version: str = "v1"
     label_version: str = "h5"
+    model_type: str = "xgboost"
     model_id: Optional[str] = None
     xgb_params: Optional[Dict[str, Any]] = None
     xgb_preset: Optional[str] = None
@@ -43,6 +44,7 @@ _OPTIONAL_FIELDS = {
     "gap_days",
     "feature_version",
     "label_version",
+    "model_type",
     "model_id",
     "xgb_params",
     "xgb_preset",
@@ -90,6 +92,10 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
         label_type = str(payload["label_type"]).strip().lower()
         if label_type not in {"direction", "threshold"}:
             raise ValueError("label_type must be 'direction' or 'threshold'")
+    if "model_type" in payload and payload["model_type"] is not None:
+        model_type = str(payload["model_type"]).strip().lower()
+        if model_type not in {"xgboost", "mlp"}:
+            raise ValueError("model_type must be 'xgboost' or 'mlp'")
     if "threshold_bps" in payload and payload["threshold_bps"] is not None:
         _ = float(payload["threshold_bps"])
     if "hypothesis" in payload and payload["hypothesis"] is not None:
@@ -142,6 +148,7 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
         gap_days=int(payload.get("gap_days", 0)),
         feature_version=str(payload.get("feature_version", "v1")),
         label_version=str(payload.get("label_version", "h5")),
+        model_type=str(payload.get("model_type", "xgboost")),
         model_id=payload.get("model_id"),
         xgb_params=payload.get("xgb_params"),
         xgb_preset=payload.get("xgb_preset"),

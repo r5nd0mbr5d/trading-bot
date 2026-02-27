@@ -75,6 +75,7 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("--snapshot-dir", default=None)
     parser.add_argument("--experiment-id", default=None)
     parser.add_argument("--model-id", default=None)
+    parser.add_argument("--model-type", choices=["xgboost", "mlp"], default="xgboost")
     parser.add_argument("--tick-provider", default="polygon", choices=["polygon"])
     parser.add_argument("--tick-date", default=None)
     parser.add_argument("--tick-start-date", default=None)
@@ -387,15 +388,21 @@ def dispatch(
             params_path = Path(args.xgb_params_json)
             params = json.loads(params_path.read_text(encoding="utf-8"))
 
-        from research.experiments.presets import resolve_xgb_params
+        resolved_model_type = (config.model_type if config else args.model_type).strip().lower()
+        if resolved_model_type not in {"xgboost", "mlp"}:
+            raise SystemExit("--model-type must be xgboost or mlp")
 
-        preset_name = config.xgb_preset if config else args.xgb_preset
-        preset_path = args.xgb_presets_path
-        resolved_params = resolve_xgb_params(
-            preset_name=preset_name,
-            explicit_params=config.xgb_params if config else params,
-            presets_path=preset_path,
-        )
+        resolved_params = config.xgb_params if config else params
+        if resolved_model_type == "xgboost":
+            from research.experiments.presets import resolve_xgb_params
+
+            preset_name = config.xgb_preset if config else args.xgb_preset
+            preset_path = args.xgb_presets_path
+            resolved_params = resolve_xgb_params(
+                preset_name=preset_name,
+                explicit_params=config.xgb_params if config else params,
+                presets_path=preset_path,
+            )
 
         if args.dry_run:
             resolved_config = {
@@ -409,8 +416,9 @@ def dispatch(
                 "gap_days": config.gap_days if config else args.gap_days,
                 "feature_version": config.feature_version if config else args.feature_version,
                 "label_version": config.label_version if config else args.label_version,
+                "model_type": resolved_model_type,
                 "model_id": config.model_id if config else args.model_id,
-                "xgb_params": resolved_params,
+                "model_params": resolved_params,
                 "calibrate": config.calibrate if config else args.calibrate,
                 "label_type": config.label_type if config else args.label_type,
                 "threshold_bps": config.threshold_bps if config else args.threshold_bps,
@@ -420,6 +428,10 @@ def dispatch(
             raise SystemExit(0)
 
         from research.experiments.xgboost_pipeline import run_xgboost_experiment
+        from research.models.mlp_classifier import train_mlp_model
+        from research.models.train_xgboost import train_xgboost_model
+
+        trainer = train_xgboost_model if resolved_model_type == "xgboost" else train_mlp_model
 
         result = run_xgboost_experiment(
             snapshot_dir=config.snapshot_dir if config else args.snapshot_dir,
@@ -432,6 +444,7 @@ def dispatch(
             gap_days=config.gap_days if config else args.gap_days,
             feature_version=config.feature_version if config else args.feature_version,
             label_version=config.label_version if config else args.label_version,
+            model_type=resolved_model_type,
             model_id=config.model_id if config else args.model_id,
             model_params=resolved_params,
             calibrate=config.calibrate if config else args.calibrate,
@@ -443,6 +456,7 @@ def dispatch(
             val_months=config.val_months if config else args.val_months,
             test_months=config.test_months if config else args.test_months,
             step_months=config.step_months if config else args.step_months,
+            trainer=trainer,
         )
 
         handlers["logger"].info("XGBoost experiment complete: %s", result.training_report_path)

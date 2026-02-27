@@ -1,0 +1,33 @@
+{
+  "snapshot_dir": "research/data/snapshots/<snapshot_id>",
+  "experiment_id": "btc_lstm_features_v1_20260226",
+  "symbol": "BTC-GBP",
+  "output_dir": "research/experiments/btc_lstm_features_v1_20260226",
+  "asset_class": "crypto",
+  "model_type": "feature_engineering_only",
+  "feature_module": "research.data.crypto_features",
+  "feature_config": {
+    "short_window": 5,
+    "medium_window": 20,
+    "long_window": 60,
+    "max_ffill_bars": 3,
+    "clip_sigma": 3.0
+  },
+  "split_policy": "btc_halving_aware",
+  "horizon": "H5",
+  "walk_forward": true,
+  "walk_forward_folds": 5,
+  "gap_days": 5,
+  "normalization": {
+    "method": "train_fold_only",
+    "clip_bounds": "training_fold_3sigma"
+  },
+  "label_type": "threshold",
+  "threshold_bps": 45.0,
+  "hypothesis": {
+    "hypothesis_id": "btc-lstm-features-001",
+    "hypothesis_text": "Leakage-safe multi-timeframe BTC features improve sequence-model readiness without runtime coupling.",
+    "n_prior_tests": 0,
+    "registered_before_test": true
+  }
+}

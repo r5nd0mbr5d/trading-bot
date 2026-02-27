@@ -17,6 +17,7 @@ from research.data.labels import compute_labels, compute_thresholds
 from research.data.snapshots import load_snapshot
 from research.data.splits import apply_gap, apply_scaler, build_walk_forward_folds, fit_scaler
 from research.experiments.harness import ExperimentReport, ModelTrainingReport, run_experiment, train_and_save_model
+from research.models.mlp_classifier import train_mlp_model
 from research.models.train_xgboost import train_xgboost_model
 from research.training.label_utils import compute_class_weights, compute_threshold_label
 
@@ -51,10 +52,11 @@ def _score_test_split(
     forward_returns: pd.Series,
     fallback_metrics: Dict[str, float],
 ) -> Dict[str, float]:
+    X_eval = X_test.astype(np.float32) if hasattr(X_test, "astype") else X_test
     if hasattr(model, "predict"):
-        y_pred = np.asarray(model.predict(X_test)).astype(int)
+        y_pred = np.asarray(model.predict(X_eval)).astype(int)
     elif hasattr(model, "predict_proba"):
-        y_prob = np.asarray(model.predict_proba(X_test))[:, 1]
+        y_prob = np.asarray(model.predict_proba(X_eval))[:, 1]
         y_pred = (y_prob >= 0.5).astype(int)
     else:
         win_rate = float(fallback_metrics.get("val_accuracy", 0.0))
@@ -241,6 +243,7 @@ def run_xgboost_experiment(
     gap_days: int = 0,
     feature_version: str = "v1",
     label_version: str = "h5",
+    model_type: str = "xgboost",
     model_id: Optional[str] = None,
     model_params: Optional[Dict[str, Any]] = None,
     calibrate: bool = False,
@@ -252,7 +255,7 @@ def run_xgboost_experiment(
     val_months: int = 3,
     test_months: int = 3,
     step_months: int = 3,
-    trainer: Callable[..., Tuple[Any, Dict[str, float]]] = train_xgboost_model,
+    trainer: Optional[Callable[..., Tuple[Any, Dict[str, float]]]] = None,
 ) -> XGBoostExperimentResult:
     df, metadata = load_snapshot(snapshot_dir)
     if "symbol" in df.columns:
@@ -284,6 +287,12 @@ def run_xgboost_experiment(
     resolved_label_type = str(label_type or "direction").strip().lower()
     if resolved_label_type not in {"direction", "threshold"}:
         raise ValueError("label_type must be 'direction' or 'threshold'")
+    resolved_model_type = str(model_type or "xgboost").strip().lower()
+    if resolved_model_type not in {"xgboost", "mlp"}:
+        raise ValueError("model_type must be 'xgboost' or 'mlp'")
+    resolved_trainer = trainer
+    if resolved_trainer is None:
+        resolved_trainer = train_xgboost_model if resolved_model_type == "xgboost" else train_mlp_model
     if resolved_label_type == "threshold":
         labels["label_binary"] = compute_threshold_label(labels["forward_return"], threshold_bps)
 
@@ -344,7 +353,7 @@ def run_xgboost_experiment(
 
             training_report = train_and_save_model(
                 model_id=fold_model_id,
-                trainer=trainer,
+                trainer=resolved_trainer,
                 trainer_kwargs={
                     "X_train": X_train,
                     "y_train": y_train,
@@ -354,7 +363,7 @@ def run_xgboost_experiment(
                     "calibrate": calibrate,
                 },
                 metadata={
-                    "model_type": "xgboost",
+                    "model_type": resolved_model_type,
                     "snapshot_id": metadata.get("snapshot_id", "unknown"),
                     "feature_version": feature_version,
                     "label_version": label_version,
@@ -463,6 +472,7 @@ def run_xgboost_experiment(
                 "snapshot_id": metadata.get("snapshot_id", "unknown"),
                 "feature_version": feature_version,
                 "label_version": label_version,
+                "model_type": resolved_model_type,
                 "drop_manifest": drop_manifest,
                 "label_type": resolved_label_type,
                 "threshold_bps": float(threshold_bps),
@@ -505,7 +515,8 @@ def run_xgboost_experiment(
     X_test = test_df[feature_cols]
     y_test = test_df["label_binary"].astype(int)
 
-    model_id = model_id or f"{experiment_id}_xgb"
+    model_suffix = "xgb" if resolved_model_type == "xgboost" else "mlp"
+    model_id = model_id or f"{experiment_id}_{model_suffix}"
     imbalance_info = compute_class_weights(y_train)
     resolved_params = dict(model_params or {})
     resolved_params["scale_pos_weight"] = imbalance_info["scale_pos_weight"]
@@ -513,7 +524,7 @@ def run_xgboost_experiment(
 
     training_report = train_and_save_model(
         model_id=model_id,
-        trainer=trainer,
+        trainer=resolved_trainer,
         trainer_kwargs={
             "X_train": X_train,
             "y_train": y_train,
@@ -523,7 +534,7 @@ def run_xgboost_experiment(
             "calibrate": calibrate,
         },
         metadata={
-            "model_type": "xgboost",
+            "model_type": resolved_model_type,
             "snapshot_id": metadata.get("snapshot_id", "unknown"),
             "feature_version": feature_version,
             "label_version": label_version,
@@ -605,6 +616,7 @@ def run_xgboost_experiment(
             "snapshot_id": metadata.get("snapshot_id", "unknown"),
             "feature_version": feature_version,
             "label_version": label_version,
+            "model_type": resolved_model_type,
             "model_id": training_report.model_id,
             "artifact_hash": training_report.metadata.artifact_hash,
             "drop_manifest": drop_manifest,

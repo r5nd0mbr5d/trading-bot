@@ -1,0 +1,39 @@
+{
+  "snapshot_dir": "research/data/snapshots/<snapshot_id>",
+  "experiment_id": "mlp_h5_v1_20260226",
+  "symbol": "AAPL",
+  "output_dir": "research/experiments/mlp_h5_v1_20260226",
+  "horizon_days": 5,
+  "train_ratio": 0.6,
+  "val_ratio": 0.2,
+  "gap_days": 0,
+  "feature_version": "v1",
+  "label_version": "h5",
+  "model_type": "mlp",
+  "model_id": "mlp_h5_v1",
+  "xgb_params": {
+    "hidden_size_1": 128,
+    "hidden_size_2": 64,
+    "hidden_size_3": 32,
+    "dropout": 0.3,
+    "learning_rate": 0.001,
+    "batch_size": 128,
+    "max_epochs": 60,
+    "early_stopping_patience": 10,
+    "gamma": 0.9
+  },
+  "label_type": "threshold",
+  "threshold_bps": 45.0,
+  "hypothesis": {
+    "hypothesis_id": "mlp-h5-threshold-001",
+    "hypothesis_text": "MLP baseline with threshold labels can match or exceed XGBoost PR-AUC in stable regimes.",
+    "n_prior_tests": 0,
+    "registered_before_test": true
+  },
+  "calibrate": false,
+  "walk_forward": true,
+  "train_months": 6,
+  "val_months": 3,
+  "test_months": 3,
+  "step_months": 3
+}

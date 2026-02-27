@@ -18,6 +18,7 @@ def test_load_experiment_config(tmp_path):
         "gap_days": 2,
         "feature_version": "v2",
         "label_version": "h7",
+        "model_type": "mlp",
         "model_id": "xgb_test_model",
         "xgb_params": {"max_depth": 3},
         "xgb_preset": "medium",
@@ -46,6 +47,7 @@ def test_load_experiment_config(tmp_path):
     assert config.gap_days == 2
     assert config.feature_version == "v2"
     assert config.label_version == "h7"
+    assert config.model_type == "mlp"
     assert config.model_id == "xgb_test_model"
     assert config.xgb_params == {"max_depth": 3}
     assert config.xgb_preset == "medium"
@@ -143,4 +145,23 @@ def test_load_experiment_config_rejects_incomplete_hypothesis(tmp_path):
     )
 
     with pytest.raises(ValueError, match="Missing required hypothesis fields"):
+        load_experiment_config(config_path)
+
+
+def test_load_experiment_config_rejects_invalid_model_type(tmp_path):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "snapshot_dir": "snap",
+                "experiment_id": "xgb_test",
+                "symbol": "TEST",
+                "output_dir": "out",
+                "model_type": "transformer",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="model_type must be 'xgboost' or 'mlp'"):
         load_experiment_config(config_path)

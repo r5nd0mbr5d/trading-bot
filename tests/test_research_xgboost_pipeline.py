@@ -90,3 +90,31 @@ def test_run_xgboost_experiment_walk_forward(tmp_path):
     assert result.experiment_report.aggregate_summary_path.exists()
     assert result.training_reports
     assert (result.output_dir / "shap").exists()
+
+
+def test_run_xgboost_experiment_accepts_mlp_model_type_with_stub_trainer(tmp_path):
+    snapshot_root = tmp_path / "snapshots"
+    snapshot_root.mkdir(parents=True, exist_ok=True)
+    snapshot_id = "snap_test"
+    save_snapshot(
+        _sample_bars(rows=320),
+        output_dir=str(snapshot_root),
+        config={"symbol": "TEST"},
+        snapshot_id=snapshot_id,
+    )
+
+    def trainer(**kwargs):
+        _ = kwargs
+        return {"weights": [1]}, {"val_accuracy": 0.58, "val_pos_rate": 0.35, "val_pr_auc": 0.56}
+
+    result = run_xgboost_experiment(
+        snapshot_dir=str(snapshot_root / snapshot_id),
+        experiment_id="mlp_test",
+        symbol="TEST",
+        output_dir=str(tmp_path / "experiment"),
+        model_type="mlp",
+        trainer=trainer,
+    )
+
+    summary_payload = json.loads(result.experiment_report.aggregate_summary_path.read_text(encoding="utf-8"))
+    assert summary_payload["metadata"]["model_type"] == "mlp"
