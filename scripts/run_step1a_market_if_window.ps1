@@ -2,6 +2,8 @@ param(
     [string]$Profile = "uk_paper",
     [int]$Runs = 3,
     [int]$PaperDurationSeconds = 1800,
+    [ValidateSet("smoke", "orchestration", "reconcile", "qualifying")]
+    [string]$RunObjectiveProfile = "qualifying",
     [int]$MinFilledOrders = 5,
     [double]$MinSymbolDataAvailabilityRatio = 0.80,
     [int]$PreflightMinBarsPerSymbol = 100,
@@ -42,6 +44,7 @@ $invokeParams = @{
     Profile = $Profile
     Runs = $Runs
     PaperDurationSeconds = $PaperDurationSeconds
+    RunObjectiveProfile = $RunObjectiveProfile
     MinFilledOrders = $MinFilledOrders
     MinSymbolDataAvailabilityRatio = $MinSymbolDataAvailabilityRatio
     PreflightMinBarsPerSymbol = $PreflightMinBarsPerSymbol

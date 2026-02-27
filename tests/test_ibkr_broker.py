@@ -218,6 +218,59 @@ def test_connect_retries_with_incremented_client_id(monkeypatch):
     assert broker._connected() is True
 
 
+def test_connect_rejects_out_of_band_client_id(monkeypatch):
+    calls = []
+
+    class FakeIB:
+        def connect(self, host, port, clientId, timeout):
+            calls.append(clientId)
+
+        def isConnected(self):
+            return True
+
+    fake_module = SimpleNamespace(
+        IB=lambda: FakeIB(),
+        MarketOrder=lambda *args, **kwargs: SimpleNamespace(),
+        Stock=lambda *args, **kwargs: SimpleNamespace(),
+        util=SimpleNamespace(patchAsyncio=lambda: None),
+    )
+    monkeypatch.setitem(sys.modules, "ib_insync", fake_module)
+
+    settings = Settings()
+    settings.broker.ibkr_client_id = 700
+    broker = IBKRBroker(settings)
+
+    assert calls == []
+    assert broker._connected() is False
+
+
+def test_connect_collision_retry_stays_within_origin_band(monkeypatch):
+    calls = []
+
+    class FakeIB:
+        def connect(self, host, port, clientId, timeout):
+            calls.append(clientId)
+            raise RuntimeError("client id is already in use")
+
+        def isConnected(self):
+            return False
+
+    fake_module = SimpleNamespace(
+        IB=lambda: FakeIB(),
+        MarketOrder=lambda *args, **kwargs: SimpleNamespace(),
+        Stock=lambda *args, **kwargs: SimpleNamespace(),
+        util=SimpleNamespace(patchAsyncio=lambda: None),
+    )
+    monkeypatch.setitem(sys.modules, "ib_insync", fake_module)
+
+    settings = Settings()
+    settings.broker.ibkr_client_id = 499
+    broker = IBKRBroker(settings)
+
+    assert calls == [499]
+    assert broker._connected() is False
+
+
 def test_submit_order_maps_rejected_status(monkeypatch):
     broker = _make_broker(monkeypatch)
 

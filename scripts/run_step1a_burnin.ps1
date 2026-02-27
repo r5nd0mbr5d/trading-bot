@@ -3,6 +3,8 @@ param(
     [int]$Runs = 3,
     [int]$PaperDurationSeconds = 1800,
     [int]$FunctionalDurationSeconds = 180,
+    [ValidateSet("smoke", "orchestration", "reconcile", "qualifying")]
+    [string]$RunObjectiveProfile = "qualifying",
     [int]$MinFilledOrders = 5,
     [double]$MinSymbolDataAvailabilityRatio = 0.80,
     [int]$PreflightMinBarsPerSymbol = 100,
@@ -33,33 +35,117 @@ function Test-InWindow {
     return ($hour -ge 8 -and $hour -lt 16)
 }
 
+function Get-RunObjectiveProfileConfig {
+    param([string]$RunObjective)
+
+    switch ($RunObjective) {
+        "smoke" {
+            return [ordered]@{
+                min_duration_seconds = 30
+                default_duration_seconds = 60
+                force_functional_only = $true
+                default_min_filled_orders = 0
+            }
+        }
+        "orchestration" {
+            return [ordered]@{
+                min_duration_seconds = 120
+                default_duration_seconds = 300
+                force_functional_only = $true
+                default_min_filled_orders = 0
+            }
+        }
+        "reconcile" {
+            return [ordered]@{
+                min_duration_seconds = 300
+                default_duration_seconds = 900
+                force_functional_only = $true
+                default_min_filled_orders = 1
+            }
+        }
+        "qualifying" {
+            return [ordered]@{
+                min_duration_seconds = 1800
+                default_duration_seconds = 1800
+                force_functional_only = $false
+                default_min_filled_orders = 5
+            }
+        }
+        default {
+            throw "Unsupported RunObjectiveProfile: $RunObjective"
+        }
+    }
+}
+
+function Get-EvidenceLaneInfo {
+    param(
+        [bool]$EffectiveNonQualifyingTestMode,
+        [bool]$InWindow,
+        [int]$DurationSeconds,
+        [string]$RunObjective
+    )
+
+    if ($RunObjective -ne "qualifying") {
+        return [ordered]@{
+            evidence_lane = "functional_only"
+            lane_reason = "objective_profile_forces_functional"
+        }
+    }
+
+    if ($EffectiveNonQualifyingTestMode) {
+        return [ordered]@{
+            evidence_lane = "functional_only"
+            lane_reason = "non_qualifying_test_mode"
+        }
+    }
+
+    if (-not $InWindow) {
+        return [ordered]@{
+            evidence_lane = "functional_only"
+            lane_reason = "out_of_window"
+        }
+    }
+
+    if ($DurationSeconds -lt 1800) {
+        return [ordered]@{
+            evidence_lane = "functional_only"
+            lane_reason = "short_duration"
+        }
+    }
+
+    return [ordered]@{
+        evidence_lane = "qualifying"
+        lane_reason = "qualifying_conditions_met"
+    }
+}
+
 function Get-EndpointProfileTag {
     param([string]$ProfileName)
 
-    $host = $env:IBKR_HOST
-    if ([string]::IsNullOrWhiteSpace($host)) {
-        $host = "127.0.0.1"
+    $ibkrHost = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($ibkrHost)) {
+        $ibkrHost = "127.0.0.1"
     }
 
-    $port = $env:IBKR_PORT
-    if ([string]::IsNullOrWhiteSpace($port)) {
+    $ibkrPort = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($ibkrPort)) {
         if ($ProfileName -eq "uk_paper") {
-            $port = "7497"
+            $ibkrPort = "7497"
         }
         else {
-            $port = "7496"
+            $ibkrPort = "7496"
         }
     }
 
     $mode = "custom"
-    if ($port -eq "7497") {
+    if ($ibkrPort -eq "7497") {
         $mode = "paper"
     }
-    elseif ($port -eq "7496") {
+    elseif ($ibkrPort -eq "7496") {
         $mode = "live"
     }
 
-    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $ibkrHost, $ibkrPort
 }
 
 function Get-HandshakeDiagnostics {
@@ -366,9 +452,46 @@ if ($PreflightMinBarsPerSymbol -lt 1) {
     throw "PreflightMinBarsPerSymbol must be >= 1"
 }
 
-$effectivePaperDurationSeconds = $PaperDurationSeconds
-if ($NonQualifyingTestMode -and -not $PSBoundParameters.ContainsKey("PaperDurationSeconds")) {
-    $effectivePaperDurationSeconds = $FunctionalDurationSeconds
+$profileConfig = Get-RunObjectiveProfileConfig -RunObjective $RunObjectiveProfile
+$effectiveNonQualifyingTestMode = [bool]($NonQualifyingTestMode -or [bool]$profileConfig.force_functional_only)
+
+$effectivePaperDurationSeconds = [int]$PaperDurationSeconds
+if (-not $PSBoundParameters.ContainsKey("PaperDurationSeconds")) {
+    if ($RunObjectiveProfile -eq "qualifying" -and $effectiveNonQualifyingTestMode) {
+        $effectivePaperDurationSeconds = [int]$FunctionalDurationSeconds
+    }
+    else {
+        $effectivePaperDurationSeconds = [int]$profileConfig.default_duration_seconds
+    }
+}
+
+if ($effectivePaperDurationSeconds -lt [int]$profileConfig.min_duration_seconds) {
+    throw (
+        "PaperDurationSeconds ($effectivePaperDurationSeconds) is below minimum " +
+        "for profile '$RunObjectiveProfile' ([int]$($profileConfig.min_duration_seconds))."
+    )
+}
+
+$effectiveMinFilledOrdersForSession = $MinFilledOrders
+switch ($RunObjectiveProfile) {
+    "smoke" { $effectiveMinFilledOrdersForSession = 0 }
+    "orchestration" { $effectiveMinFilledOrdersForSession = 0 }
+    "reconcile" {
+        if ($PSBoundParameters.ContainsKey("MinFilledOrders")) {
+            $effectiveMinFilledOrdersForSession = $MinFilledOrders
+        }
+        else {
+            $effectiveMinFilledOrdersForSession = [int]$profileConfig.default_min_filled_orders
+        }
+    }
+    "qualifying" {
+        if ($effectiveNonQualifyingTestMode) {
+            $effectiveMinFilledOrdersForSession = 0
+        }
+        else {
+            $effectiveMinFilledOrdersForSession = $MinFilledOrders
+        }
+    }
 }
 
 $sessionUtc = Get-UtcNow
@@ -385,6 +508,11 @@ if ($NonQualifyingTestMode) {
     Write-Host "Mode: NON-QUALIFYING TEST (window gate bypassed; sign-off remains false)"
     Write-Host "Effective duration (seconds): $effectivePaperDurationSeconds"
 }
+else {
+    Write-Host "Mode: QUALIFYING"
+}
+Write-Host "Run objective profile: $RunObjectiveProfile"
+Write-Host "Effective min filled orders: $effectiveMinFilledOrdersForSession"
 
 $runResults = @()
 $allPassed = $true
@@ -400,11 +528,15 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
     Write-Host "UTC start: $($runStartUtc.ToString("yyyy-MM-dd HH:mm:ss"))"
     Write-Host "In-window: $windowOk"
 
-    if (-not $windowOk -and -not $AllowOutsideWindow -and -not $NonQualifyingTestMode) {
+    if (-not $windowOk -and -not $AllowOutsideWindow -and -not $effectiveNonQualifyingTestMode) {
+        $outsideLaneInfo = Get-EvidenceLaneInfo -EffectiveNonQualifyingTestMode $effectiveNonQualifyingTestMode -InWindow $windowOk -DurationSeconds $effectivePaperDurationSeconds -RunObjective $RunObjectiveProfile
         $result = [PSCustomObject]@{
             run = $runIndex
             utc_start = $runStartUtc.ToString("o")
             in_window = $false
+            run_objective_profile = $RunObjectiveProfile
+            evidence_lane = $outsideLaneInfo.evidence_lane
+            lane_reason = $outsideLaneInfo.lane_reason
             passed = $false
             reason = "outside_allowed_window"
             run_dir = $runDir
@@ -447,10 +579,14 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             $availabilityRatio = [double]$preflightPayload.summary.availability_ratio
             $preflightGatePassed = ($availabilityRatio -ge $MinSymbolDataAvailabilityRatio)
             if (-not $preflightGatePassed) {
+                $preflightLaneInfo = Get-EvidenceLaneInfo -EffectiveNonQualifyingTestMode $effectiveNonQualifyingTestMode -InWindow $windowOk -DurationSeconds $effectivePaperDurationSeconds -RunObjective $RunObjectiveProfile
                 $result = [PSCustomObject]@{
                     run = $runIndex
                     utc_start = $runStartUtc.ToString("o")
                     in_window = $windowOk
+                    run_objective_profile = $RunObjectiveProfile
+                    evidence_lane = $preflightLaneInfo.evidence_lane
+                    lane_reason = $preflightLaneInfo.lane_reason
                     commands_passed = $false
                     preflight_gate_passed = $false
                     preflight_gate_threshold_ratio = $MinSymbolDataAvailabilityRatio
@@ -591,24 +727,23 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
         $preSnapshotNonZero = ($snapshotPre.ok -eq $true -and [double]$snapshotPre.cash -gt 0 -and [double]$snapshotPre.portfolio_value -gt 0)
         $postSnapshotNonZero = ($snapshotPost.ok -eq $true -and [double]$snapshotPost.cash -gt 0 -and [double]$snapshotPost.portfolio_value -gt 0)
 
-        $effectiveMinFilledOrders = $MinFilledOrders
-        if ($NonQualifyingTestMode) {
-            $effectiveMinFilledOrders = 0
-        }
+        $effectiveMinFilledOrders = $effectiveMinFilledOrdersForSession
 
         $gateFilled = ($filledOrderCount -ge $effectiveMinFilledOrders)
         $gateDrift = ($driftFlagCount -eq 0)
         $gateNoLoopError = (-not $eventLoopErrorSeen)
         $gateNoClientIdError = (-not $clientIdErrorSeen)
         $gateSnapshots = ($preSnapshotNonZero -and $postSnapshotNonZero)
-        if ($NonQualifyingTestMode) {
+        if ($effectiveNonQualifyingTestMode) {
             $gateSnapshots = ($preSnapshotConnected -and $postSnapshotConnected)
         }
 
         $windowGateForRun = $windowOk
-        if ($NonQualifyingTestMode) {
+        if ($effectiveNonQualifyingTestMode) {
             $windowGateForRun = $true
         }
+
+        $runLaneInfo = Get-EvidenceLaneInfo -EffectiveNonQualifyingTestMode $effectiveNonQualifyingTestMode -InWindow $windowOk -DurationSeconds $effectivePaperDurationSeconds -RunObjective $RunObjectiveProfile
 
         $runPassed = ($windowGateForRun -and $allArtifactsPresent -and $gateFilled -and $gateDrift -and $gateNoLoopError -and $gateNoClientIdError -and $gateSnapshots)
 
@@ -620,6 +755,9 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             run = $runIndex
             utc_start = $runStartUtc.ToString("o")
             in_window = $windowOk
+            run_objective_profile = $RunObjectiveProfile
+            evidence_lane = $runLaneInfo.evidence_lane
+            lane_reason = $runLaneInfo.lane_reason
             commands_passed = $true
             filled_order_count = $filledOrderCount
             min_filled_orders_required = $effectiveMinFilledOrders
@@ -632,7 +770,7 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             broker_snapshot_nonzero_ok = $gateSnapshots
             endpoint_profile_tag = $endpointProfileTag
             handshake_diagnostics = $handshakeDiagnostics
-            non_qualifying_test_mode = [bool]$NonQualifyingTestMode
+            non_qualifying_test_mode = [bool]$effectiveNonQualifyingTestMode
             preflight_gate_enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
             preflight_gate_passed = $preflightGatePassed
             preflight_gate_threshold_ratio = $MinSymbolDataAvailabilityRatio
@@ -659,6 +797,9 @@ for ($runIndex = 1; $runIndex -le $Runs; $runIndex++) {
             run = $runIndex
             utc_start = $runStartUtc.ToString("o")
             in_window = $windowOk
+            run_objective_profile = $RunObjectiveProfile
+            evidence_lane = "functional_only"
+            lane_reason = "command_failed"
             commands_passed = $false
             passed = $false
             reason = "command_failed"
@@ -692,17 +833,30 @@ $completedRuns = $runResults.Count
 $passedRuns = @($runResults | Where-Object { $_.passed -eq $true }).Count
 $sessionPassed = ($allPassed -and $completedRuns -eq $Runs -and $passedRuns -eq $Runs)
 
+$allRunsInWindow = $true
+foreach ($runResult in $runResults) {
+    if ($null -eq $runResult.in_window -or -not [bool]$runResult.in_window) {
+        $allRunsInWindow = $false
+        break
+    }
+}
+
+$sessionLaneInfo = Get-EvidenceLaneInfo -EffectiveNonQualifyingTestMode $effectiveNonQualifyingTestMode -InWindow $allRunsInWindow -DurationSeconds $effectivePaperDurationSeconds -RunObjective $RunObjectiveProfile
+
 $report = [ordered]@{
     step = "1A"
     profile = $Profile
     generated_at_utc = (Get-UtcNow).ToString("o")
     required_window_utc = "08:00-16:00"
-    non_qualifying_test_mode = [bool]$NonQualifyingTestMode
+    run_objective_profile = $RunObjectiveProfile
+    non_qualifying_test_mode = [bool]$effectiveNonQualifyingTestMode
+    evidence_lane = $sessionLaneInfo.evidence_lane
+    lane_reason = $sessionLaneInfo.lane_reason
     runs_required = $Runs
     runs_completed = $completedRuns
     runs_passed = $passedRuns
     paper_duration_seconds = $effectivePaperDurationSeconds
-    min_filled_orders_required = $(if ($NonQualifyingTestMode) { 0 } else { $MinFilledOrders })
+    min_filled_orders_required = $effectiveMinFilledOrdersForSession
     endpoint_profile_tag = $endpointProfileTag
     symbol_data_preflight = [ordered]@{
         enabled = [bool](-not $SkipSymbolAvailabilityPreflight)
@@ -712,7 +866,7 @@ $report = [ordered]@{
         preflight_interval = $PreflightInterval
     }
     session_passed = $sessionPassed
-    signoff_ready = $(if ($NonQualifyingTestMode) { $false } else { $sessionPassed })
+    signoff_ready = ($sessionPassed -and $sessionLaneInfo.evidence_lane -eq "qualifying")
     output_dir = $sessionDir
     run_results = $runResults
 }

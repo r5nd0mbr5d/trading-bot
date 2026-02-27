@@ -1,6 +1,8 @@
 param(
     [string]$Profile = "uk_paper",
     [int]$PaperDurationSeconds = 180,
+    [ValidateSet("smoke", "orchestration", "reconcile")]
+    [string]$RunObjectiveProfile = "orchestration",
     [int]$FunctionalFailureLimit = 9999,
     [switch]$AppendBacklogEvidence,
     [switch]$ClearKillSwitchBeforeEachRun
@@ -21,6 +23,7 @@ $invokeParams = @{
     Profile = $Profile
     Runs = 1
     PaperDurationSeconds = $PaperDurationSeconds
+    RunObjectiveProfile = $RunObjectiveProfile
     NonQualifyingTestMode = $true
     AppendBacklogEvidence = [bool]$AppendBacklogEvidence
     ClearKillSwitchBeforeEachRun = [bool]$ClearKillSwitchBeforeEachRun

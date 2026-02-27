@@ -3,6 +3,8 @@ param(
     [int]$Runs = 3,
     [int]$PaperDurationSeconds = 1800,
     [int]$FunctionalDurationSeconds = 180,
+    [ValidateSet("smoke", "orchestration", "reconcile", "qualifying")]
+    [string]$RunObjectiveProfile = "qualifying",
     [int]$MinFilledOrders = 5,
     [double]$MinSymbolDataAvailabilityRatio = 0.80,
     [int]$PreflightMinBarsPerSymbol = 100,
@@ -75,30 +77,30 @@ function Test-ClientIdCollisionFromReport {
 function Get-EndpointProfileTag {
     param([string]$ProfileName)
 
-    $host = $env:IBKR_HOST
-    if ([string]::IsNullOrWhiteSpace($host)) {
-        $host = "127.0.0.1"
+    $ibkrHost = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($ibkrHost)) {
+        $ibkrHost = "127.0.0.1"
     }
 
-    $port = $env:IBKR_PORT
-    if ([string]::IsNullOrWhiteSpace($port)) {
+    $ibkrPort = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($ibkrPort)) {
         if ($ProfileName -eq "uk_paper") {
-            $port = "7497"
+            $ibkrPort = "7497"
         }
         else {
-            $port = "7496"
+            $ibkrPort = "7496"
         }
     }
 
     $mode = "custom"
-    if ($port -eq "7497") {
+    if ($ibkrPort -eq "7497") {
         $mode = "paper"
     }
-    elseif ($port -eq "7496") {
+    elseif ($ibkrPort -eq "7496") {
         $mode = "live"
     }
 
-    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $ibkrHost, $ibkrPort
 }
 
 function Test-ClientIdRangesOverlap {
@@ -149,6 +151,7 @@ try {
             Runs = $Runs
             PaperDurationSeconds = $PaperDurationSeconds
             FunctionalDurationSeconds = $FunctionalDurationSeconds
+            RunObjectiveProfile = $RunObjectiveProfile
             MinFilledOrders = $MinFilledOrders
             MinSymbolDataAvailabilityRatio = $MinSymbolDataAvailabilityRatio
             PreflightMinBarsPerSymbol = $PreflightMinBarsPerSymbol

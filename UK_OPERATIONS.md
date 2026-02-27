@@ -374,6 +374,30 @@ What it writes:
 - underlying burn-in latest pointer: `reports/uk_tax/step1a_burnin/step1a_burnin_latest.json`
 - per-run preflight report: `reports/uk_tax/step1a_burnin/session_<timestamp>/run_<n>/00_symbol_data_preflight.json`
 
+### MO-2F Functional Profiles (Out-of-Hours Allowed, Non-Signoff)
+
+Policy reference: `docs/MO2F_LANE_POLICY.md`
+
+Use these only for functional validation. They never satisfy MO-2 signoff.
+
+```powershell
+# Smoke profile (fast command-path check)
+./scripts/run_step1a_burnin.ps1 -Profile uk_paper -Runs 1 -RunObjectiveProfile smoke -PaperDurationSeconds 60 -NonQualifyingTestMode -AllowOutsideWindow
+
+# Orchestration profile (default functional check)
+./scripts/run_step1a_burnin.ps1 -Profile uk_paper -Runs 1 -RunObjectiveProfile orchestration -PaperDurationSeconds 300 -NonQualifyingTestMode -AllowOutsideWindow
+
+# Reconcile profile (functional fill/reconcile confidence)
+./scripts/run_step1a_burnin.ps1 -Profile uk_paper -Runs 1 -RunObjectiveProfile reconcile -PaperDurationSeconds 900 -NonQualifyingTestMode -AllowOutsideWindow
+
+# Qualifying profile (MO-2 signoff lane; in-window only)
+./scripts/run_step1a_burnin.ps1 -Profile uk_paper -Runs 3 -RunObjectiveProfile qualifying -PaperDurationSeconds 1800 -MinFilledOrders 5
+```
+
+Interpretation guardrails:
+- `evidence_lane=functional_only` is never signoff-eligible.
+- `signoff_ready=true` is valid only when `run_objective_profile=qualifying`, in-window, and duration is at least 1800 seconds.
+
 ---
 
 ## 10) Paper DB Rotation (Session Isolation)

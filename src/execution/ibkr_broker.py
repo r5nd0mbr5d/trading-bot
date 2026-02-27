@@ -14,6 +14,12 @@ from src.execution.broker import BrokerBase
 logger = logging.getLogger(__name__)
 
 
+RUNTIME_CLIENT_ID_MIN = 1
+RUNTIME_CLIENT_ID_MAX = 499
+ASSISTANT_CLIENT_ID_MIN = 5000
+ASSISTANT_CLIENT_ID_MAX = 5099
+
+
 class IBKRBroker(BrokerBase):
     """Broker adapter for Interactive Brokers via ib_insync."""
 
@@ -35,10 +41,24 @@ class IBKRBroker(BrokerBase):
             self._Stock = Stock
             self._MarketOrder = MarketOrder
 
-            # Try to connect with configured clientId, or use alternative if already in use
             client_id = self.cfg.ibkr_client_id
+            band = self._resolve_client_id_band(client_id)
+            if band is None:
+                logger.error(
+                    "IBKR connection failed: clientId=%s outside supported ranges [%s-%s] and [%s-%s]",
+                    client_id,
+                    RUNTIME_CLIENT_ID_MIN,
+                    RUNTIME_CLIENT_ID_MAX,
+                    ASSISTANT_CLIENT_ID_MIN,
+                    ASSISTANT_CLIENT_ID_MAX,
+                )
+                self._ib = None
+                return
+
+            _, band_end = band
             max_attempts = 5
             attempt = 0
+            connected = False
 
             while attempt < max_attempts:
                 try:
@@ -54,22 +74,38 @@ class IBKRBroker(BrokerBase):
                         self.cfg.ibkr_port,
                         client_id,
                     )
+                    connected = True
                     break
                 except Exception as e:
                     if "already in use" in str(e).lower() and attempt < max_attempts - 1:
-                        # Try next clientId if current one is in use
+                        next_client_id = client_id + 1
+                        if next_client_id > band_end:
+                            raise RuntimeError(
+                                "IBKR client-id collision recovery exhausted within allowed band"
+                            ) from e
                         client_id += 1
                         attempt += 1
                         logger.debug("ClientId %s in use, trying %s", client_id - 1, client_id)
-                        self._ib = IB()  # Reset IB connection for retry
+                        self._ib = IB()
                     else:
                         raise
+
+            if not connected:
+                raise RuntimeError("IBKR connection retries exhausted")
         except ImportError:
             logger.warning("ib_insync not installed: pip install ib_insync")
             self._ib = None
         except Exception as exc:
             logger.error("IBKR connection failed: %s", exc)
             self._ib = None
+
+    @staticmethod
+    def _resolve_client_id_band(client_id: int) -> Optional[tuple[int, int]]:
+        if RUNTIME_CLIENT_ID_MIN <= int(client_id) <= RUNTIME_CLIENT_ID_MAX:
+            return RUNTIME_CLIENT_ID_MIN, RUNTIME_CLIENT_ID_MAX
+        if ASSISTANT_CLIENT_ID_MIN <= int(client_id) <= ASSISTANT_CLIENT_ID_MAX:
+            return ASSISTANT_CLIENT_ID_MIN, ASSISTANT_CLIENT_ID_MAX
+        return None
 
     def disconnect(self) -> None:
         """Cleanly disconnect from IBKR and release event loop resources."""

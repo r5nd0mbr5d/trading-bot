@@ -52,6 +52,8 @@ class ReportSchemaAdapter:
             return {
                 "generated_at_utc": payload.get("generated_at_utc"),
                 "profile": payload.get("profile"),
+                "run_objective_profile": payload.get("run_objective_profile"),
+                "evidence_lane": payload.get("evidence_lane"),
                 "session_passed": payload.get("session_passed"),
                 "signoff_ready": payload.get("signoff_ready"),
                 "runs_completed": payload.get("runs_completed"),

@@ -38,30 +38,30 @@ function Test-InWindow {
 function Get-EndpointProfileTag {
     param([string]$ProfileName)
 
-    $host = $env:IBKR_HOST
-    if ([string]::IsNullOrWhiteSpace($host)) {
-        $host = "127.0.0.1"
+    $ibkrHost = $env:IBKR_HOST
+    if ([string]::IsNullOrWhiteSpace($ibkrHost)) {
+        $ibkrHost = "127.0.0.1"
     }
 
-    $port = $env:IBKR_PORT
-    if ([string]::IsNullOrWhiteSpace($port)) {
+    $ibkrPort = $env:IBKR_PORT
+    if ([string]::IsNullOrWhiteSpace($ibkrPort)) {
         if ($ProfileName -eq "uk_paper") {
-            $port = "7497"
+            $ibkrPort = "7497"
         }
         else {
-            $port = "7496"
+            $ibkrPort = "7496"
         }
     }
 
     $mode = "custom"
-    if ($port -eq "7497") {
+    if ($ibkrPort -eq "7497") {
         $mode = "paper"
     }
-    elseif ($port -eq "7496") {
+    elseif ($ibkrPort -eq "7496") {
         $mode = "live"
     }
 
-    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $host, $port
+    return "ibkr:{0}:{1}:{2}:{3}" -f $ProfileName, $mode, $ibkrHost, $ibkrPort
 }
 
 function Write-JsonFile {
@@ -76,6 +76,22 @@ function Write-JsonFile {
     }
 
     $Payload | ConvertTo-Json -Depth 10 | Set-Content -Path $Path -Encoding UTF8
+}
+
+function Get-BurnInEvidenceLane {
+    param([string]$ReportPath)
+
+    if (-not (Test-Path $ReportPath)) {
+        return $null
+    }
+
+    try {
+        $payload = Get-Content -Path $ReportPath -Raw | ConvertFrom-Json
+        return [string]$payload.evidence_lane
+    }
+    catch {
+        return $null
+    }
 }
 
 $startUtc = Get-UtcNow
@@ -123,6 +139,7 @@ $commandArgs = @(
     "-Profile", $Profile,
     "-Runs", "$Runs",
     "-PaperDurationSeconds", "$PaperDurationSeconds",
+    "-RunObjectiveProfile", "qualifying",
     "-MinFilledOrders", "$MinFilledOrders",
     "-MinSymbolDataAvailabilityRatio", "$MinSymbolDataAvailabilityRatio",
     "-PreflightMinBarsPerSymbol", "$PreflightMinBarsPerSymbol",
@@ -161,6 +178,12 @@ $endUtc = Get-UtcNow
 $durationSeconds = [int][Math]::Round(($endUtc - $startUtc).TotalSeconds)
 $exitCode = $process.ExitCode
 $latestBurnInReport = "reports/uk_tax/step1a_burnin/step1a_burnin_latest.json"
+$observedEvidenceLane = Get-BurnInEvidenceLane -ReportPath $latestBurnInReport
+$laneValidated = ($observedEvidenceLane -eq "qualifying")
+$effectiveExitCode = $exitCode
+if ($effectiveExitCode -eq 0 -and -not $laneValidated) {
+    $effectiveExitCode = 1
+}
 
 $orchestratorReport = [ordered]@{
     generated_at_utc = $endUtc.ToString("o")
@@ -186,14 +209,18 @@ $orchestratorReport = [ordered]@{
         script = $marketScript
         runs = $Runs
         paper_duration_seconds = $PaperDurationSeconds
+        run_objective_profile = "qualifying"
         append_backlog_evidence = [bool]$AppendBacklogEvidence
     }
     execution = [ordered]@{
-        exit_code = $exitCode
-        passed = ($exitCode -eq 0)
+        exit_code = $effectiveExitCode
+        passed = ($effectiveExitCode -eq 0)
         log_path = $logPath
         latest_burnin_report = $latestBurnInReport
         latest_burnin_report_exists = (Test-Path $latestBurnInReport)
+        expected_evidence_lane = "qualifying"
+        observed_evidence_lane = $observedEvidenceLane
+        evidence_lane_validated = $laneValidated
     }
 }
 
@@ -205,11 +232,11 @@ Write-Host "Duration (s): $durationSeconds"
 Write-Host "Log: $logPath"
 Write-Host "Report: $reportPath"
 
-if ($exitCode -eq 0) {
+if ($effectiveExitCode -eq 0) {
     Write-Host "MO-2 STATUS: PASSED"
 }
 else {
-    Write-Host "MO-2 STATUS: FAILED (exit=$exitCode)"
+    Write-Host "MO-2 STATUS: FAILED (exit=$effectiveExitCode)"
 }
 
-exit $exitCode
+exit $effectiveExitCode

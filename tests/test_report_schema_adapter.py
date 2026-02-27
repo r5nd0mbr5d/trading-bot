@@ -31,6 +31,8 @@ def test_get_resource_returns_normalized_payload(tmp_path: Path) -> None:
         {
             "generated_at_utc": "2026-02-26T00:00:00Z",
             "profile": "uk_paper",
+            "run_objective_profile": "qualifying",
+            "evidence_lane": "qualifying",
             "session_passed": True,
             "signoff_ready": True,
             "runs_completed": 3,
@@ -44,4 +46,6 @@ def test_get_resource_returns_normalized_payload(tmp_path: Path) -> None:
     assert result["ok"] is True
     assert result["schema_version"] == "compat.v1"
     assert result["payload"]["profile"] == "uk_paper"
+    assert result["payload"]["run_objective_profile"] == "qualifying"
+    assert result["payload"]["evidence_lane"] == "qualifying"
     assert "extra" not in result["payload"]
