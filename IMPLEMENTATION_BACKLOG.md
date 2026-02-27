@@ -6,12 +6,12 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 90 (7 Prompts + 82 Next Steps + Code Style Governance)
-**Completed**: 82 (Prompts 1–7 + completed steps listed in their individual entries)
+**Total Items**: 92 (7 Prompts + 84 Next Steps + Code Style Governance)
+**Completed**: 88 (Prompts 1–7 + completed steps listed in their individual entries)
 **In Progress**: 1 (Step 1A burn-in)
-**Not Started**: 5 (Steps 32, 57, 62, 67, 68)
+**Not Started**: 1 (Step 32 — gated behind MLP + MO-7/MO-8)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
-**Test suite**: 561 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 9 | **Asset classes**: 2
+**Test suite**: 586 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 9 | **Asset classes**: 2
 
 ---
 
@@ -31,11 +31,13 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 | Step | Name | What Claude Opus Must Decide First |
 |---|---|---|
-| **62** | Feedforward MLP baseline | Architecture review (layer sizes, regularisation, `skorch` config) |
-| **57** | BTC LSTM feature engineering | Feature set design and multi-timeframe window selection |
-| **32** | LSTM baseline model | Gated behind Step 62 MLP gate; architecture decisions throughout |
-| **67** | RL sandbox track feasibility | Decide if RL belongs in roadmap, define strict guardrails and success criteria |
-| **68** | Deep-sequence model governance gate | Decide minimum evidence required before adding CNN/LSTM/Transformer runtime track |
+| ~~62~~ | ~~Feedforward MLP baseline~~ | ✅ COMPLETED (Feb 26, 2026) — see Step 62 completion notes |
+| ~~57~~ | ~~BTC LSTM feature engineering~~ | ✅ COMPLETED (Feb 26, 2026) — design + implementation closed |
+| **32** | LSTM baseline model | Gated behind Step 62 MLP performance gate (PR-AUC/Sharpe) + MO-7/MO-8 evidence |
+| ~~82~~ | ~~Functional-only signoff split (MO-2F)~~ | ✅ COMPLETED (Feb 26, 2026) — dual-lane policy implemented |
+| ~~83~~ | ~~Functional burn-in minimum duration policy~~ | ✅ COMPLETED (Feb 26, 2026) — duration profiles implemented |
+| ~~67~~ | ~~RL sandbox track feasibility~~ | ✅ Decided: DEFER (conditional no-go) — see `research/tickets/rl_feasibility_spike.md` |
+| ~~68~~ | ~~Deep-sequence model governance gate~~ | ✅ Decided: ACCEPT — see `research/tickets/deep_sequence_governance_spike.md` |
 
 > **Escalation rule:** If you encounter an ambiguous architectural decision, a test that cannot be fixed without design changes, or a task marked "Claude Opus" above — **stop, commit what you have, and leave a clear note in the step's Completion Notes field explaining the blocker.** Do not guess at architecture.
 
@@ -44,6 +46,7 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 | ID | Action | Status |
 |---|---|---|
 | MO-2 | 3 consecutive in-window paper sessions (08:00–16:00 UTC, Mon–Fri) | ⏳ OPEN — current blocker |
+| MO-2F | Functional-only evidence pack (out-of-hours allowed, non-signoff lane) | ⏳ OPEN — unblocks functional dependency work; does not satisfy MO-2 signoff |
 | MO-3 | Populate `.env` with Massive/Polygon API key; test fetch | ⏳ OPEN |
 | MO-4 | Run backfill commands for target symbols | ⏳ OPEN |
 | MO-5/6 | Human review of promotion gate evidence | ⏳ OPEN — post MO-4 |
@@ -2062,23 +2065,46 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 57: BTC LSTM Feature Engineering (Research Pipeline)
-**Status**: NOT STARTED
-**Priority**: MEDIUM — Tier 2; extends the XGBoost feature set to crypto; reference: zach1502/LSTM-Algorithmic-Trading-Bot
-**Intended Agent**: Copilot (feature engineering) / Claude Opus (model architecture decisions)
-**ADR**: ADR-015
-**Execution Prompt**: Implement `research/data/crypto_features.py` adapting the multi-timeframe indicator approach from [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot). (1) Compute 21 indicators across timeframes (short/medium/long — e.g. 5/20/60 bars) using the `ta` library (already a dependency): EMA, Bollinger Bands, RSI, Ultimate Oscillator, OBV, Accumulation/Distribution, ATR, MFI, and Variance. (2) Use `skorch` (scikit-learn PyTorch wrapper) as the training harness — add `skorch>=0.15.0` to `requirements.txt`. (3) Create `research/experiments/configs/btc_lstm_example.json` based on `xgboost_example.json` structure, adapted for LSTM. (4) Implement confidence-based signal generation: `confidence = (prediction - past_avg_prediction) / past_avg_prediction`; emit BUY if `confidence >= buy_threshold` and `expected_profit_pct >= min_profit_threshold`; emit SELL otherwise. (5) Add to `research/specs/FEATURE_LABEL_SPEC.md` §3 as "Crypto/BTC Feature Set". (6) Tests: mock OHLCV input → all 21 indicators computed; confidence calculation; signal threshold logic.
+**Status**: COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — closed
+**Intended Agent**: Copilot (feature engineering)
+**ADR**: ADR-015, ADR-020
+**Design Spec**: `research/specs/BTC_LSTM_FEATURE_SPEC.md` (full decision package)
+
+**Execution Prompt**: Implement `research/data/crypto_features.py` per `research/specs/BTC_LSTM_FEATURE_SPEC.md`. (1) Compute **20 indicators** across 6 families (trend, volatility, momentum, volume, money flow, variance) using 3 lookback windows (5/20/60 bars) on daily OHLCV using the `ta` library. (2) Create `research/experiments/configs/btc_lstm_example.json` with `model_type: "feature_engineering_only"` and BTC halving-aware split config. (3) Add `FEATURE_LABEL_SPEC.md` §3i reference (already added by ARCH session). (4) Implement `build_crypto_features(df, config) -> pd.DataFrame` returning exactly 20 feature columns with UTC-aware DatetimeIndex. (5) Apply max 3-bar forward-fill for gaps; NaN beyond that. (6) Tests: 14 tests per spec §6c (feature count, no lookahead, bounded values, NaN handling, UTC index, zero-volume handling, empty input). (7) No imports from `src/`; no new runtime dependencies; no signal generation logic (deferred to Step 32 LSTM integration).
 
 **Scope**:
-- `research/data/crypto_features.py` — new module (21-indicator multi-timeframe feature set)
+- `research/data/crypto_features.py` — new module (20-indicator multi-timeframe feature set)
 - `research/experiments/configs/btc_lstm_example.json` — new config
-- `research/specs/FEATURE_LABEL_SPEC.md` — add BTC feature family
-- `requirements.txt` — add `skorch>=0.15.0`
-- `tests/test_crypto_features.py` — new test file
+- `research/specs/FEATURE_LABEL_SPEC.md` — §3i already added by ARCH session
+- `tests/test_crypto_features.py` — new test file (14 tests)
 
-**Reference**: [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot) — `feature_engineer.py` for indicator set; `train_lstm.py` for `skorch` + `RandomizedSearchCV` pattern; `paper_trading.py` for confidence-based signal generation
+**Reference**: [zach1502/LSTM-Algorithmic-Trading-Bot](https://github.com/zach1502/LSTM-Algorithmic-Trading-Bot) — `feature_engineer.py` for indicator set
 **Research Note (Peng et al. 2022 — AishaRL.pdf)**: Prefer **bounded-range indicators** (RSI 0–100, CMF zero-centered, ATR) over time-dependent indicators (e.g. raw Bollinger Bands values) — unbounded values introduce temporal bias in experience replay. Different indicator *categories* (volatility, momentum, volume) minimise correlated features. Add **Chaikin Money Flow (CMF)** as a volume indicator alongside OBV. Use **market-cycle-aware train/test splitting** (e.g. split at BTC halving dates) rather than arbitrary date cutoffs.
-**Depends on**: Step 32 LSTM baseline architecture (or can proceed independently for feature engineering only)
+**Depends on**: None (feature engineering proceeds independently per deep-sequence governance §3)
 **Estimated Effort**: 6–10 hours
+
+**Opus Design Decision Notes (2026-02-26):**
+- Feature count reduced from 21 to 20 (cross-asset features deferred; signal generation removed from scope)
+- skorch dependency removed from Step 57 scope (belongs to Step 32 LSTM integration)
+- Confidence-based signal generation removed from Step 57 (belongs to Step 32)
+- BTC halving-aware walk-forward split policy defined (5 folds, aligned to 2016/2020/2024 halvings)
+- 7 leakage guard checks (LG-01 to LG-07) defined in spec §3c
+- Output metadata schema for Step 32 gating defined in spec §5c
+
+**Completion Notes (Feb 26, 2026):**
+- Implemented `research/data/crypto_features.py` with 20 BTC daily-bar features and helper APIs:
+  - `build_crypto_features(df, config)`
+  - `drop_nan_feature_rows(features)`
+  - `get_feature_columns()`
+- Implemented bounded forward-fill gap policy (`max_ffill_bars=3`) with UTC normalization.
+- Implemented leakage-safe feature computation using only bar[t] and earlier data.
+- Added `research/experiments/configs/btc_lstm_example.json`.
+- Added `tests/test_crypto_features.py` with 14 tests for schema, lookahead safety, bounded ranges, NaN policy, UTC index, and zero-volume behavior.
+- Validation:
+  - `python -m pytest tests/test_crypto_features.py -v` → **14 passed**
+  - `python -m pytest tests/test_research_features_labels.py -v` → **5 passed**
+  - `python -m pytest tests/ -v` → **586 passed**
 
 ---
 
@@ -2201,10 +2227,23 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 62: Feedforward ANN Baseline (MLP — pre-LSTM gate)
-**Status**: NOT STARTED
+**Status**: COMPLETED
+**Completion Date**: Feb 26, 2026
 **Priority**: MEDIUM — Tier 2 ML; correct intermediate step between XGBoost and LSTM; if a 3-layer MLP cannot beat XGBoost, LSTM is unlikely to either; "start simple, add complexity only when justified" (Longmore 2017)
-**Intended Agent**: Copilot (implementation) / Claude Opus (architecture review)
+**Intended Agent**: Copilot (implementation) — Opus gate cleared 2026-02-26
 **Reference**: Robot Wealth / Longmore 2017 — perceptron → multi-layer ANN progression; zach1502 repo `skorch` wrapper
+
+**Opus Architecture Review (2026-02-26):**
+- **Layer sizes (128→64→32)**: APPROVED. Appropriate tapering for tabular financial data.
+- **Dropout(0.3)**: APPROVED. Conservative enough to allow learning while preventing memorization.
+- **ReLU activations**: APPROVED. LeakyReLU is an acceptable alternative but not required.
+- **ExponentialLR(γ=0.9)**: APPROVED. Consistent with Longmore's learning rate decay guidance.
+- **skorch wrapper**: APPROVED. Enables WalkForwardHarness (Step 45) compatibility.
+- **REQUIRED ADDITION 1**: Add `skorch.callbacks.EarlyStopping(patience=10, monitor='valid_loss')` — consistent with Step 32 LSTM spec.
+- **REQUIRED ADDITION 2**: Add `sklearn.preprocessing.StandardScaler` in the pipeline before the MLP (OR `torch.nn.BatchNorm1d` as first layer). Prefer StandardScaler for simplicity.
+- **REQUIRED**: Use `batch_size=128` (appropriate for tabular financial data).
+- **REQUIRED**: Use `BCEWithLogitsLoss` with `pos_weight` per Step 59 class-imbalance handling.
+- **Reference**: `archive/ARCH_DECISION_PACKAGE_2026-02-26.md` (Copilot Handoff Task 2)
 **Execution Prompt**: Implement `research/models/mlp_classifier.py`. (1) Architecture: 3 hidden layers (input → 128 → 64 → 32 → 1), ReLU activations, Dropout(0.3), sigmoid output. (2) Use `skorch.NeuralNetBinaryClassifier` as the scikit-learn wrapper (`skorch>=0.15.0` in `requirements.txt`). (3) `train_mlp(X_train, y_train, config) -> fitted_model` — same interface as XGBoost runner so it slots into the existing `WalkForwardHarness` (Step 45). (4) Add `ExponentialLR(gamma=0.9)` learning rate scheduler applied per epoch (learning rate decay — Longmore's key insight). (5) Create `research/experiments/configs/mlp_example.json` based on `xgboost_example.json` structure. (6) Evaluate on same walk-forward folds as XGBoost baseline; report Sharpe, ROC-AUC, PR-AUC side by side in `aggregate_summary.json`. (7) Add MLP gate to `RESEARCH_PROMOTION_POLICY.md`: MLP must achieve PR-AUC ≥ 0.55 AND Sharpe ≥ 0.8 on out-of-sample folds before Step 32 (LSTM) is initiated. (8) Tests: mock OHLCV → MLP outputs predictions in [0,1]; scheduler applied; WalkForwardHarness compatibility.
 
 **Scope**:
@@ -2216,6 +2255,30 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Precedes**: Step 32 (LSTM) — MLP gate must pass first
 **Estimated Effort**: 5–8 hours
+
+**Completion Notes (Feb 26, 2026):**
+- Added `research/models/mlp_classifier.py` implementing a 3-layer MLP baseline with:
+  - hidden sizes `128 → 64 → 32`, ReLU activations, Dropout(0.3)
+  - `skorch.NeuralNetBinaryClassifier` wrapper
+  - `StandardScaler` pre-processing pipeline
+  - `EarlyStopping(patience=10, monitor='valid_loss')`
+  - `LRScheduler(policy='ExponentialLR', gamma=0.9)`
+  - `BCEWithLogitsLoss` with `pos_weight` (`scale_pos_weight`) integration
+- Added model-selection support for research experiments:
+  - `model_type` support in `research/experiments/config.py` (`xgboost` / `mlp`)
+  - `--model-type` CLI flag in `src/cli/arguments.py`
+  - dynamic trainer routing in `research/experiments/xgboost_pipeline.py`
+- Added config artifact: `research/experiments/configs/mlp_example.json`
+- Added tests:
+  - `tests/test_mlp_classifier.py`
+  - extended `tests/test_research_experiment_config.py`
+  - extended `tests/test_research_xgboost_pipeline.py` for `model_type=mlp`
+- Added dependency in `requirements.txt`: `skorch>=0.15.0`
+- Added policy gate in `research/specs/RESEARCH_PROMOTION_POLICY.md`:
+  - MLP-before-LSTM gate: PR-AUC ≥ 0.55 and Sharpe ≥ 0.8
+- Validation:
+  - targeted suite (`test_ibkr_broker`, `test_research_experiment_config`, `test_research_xgboost_pipeline`, `test_mlp_classifier`) → **30 passed**
+  - full suite: `python -m pytest tests/ -v` → **568 passed**
 
 ---
 
@@ -2341,7 +2404,8 @@ black --check src/ tests/ backtest/ --line-length 100
 ---
 
 ### Step 67: RL Trading Track Feasibility Spike — Needs Claude Opus Review
-**Status**: NOT STARTED
+**Status**: COMPLETED
+**Completion Date**: Feb 26, 2026
 **Priority**: MEDIUM — RL appears frequently in external material, but architecture and evaluation risk are high; requires design judgment before implementation
 **Intended Agent**: Claude Opus
 **Execution Prompt**: Produce a design memo deciding whether to add an RL research track. Include: (1) compatibility with UK-first, paper-before-live governance, (2) reproducibility requirements, (3) minimal sandbox design boundaries, (4) reward-function pitfalls and leakage controls, (5) explicit go/no-go criteria and rollback criteria. If go: define smallest safe Step plan; if no-go: document rejection rationale.
@@ -2353,10 +2417,20 @@ black --check src/ tests/ backtest/ --line-length 100
 **Dependencies**: None
 **Estimated Effort**: 4–8 hours
 
+**Completion Notes (Feb 26, 2026):**
+- **Verdict: DEFER (conditional no-go)**
+- Decision memo filed: `research/tickets/rl_feasibility_spike.md`
+- RL is premature before supervised pipeline (XGBoost→MLP→LSTM) reaches R3
+- Four explicit go/no-go conditions defined (XGBoost R4, MLP/LSTM R3, identified supervised failure mode, operator authorization)
+- Minimal sandbox boundaries specified if conditions are ever met
+- Rollback criteria: 160 compute-hours ceiling, seed stability requirement
+- Decided in ARCH session 2026-02-26; see `archive/ARCH_DECISION_PACKAGE_2026-02-26.md`
+
 ---
 
 ### Step 68: Deep-Sequence Model Governance Gate — Needs Claude Opus Review
-**Status**: NOT STARTED
+**Status**: COMPLETED
+**Completion Date**: Feb 26, 2026
 **Priority**: MEDIUM — external CNN/LSTM/Transformer examples show high complexity and weak reproducibility; needs clear governance before any expansion beyond current MLP/LSTM backlog path
 **Intended Agent**: Claude Opus
 **Execution Prompt**: Define a governance gate for adding sequence models (CNN/LSTM/Transformer). Deliver: (1) minimum evidence requirements (walk-forward, costs, stability), (2) data-volume and feature-leakage controls, (3) compute budget constraints, (4) promotion thresholds relative to XGBoost/MLP baselines, and (5) recommendation on whether to keep or retire Step 32/57 sequencing assumptions.
@@ -2367,6 +2441,17 @@ black --check src/ tests/ backtest/ --line-length 100
 
 **Dependencies**: Steps 62 and 57 context
 **Estimated Effort**: 4–8 hours
+
+**Completion Notes (Feb 26, 2026):**
+- **Verdict: ACCEPT — governance gate defined**
+- Governance gate document filed: `research/tickets/deep_sequence_governance_spike.md`
+- Quantitative thresholds defined: PR-AUC ≥ baseline+0.03, Sharpe ≥ baseline+0.2, stability across 3 seeds
+- Data volume requirements: 2 years daily bars or 6 months hourly bars minimum
+- Feature-leakage controls: 5-point audit checklist, automated leakage check required
+- Compute budget: ≤30min per fold, ≤3h total, ≤5M params, ≤4GB VRAM
+- Sequencing decision: Step 62→32 preserved; CNN/Transformer/hybrid NOT ADMITTED until evidence meets gate
+- Anti-complexity controls: one active track at a time, monotonic complexity, 90-day sunset clause
+- Decided in ARCH session 2026-02-26; see `archive/ARCH_DECISION_PACKAGE_2026-02-26.md`
 
 ---
 
@@ -2765,6 +2850,105 @@ black --check src/ tests/ backtest/ --line-length 100
 - Added operator note in `UK_OPERATIONS.md` section `9d) Report-Schema Compatibility Adapter (IBMCP-05)`
 - Validation:
   - `runTests` targeted file → **3 passed**
+
+---
+
+### Step 82: MO-2F Functional-Only Signoff Split (Preserve MO-2 In-Hours Gate)
+**Status**: ✅ COMPLETED (Feb 26, 2026)
+**Priority**: HIGH — unblock functional-test-dependent work without weakening live-signoff governance
+**Intended Agent**: ~~Claude Opus (policy review)~~ → **Copilot (implementation)**
+**Execution Prompt**:
+Create a dual-lane operations policy that explicitly separates:
+1. **MO-2 Qualifying Signoff Lane** (unchanged): in-window only (08:00–16:00 UTC, Mon–Fri), used for promotion/live gating.
+2. **MO-2F Functional Lane** (new): out-of-hours allowed, used for functional validation only (health checks, preflight, orchestration path, reconciliation path, artifact generation).
+
+The implementation must preserve existing MO-2 in-hours signoff semantics while adding an explicit functional-evidence lane that can unblock items requiring only functional testing.
+
+**Scope**:
+- `docs/MO2F_LANE_POLICY.md` — **new**: lane taxonomy, admissibility matrix, artifact schema, anti-substitution rule, objective profiles, duration policy
+- `scripts/run_step1a_burnin.ps1` — add `-RunObjectiveProfile` param (smoke/orchestration/reconcile/qualifying); add `evidence_lane`, `lane_reason`, `run_objective_profile` to report JSON; enforce duration floors per profile; force `min_filled_orders=0` for non-qualifying profiles
+- `scripts/run_mo2_end_to_end.ps1` — hard-pin `qualifying` profile; validate `evidence_lane == "qualifying"` in output
+- `src/reporting/report_schema_adapter.py` — add `evidence_lane`, `run_objective_profile` to step1a normalized payload
+- `UK_OPERATIONS.md` — add operator recipes for smoke/orchestration/reconcile/qualifying runs
+- `tests/test_lane_policy.py` — **new**: 8 tests covering lane derivation, profile enforcement, anti-substitution
+- `tests/test_report_schema_adapter.py` — 2 new tests for evidence_lane and run_objective_profile fields
+
+**Acceptance Criteria**:
+- MO-2 qualifying signoff criteria remain unchanged and in-window-gated.
+- Out-of-hours functional runs are first-class, explicitly marked non-signoff, and admissible for functional-only dependencies.
+- Functional-only outputs cannot be mistaken for MO-2 signoff evidence.
+- Anti-substitution rule: `evidence_lane == "functional_only"` artifacts are permanently inadmissible for MO-2/Gate B signoff.
+
+**Opus Policy Decision (Feb 26, 2026):**
+- **Lane taxonomy:** `qualifying` (in-window, signoff-eligible) vs `functional_only` (any-time, non-signoff)
+- **Artifact schema:** new fields `evidence_lane`, `lane_reason`, `run_objective_profile` — additive to existing JSON
+- **Derivation:** `qualifying` requires `non_qualifying_test_mode=false` AND `in_window=true` AND `duration >= 1800s`; else `functional_only`
+- **Anti-substitution:** functional evidence never counts toward MO-2; lane field is immutable once written
+- See implementation packet in SESSION_LOG.md [2026-02-26 23:00 UTC] entry
+
+**Depends on**: ~~Claude Opus policy decision~~ ✅ Resolved
+**Estimated Effort**: 4–6 hours (implementation only)
+
+**Completion Notes (Feb 26, 2026):**
+- Added policy artifact: `docs/MO2F_LANE_POLICY.md`
+- Implemented dual-lane metadata in `scripts/run_step1a_burnin.ps1`:
+  - new `RunObjectiveProfile` (`smoke|orchestration|reconcile|qualifying`)
+  - new report fields: `run_objective_profile`, `evidence_lane`, `lane_reason`
+  - lane derivation and anti-substitution guardrails (`functional_only` cannot become signoff)
+- Enforced qualifying-only profile path in `scripts/run_mo2_end_to_end.ps1` with `evidence_lane` validation
+- Updated wrappers to pass objective profile through market/auto-client paths
+- Updated report adapter and tests to expose/validate new fields
+- Validation:
+  - `tests/test_report_schema_adapter.py` + `tests/test_lane_policy.py` → **7 passed**
+  - `tests/` full suite → **572 passed**
+
+---
+
+### Step 83: Functional Burn-In Duration Optimization (Meaningful Minimum)
+**Status**: ✅ COMPLETED (Feb 26, 2026)
+**Priority**: MEDIUM — reduce operational cycle time while preserving functional signal quality
+**Intended Agent**: ~~Claude Opus (duration-policy review)~~ → **Copilot (implementation)**
+**Execution Prompt**:
+Implement the duration-profile system designed in the Step 82/83 Opus ARCH session.
+
+**Objective Profiles (decided):**
+- `smoke` — min 30s, default 60s, `functional_only`, `min_filled_orders=0`
+- `orchestration` — min 120s, default 300s, `functional_only`, `min_filled_orders=0`
+- `reconcile` — min 300s, default 900s, `functional_only`, `min_filled_orders` defaults to 1
+- `qualifying` — min 1800s, default 1800s, `qualifying` lane, `min_filled_orders=5`
+
+**Duration guardrails:**
+- Runs < 1800s can never produce `signoff_ready=true`
+- Non-qualifying profiles always force `evidence_lane="functional_only"`
+- `run_objective_profile` field is mandatory; if missing, treated as `functional_only`
+
+**Scope**:
+- `scripts/run_step1a_burnin.ps1` — enforce min-duration floor per profile; log profile metadata
+- `UK_OPERATIONS.md` — add operator recipes with example commands per profile
+- `reports/uk_tax/*` — `run_objective_profile` in all artifacts
+- `tests/test_lane_policy.py` — duration-floor and profile-enforcement tests
+
+**Acceptance Criteria**:
+- Functional-only lane supports short runs with explicit profile labeling.
+- Qualifying signoff lane retains current 1800s minimum and all gates.
+- Operator can run short functional checks out-of-hours without policy ambiguity.
+- `signoff_ready=false` for any run with `paper_duration_seconds < 1800`.
+
+**Depends on**: Step 82 lane split ~~policy~~ ✅ Resolved (same Opus session)
+**Estimated Effort**: 2–4 hours (implementation only; co-bundleable with Step 82)
+
+**Completion Notes (Feb 26, 2026):**
+- Implemented duration profile floors/defaults in `scripts/run_step1a_burnin.ps1`:
+  - `smoke` min/default: 30s/60s
+  - `orchestration` min/default: 120s/300s
+  - `reconcile` min/default: 300s/900s
+  - `qualifying` min/default: 1800s/1800s
+- Added signoff exclusion guardrail: runs with duration `< 1800` can never set `signoff_ready=true`
+- Added functional profile operator recipes to `UK_OPERATIONS.md`
+- Added profile passthrough in wrappers and qualifying enforcement in MO-2 orchestrator
+- Validation:
+  - `tests/test_report_schema_adapter.py` + `tests/test_lane_policy.py` → **7 passed**
+  - `tests/` full suite → **572 passed**
 
 ### Week of Feb 23 (This Week)
 - [x] Prompt 1: Paper session summary â€” COMPLETE

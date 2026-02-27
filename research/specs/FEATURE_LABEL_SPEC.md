@@ -152,6 +152,37 @@ All features are computed as of the **bar[t] close** using only data from bars [
   - max drawdown deterioration not worse than `5%` versus baseline
 - No runtime (`src/`) feature additions are allowed under Step 69 without a follow-on approved ticket.
 
+### 3i. Crypto/BTC Feature Set (Step 57 — ADR-020)
+
+| Feature | Family | Formula | Lookback | Bounded Range |
+|---------|--------|---------|----------|---------------|
+| `ema_5_pct` | Trend | `(close - EMA_5) / EMA_5` | 5 | ±few % |
+| `ema_20_pct` | Trend | `(close - EMA_20) / EMA_20` | 20 | ±few % |
+| `ema_60_pct` | Trend | `(close - EMA_60) / EMA_60` | 60 | ±few % |
+| `bb_pct_b_20` | Volatility | Bollinger %B(20, 2σ) | 20 | [0,1] with excursions |
+| `atr_pct_5` | Volatility | `ATR(5) / close × 100` | 5 | % |
+| `atr_pct_20` | Volatility | `ATR(20) / close × 100` | 20 | % |
+| `atr_pct_60` | Volatility | `ATR(60) / close × 100` | 60 | % |
+| `rsi_5` | Momentum | RSI(5) | 5 | [0,100] |
+| `rsi_20` | Momentum | RSI(20) | 20 | [0,100] |
+| `uo_7_14_28` | Momentum | Ultimate Oscillator(7,14,28) | 28 | [0,100] |
+| `roc_5` | Momentum | `(close/close.shift(5) - 1) × 100` | 5 | % |
+| `roc_20` | Momentum | `(close/close.shift(20) - 1) × 100` | 20 | % |
+| `obv_ratio_20` | Volume | `OBV / OBV.rolling(20).mean()` | 20 | ratio |
+| `obv_ratio_60` | Volume | `OBV / OBV.rolling(60).mean()` | 60 | ratio |
+| `ad_ratio_20` | Volume | `A/D / A/D.rolling(20).mean()` | 20 | ratio |
+| `mfi_14` | Money Flow | MFI(14) | 14 | [0,100] |
+| `cmf_20` | Money Flow | CMF(20) | 20 | [-1,+1] |
+| `cmf_60` | Money Flow | CMF(60) | 60 | [-1,+1] |
+| `realised_vol_5` | Variance | `std(log_returns[-5:]) × √252` | 5 | annualised % |
+| `realised_vol_20` | Variance | `std(log_returns[-20:]) × √252` | 20 | annualised % |
+
+**Full specification**: `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+**ADR**: ADR-020
+**Leakage controls**: 7 automated checks (LG-01 to LG-07); see spec §3
+**Split policy**: BTC halving-aware expanding-window walk-forward (5 folds)
+**Normalization**: Bounded indicators as-is; %-based features clip at ±3σ training fold; scaler fit on training fold only
+
 ---
 
 ## 4. Leakage Traps and Mitigation Rules

@@ -489,6 +489,80 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 
 ---
 
+### ADR-018: Client-ID Namespace Policy
+**Status:** ACCEPTED
+**Date:** 2026-02-26
+**Author:** Claude Opus (ARCH session 2026-02-26)
+**Ref:** Step 79 (assistant_tool_policy.py), IBKR-DKR-04 intake ticket
+
+**Context:** Multiple IBKR client types (runtime trading loop, assistant/MCP tools, operator diagnostic probes) share a single TWS gateway. Client-id collisions cause connection failures (error 326). Step 79 introduced band ranges in `assistant_tool_policy.py` but the policy was not formalized as architecture-level.
+
+**Decision:**
+1. **Runtime band [1–499]**: Production trading loop, paper sessions, burn-in scripts. Default start: `ibkr_client_id` from `BrokerConfig`.
+2. **Assistant band [5000–5099]**: MCP tools, assistant integrations, diagnostic probes. Default start: 5000.
+3. **Reserved [500–4999]**: Future use (monitoring, research runners). Not allocated.
+4. **Reserved [5100+]**: Future use. Not allocated.
+5. **Band guard**: `IBKRBroker._connect()` must validate that the starting `clientId` falls within the expected band for its execution context. Out-of-band IDs log `ERROR` and refuse to connect.
+6. **Collision recovery**: Increment-by-1 retry must stay within the originating band. If all IDs in a band are exhausted, fail with a clear error rather than spilling into the adjacent band.
+
+**Rationale:** Formalizes the two-band design already implemented in Step 79. Prevents accidental cross-context interference. Bounded collision recovery prevents band spillover.
+
+**Consequences:**
+- `IBKRBroker._connect()` gains a lightweight band check (Copilot Task 1 in handoff)
+- `assistant_tool_policy.py` remains the canonical validation module for assistant-side band enforcement
+- Future client types (e.g., monitoring agents) must request a band allocation via ADR amendment
+
+---
+
+### ADR-020: BTC LSTM Feature Engineering Boundaries (Step 57)
+**Status:** ACCEPTED
+**Date:** 2026-02-26
+**Author:** Claude Opus 4.6 (ARCH session 2026-02-26)
+**Ref:** Step 57, `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+
+**Context:** Step 57 requires BTC multi-timeframe feature engineering for LSTM-prep research inputs. The feature set design, leakage controls, split policy, and output schemas needed explicit architecture decisions before Copilot implementation.
+
+**Decision:**
+1. **20 core features** across 6 families (trend, volatility, momentum, volume, money flow, variance) on daily bars with 3 lookback windows (5/20/60 bars).
+2. **Bounded-range indicators preferred** per Peng et al. 2022 — RSI, MFI, CMF, %B used as-is; EMA/ATR/ROC normalised as percentage of price and clipped at ±3σ.
+3. **BTC halving-aware walk-forward splitting** instead of arbitrary date cutoffs — 5 expanding-window folds aligned to halving cycle boundaries.
+4. **Leakage guards**: 7 automated validation checks (LG-01 through LG-07); scaler fit on training fold only; max 3-bar forward-fill for gaps.
+5. **Research-only boundary**: `research/data/crypto_features.py` does not import from `src/`; no runtime code changes.
+6. **Step 32 gating preserved**: Step 57 metadata feeds Step 32 input_dim but does not unblock it; MLP gate + MO-7/MO-8 still required.
+
+**Consequences:**
+- Step 57 moves to Copilot Immediately Actionable queue
+- Full spec in `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+- 14 tests required; no new runtime dependencies
+- Step 32 remains separately gated behind MLP performance + operator evidence
+
+---
+
+### ADR-019: Assistant Tool Safety Policy
+**Status:** ACCEPTED
+**Date:** 2026-02-26
+**Author:** Claude Opus (ARCH session 2026-02-26)
+**Ref:** IBMCP-02 intake ticket, Steps 79/81
+
+**Context:** Assistant tools (MCP servers, Copilot agents) interact with the trading platform's data and potentially its execution layer. Without explicit boundaries, a future assistant capability could accidentally submit live orders or expose credentials.
+
+**Decision:**
+1. **Paper-only hard gate**: No assistant tool may submit orders to a live (non-paper, non-sandbox) broker account. `is_paper_account()`, `coinbase_sandbox`, and `binance_testnet` flags must be verified before any order submission path is exposed to assistants.
+2. **Read-only default**: All report, data, and status resources exposed to assistants are read-only. Write operations require explicit justification and a new ADR.
+3. **Client-id isolation**: Per ADR-018, assistant tools use the [5000–5099] band and must never overlap with the runtime band.
+4. **No credential access**: Assistants must not read `.env`, credential stores, API keys, or private keys.
+5. **Audit trail**: Every assistant tool invocation must be logged with: timestamp (UTC), tool name, parameters, result status (INFO level).
+6. **Scope guard**: Each assistant agent file (`.github/agents/*.agent.md`) must declare permitted operations. Undeclared operations are implicitly denied.
+
+**Rationale:** Codifies constraints that existing implementations (Steps 79/81) already follow. Establishes policy before future assistant capabilities are added. Prevents accidental escalation from read-only to execution scope.
+
+**Consequences:**
+- No immediate code changes — existing Steps 79/81 already comply
+- Any future assistant capability that touches the execution layer must receive an explicit ADR amendment
+- Operator sign-off is required before any assistant write capability is added
+
+---
+
 ## §4 Active RFCs (Change Proposals)
 
 > RFCs are proposals that have not yet been fully implemented. They become ADRs once accepted and completed.
@@ -639,6 +713,26 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 
 ---
 
+### RFC-007: Reconnect Lifecycle State Contract
+**Status:** PROPOSED
+**Date:** 2026-02-26
+**Author:** Claude Opus (ARCH session 2026-02-26)
+**Ref:** RIBAPI-02 intake ticket
+
+**Problem:** `IBKRBroker._connect()` is a one-shot method called in `__init__`. If the TWS connection drops mid-session, all broker methods return empty/default values with no automatic reconnection. The daemon (Step 46) handles this at the process level by restarting, but long-running sessions may benefit from a formal reconnect state machine.
+
+**Proposed Change:**
+- Define a connection state enum: `DISCONNECTED → CONNECTING → CONNECTED → RECONNECTING → ERROR → DISCONNECTED`
+- Implement an optional `auto_reconnect` mode with configurable exponential backoff (initial=5s, max=60s, factor=2)
+- Track reconnection attempts in a counter for observability
+- Preserve existing behavior when `auto_reconnect=False` (default)
+
+**Trigger to Accept:** Evidence of mid-session connection drops during MO-2 paper sessions, OR daemon running continuously for >8 hours with connection instability.
+
+**Impact if Accepted:** Moderate refactor of `IBKRBroker._connect()` and lifecycle methods. All existing behavior preserved when `auto_reconnect` is disabled.
+
+---
+
 ## §5 Technical Debt Register
 
 > Known issues that are accepted as debt with a plan to address them.
@@ -670,6 +764,106 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 ---
 
 ## §6 Evolution Log
+
+### [2026-02-26] ARCH Session (Claude Opus 4.6) — Step 57 BTC LSTM Feature Design Decision
+- Resolved Opus design gate for Step 57 (BTC LSTM feature engineering):
+    - **Feature set**: 20 core features across 6 families (trend, volatility, momentum, volume, money flow, variance)
+    - **Timeframe windows**: 3 lookback windows (5/20/60 bars) on daily OHLCV; no intraday bars
+    - **Bounded-range preference**: RSI, MFI, CMF, %B as-is; EMA/ATR/ROC normalised; per Peng et al. 2022
+    - **Split policy**: BTC halving-aware expanding-window walk-forward (5 folds)
+    - **Leakage controls**: 7 automated checks (LG-01 to LG-07); scaler train-fold only; max 3-bar ffill
+    - **Output schema**: 20-column DataFrame + metadata for Step 32 gating (feature_count, leakage_checks_passed, fold_schedules)
+- ADR-020 added to §3
+- Step 57 moved to Copilot Immediately Actionable queue
+- Step 32 remains gated behind MLP performance + MO-7/MO-8 evidence
+- Full spec: `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+- Copilot implementation packet: 3 files to create, 2 to modify, 14 tests, 5 non-regression checks
+
+### [2026-02-26] IMPL Session (GitHub Copilot / GPT-5.3-Codex) — Step 57 Implemented
+- Completed Step 57 (BTC LSTM feature engineering research module):
+    - added `research/data/crypto_features.py` with 20-feature BTC daily-bar schema
+    - added `research/experiments/configs/btc_lstm_example.json`
+    - added `tests/test_crypto_features.py` (14 tests)
+    - implemented bounded gap-fill policy (`max_ffill_bars=3`), UTC index normalization, and zero-volume safeguards
+    - preserved research/runtime isolation (`research/` code only; no `src/` edits)
+- Queue impact:
+    - Step 57: COMPLETED
+    - Copilot Immediately Actionable queue now empty (remaining implementation item is Opus-gated Step 32)
+- Validation:
+    - targeted tests: **14 passed** (`test_crypto_features.py`)
+    - adjacent tests: **5 passed** (`test_research_features_labels.py`)
+    - full suite: **586 passed**
+
+### [2026-02-26] IMPL Session (GitHub Copilot / GPT-5.3-Codex) — Step 82/83 Implemented
+- Completed Step 82 and Step 83 implementation bundle:
+    - added MO-2F policy artifact: `docs/MO2F_LANE_POLICY.md`
+    - implemented lane/profile derivation in `scripts/run_step1a_burnin.ps1`
+    - added report metadata fields: `run_objective_profile`, `evidence_lane`, `lane_reason`
+    - enforced signoff guardrail: runs shorter than 1800s cannot produce `signoff_ready=true`
+    - wired wrappers to pass `RunObjectiveProfile` across Step1A paths
+    - enforced qualifying lane in `scripts/run_mo2_end_to_end.ps1` with lane validation
+    - updated report adapter + tests for new lane fields
+- Queue impact:
+    - Step 82: COMPLETED
+    - Step 83: COMPLETED
+    - Copilot Immediately Actionable queue now empty (remaining implementation items are Opus-gated or operator milestones)
+- Validation:
+    - targeted tests: **7 passed**
+    - full suite: **572 passed**
+
+### [2026-02-26] ARCH Session (Claude Opus 4.6) — Step 82/83 Lane Policy Decision
+- Resolved Opus policy gate for Step 82 (MO-2F functional-only signoff split) and Step 83 (duration optimization):
+    - **Lane taxonomy**: `qualifying` (in-window, signoff-eligible) vs `functional_only` (any-time, non-signoff)
+    - **Admissibility matrix**: functional evidence admissible for functional-dependency classes only; never for MO-2 signoff or live promotion
+    - **Artifact schema**: `evidence_lane`, `lane_reason`, `run_objective_profile` fields (additive to existing JSON)
+    - **Anti-substitution rule**: functional evidence permanently inadmissible for qualifying signoff; lane immutable once written
+    - **Duration profiles**: smoke (30–60s), orchestration (120–300s), reconcile (300–900s), qualifying (1800s+ only)
+    - **Guardrails**: runs < 1800s can never produce `signoff_ready=true`; non-qualifying profiles force `evidence_lane="functional_only"`
+- Steps 82/83 moved from Opus-gated to Copilot Immediately Actionable queue
+- MO-2 qualifying semantics preserved unchanged
+- Implementation packet: exact files, 10 acceptance tests, 5 non-regression checks documented
+
+### [2026-02-26] Session (GitHub Copilot / GPT-5.3-Codex) — MO-2 Functional Unblock Ticketing
+- Added backlog ticket pair to preserve MO-2 in-hours signoff while unblocking functional-only work:
+    - Step 82: MO-2F functional-only signoff split (review + implementation)
+    - Step 83: functional burn-in duration optimization (review + implementation)
+- Added operational milestone lane `MO-2F` in queue tables:
+    - out-of-hours functional evidence allowed
+    - explicitly non-signoff and non-substitutable for MO-2 qualifying lane
+- Governance intent preserved:
+    - MO-2 in-window qualifying signoff remains unchanged
+    - functional-only dependencies can proceed via explicit non-qualifying evidence lane
+
+### [2026-02-26] Session (GitHub Copilot / GPT-5.3-Codex) — Staged ARCH→IMPL→OPS Bundle Execution
+- Executed same-agent unblocked Copilot bundles in one pass:
+    - ADR-018 enforcement in `IBKRBroker._connect()` (client-id band guard + bounded collision retry within band)
+    - Step 62 implementation complete (MLP baseline stack with `skorch`, `StandardScaler`, `EarlyStopping`, `ExponentialLR`, and `pos_weight` support)
+    - anti-substitution policy added to `RESEARCH_PROMOTION_POLICY.md` (`data_source` contract; synthetic data not promotion-eligible)
+- Research pipeline integration updates:
+    - added `model_type` support (`xgboost` / `mlp`) in experiment config + CLI
+    - added dynamic trainer routing in `research/experiments/xgboost_pipeline.py`
+    - added `research/experiments/configs/mlp_example.json`
+- Validation:
+    - targeted tests: **30 passed**
+    - full suite: **568 passed**
+    - LPDD consistency check: passed
+- Queue impact:
+    - Step 62 moved to COMPLETED
+    - remaining not-started Opus-gated items: Steps 32 and 57
+
+### [2026-02-26] ARCH Session (Claude Opus 4.6) — Decision Package: Opus-Gated Intake Resolution
+- **Scope**: All currently relevant Opus-gated items staged into single decision-and-spec pass (ARCH→RSRCH→REVIEW)
+- **Intake tickets resolved**: IBKR-DKR-04, RIBAPI-02, IBASYNC-01, YATWS-03, YATWS-05+RIBAPI-05, IBMCP-02, IBMCP-04/05
+- **ADRs accepted**: ADR-018 (Client-ID Namespace Policy), ADR-019 (Assistant Tool Safety Policy)
+- **RFCs proposed**: RFC-007 (Reconnect Lifecycle State Contract — PROPOSED, deferred to post-MO-2)
+- **Steps completed**: Step 67 (RL feasibility spike — DEFER), Step 68 (deep-sequence governance gate — ACCEPT)
+- **Steps unblocked**: Step 62 (MLP baseline — Opus architecture review cleared; Copilot may implement)
+- **Verdicts**: ib_async migration REJECTED (ADR-011 triggers not met); Rust sidecar REJECTED (no near-term gain); session replay DEFERRED (post-MO-2); synthetic data for promotion gates REJECTED (anti-substitution control)
+- **Copilot handoff**: 5 tasks (ADR-018 band guard, Step 62 implementation, anti-substitution control, Steps 67/68 status updates)
+- **Operator handoff**: MO-2 paper sessions (critical path), MO-7 evidence commitment, MO-8 sign-off
+- **Blocker register**: 6 blockers documented (BLK-001 through BLK-006)
+- **Artifacts**: `archive/ARCH_DECISION_PACKAGE_2026-02-26.md`, `research/tickets/rl_feasibility_spike.md`, `research/tickets/deep_sequence_governance_spike.md`
+- **LPDD consistency**: Passed pre-session gate; post-session gate pending
 
 ### [2026-02-25] Step 70 — External Literature Deep-Review Synthesis Pack
 - Full synthesis pack created in `research/tickets/external_literature_deep_review_2026-02.md`.
@@ -1133,6 +1327,7 @@ These are non-negotiable. Changing any of them requires a new ADR documenting th
 |---|---|---|---|
 | **MO-1** | Step 1 signed off — architecture proven end-to-end via daily backtest | ✅ CLOSED (Feb 24, 2026) | 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90% |
 | **MO-2** | 3 consecutive in-window paper sessions with fills | ⏳ OPEN | `reports/burnin/` artefacts with `signoff_ready=true` × 3 |
+| **MO-2F** | Functional-only evidence pack (non-signoff lane) | ⏳ OPEN | Artifacts with `evidence_lane="functional_only"` per `docs/MO2F_LANE_POLICY.md` |
 | **MO-3** | Vendor credentials for historical tick backfills (e.g. Massive API key) | ⏳ OPEN | `.env` populated; test fetch successful |
 | **MO-4** | Live/backfill commands executed for target symbols; manifests retained | ⏳ OPEN | Backfill manifests in `research/data/` with date/symbol evidence |
 | **MO-5** | Final human review of promotion-gate evidence checklists before Gate A | ⏳ OPEN | Signed promotion checklist JSON with reviewer name + date |

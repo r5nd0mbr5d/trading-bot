@@ -94,6 +94,40 @@ Policy behavior (current phase):
   `high_return_claim_unverified`
 - These cautions require reviewer sign-off before any promotion discussion
 
+### 3d. Synthetic Data Admissibility (Anti-Substitution Control)
+
+Synthetic order streams and synthetic market datasets are admissible only for:
+- CI smoke checks
+- schema validation
+- infrastructure-path validation (file IO, report generation, orchestration)
+
+Synthetic datasets are **not admissible** for Stage R1/R2/R3/R4 promotion evidence.
+
+All research artifacts submitted for promotion review must include:
+
+| Field | Allowed Values | Rule |
+|---|---|---|
+| `data_source` | `real_market` / `synthetic` | `synthetic` artifacts are automatically excluded from promotion evaluation |
+
+Required enforcement:
+- `promotion_check.json` must record `data_source`
+- Any artifact with `data_source: synthetic` must set `promotion_eligible: false`
+- Mark such runs with caution flag: `synthetic_data_not_promotion_eligible`
+
+Integrity note:
+- Mislabeling synthetic data as `real_market` is a claim-integrity violation and blocks promotion.
+
+### 3e. MLP-before-LSTM Gate (Step 62 → Step 32)
+
+Before initiating LSTM baseline work (Step 32), the MLP baseline (Step 62) must pass:
+
+| Metric | Threshold |
+|---|---|
+| Mean PR-AUC across OOS folds | ≥ 0.55 |
+| Mean Sharpe across OOS folds | ≥ 0.8 |
+
+If MLP fails either threshold, Step 32 remains blocked and the candidate returns to feature/label refinement.
+
 ---
 
 ## 4. Stage R1: Internal Research Gate

@@ -974,3 +974,456 @@
 **Handoff Notes:**
 > No Opus-gated work was touched. No architecture-escalation blocker encountered in this bundle.
 > Next recommended unblocked work remains operator milestones (MO-2/MO-3/MO-4/MO-5/6) unless new Copilot-compatible intake tickets are promoted.
+
+---
+
+## [2026-02-26 ~02:30 UTC] — ARCH→RSRCH→REVIEW — Claude Opus 4.6
+
+**Goal:** Run one end-to-end ARCH+RSRCH session staging all currently relevant Opus-gated items into a single decision-and-spec pass with explicit handoff outputs for Copilot and Operator.
+
+**Session Type:** ARCH → RSRCH → REVIEW (docs/spec decisions only; no production code changes)
+
+**Outcome:**
+- REVIEW gate passed: LPDD consistency check (`issue_count=0`), blocked status verified for all 5 not-started steps.
+- **Stage A (IBKR client/reconnect):**
+  - A1/IBKR-DKR-04: ACCEPT → ADR-018 (Client-ID Namespace Policy — formalizes runtime [1–499] / assistant [5000–5099] bands)
+  - A2/RIBAPI-02: DEFER → RFC-007 (Reconnect Lifecycle State Contract — trigger: evidence of mid-session drops)
+  - A3/IBASYNC-01: REJECT (ADR-011 trigger conditions not met; ib_insync still functional)
+- **Stage B (Replay/sidecar):**
+  - B1/YATWS-03: DEFER to post-MO-2 (valuable but not critical-path)
+  - B2/YATWS-05+RIBAPI-05: REJECT (Rust sidecar — no near-term reliability gain; disproportionate operational complexity)
+- **Stage C (Assistant governance):**
+  - C1/IBMCP-02: ACCEPT → ADR-019 (Assistant Tool Safety Policy — paper-only hard gate, read-only default)
+  - C2/IBMCP-04/05: CONFIRMED compatible with ADR-019 (no changes needed)
+- **Stage D (Research gates):**
+  - Step 62 MLP: Opus architecture review CLEARED (layer sizes, dropout, LR scheduler approved; two required additions: EarlyStopping + StandardScaler)
+  - Step 67 RL: DEFER (conditional no-go; 4 go/no-go conditions defined)
+  - Step 68 deep-sequence governance: ACCEPT (quantitative thresholds, compute budgets, anti-complexity controls)
+  - Step 83 synthetic streams: REJECT for promotion gates (anti-substitution control)
+
+**Queue Changes:**
+- Steps completed: 67 (DEFER verdict), 68 (ACCEPT verdict)
+- Steps unblocked: 62 (Opus gate cleared; Copilot-ready pending MO-7 R2 evidence)
+- Steps blocked: 32 (behind Step 62 MLP gate + MO-7/MO-8)
+- MO-* updates: none (all remain OPEN; MO-2 remains critical-path blocker)
+
+**ADRs/RFCs:**
+- ADR-018: Client-ID Namespace Policy (ACCEPTED)
+- ADR-019: Assistant Tool Safety Policy (ACCEPTED)
+- RFC-007: Reconnect Lifecycle State Contract (PROPOSED)
+
+**Blocker Register (6 items):**
+- BLK-001: MO-2 paper sessions not in-window (blocks live promotion)
+- BLK-002: MO-7 R1/R2 evidence missing (blocks Step 62 evaluation)
+- BLK-003: MO-8 sign-off pending (blocks Step 32)
+- BLK-004: Step 62 MLP gate (blocks Step 32)
+- BLK-005: RL go/no-go conditions not met (blocks Step 67 re-evaluation)
+- BLK-006: ADR-011 ib_async trigger not met (blocks IBASYNC-01)
+
+**Copilot Handoff (5 tasks):**
+1. ADR-018 band guard in `IBKRBroker._connect()` (HIGH, immediate)
+2. Step 62 MLP implementation (HIGH, Opus-cleared)
+3. Anti-substitution control in RESEARCH_PROMOTION_POLICY.md (MEDIUM, immediate)
+4. Update Step 67 status to COMPLETED (LOW, immediate)
+5. Update Step 68 status to COMPLETED (LOW, immediate)
+
+**Operator Handoff:**
+- MO-2: Schedule 3 in-window paper sessions (CRITICAL PATH)
+- MO-7: Commit real XGBoost experiment outputs with reviewer/date
+- MO-8: Sign off in FEATURE_LABEL_SPEC.md
+- ADR-018/019 awareness (no action required)
+
+**Files Created:**
+- `archive/ARCH_DECISION_PACKAGE_2026-02-26.md` — full decision package with all 7 outputs
+- `research/tickets/rl_feasibility_spike.md` — Step 67 decision memo
+- `research/tickets/deep_sequence_governance_spike.md` — Step 68 governance gate
+
+**Files Modified:**
+- `PROJECT_DESIGN.md` — ADR-018, ADR-019, RFC-007, evolution log entry
+- `IMPLEMENTATION_BACKLOG.md` — Steps 67/68 marked COMPLETED, Step 62 Opus clearance note, executive summary updated (84 completed, 3 not-started)
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** Docs/spec session only; no runtime code changes; existing 561 tests unaffected.
+
+**Final Recommendation:**
+> Accept ADR-018 (client-ID bands) and ADR-019 (assistant safety policy); clear the Opus gate on Step 62 MLP; defer reconnect lifecycle (RFC-007), RL (Step 67), and session replay (YATWS-03) to post-MO-2; reject ib_async migration and Rust sidecar; and prioritize MO-2 in-window paper sessions as the single highest-impact unblock for the entire forward pipeline.
+
+**Handoff Notes:**
+> Copilot Task 1 (ADR-018 band guard) is immediately actionable with no dependency. Tasks 4+5 are mechanical LPDD updates (already partially done in this session). Task 2 (Step 62 MLP) is the highest-value work item once Copilot is ready. Task 3 (anti-substitution) is a small policy doc update. MO-2 remains the critical-path blocker for all forward progress.
+
+---
+
+## [2026-02-26 ~03:00 UTC] — REVIEW/OPS — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Create a single staged prompt that performs the master-prompt control function and groups unblocked items by same-agent ownership.
+
+**Outcome:**
+- Reviewed active queue state across item types (Copilot steps, Opus-gated steps, Operator milestones).
+- Confirmed current actionable staging pattern:
+	- Copilot implementation bundle(s): ADR-018 enforcement task + Step 62 implementation path
+	- Operator milestone bundle: MO-2/MO-7/MO-8 evidence and sign-off chain
+- Created reusable staged orchestrator prompt artifact:
+	- `docs/STAGED_MASTER_PROMPT.md`
+	- includes required pre-reads, queue authority rules, dynamic bundle construction, execution rules, LPDD sync gate, and structured output contract.
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- Steps blocked: none changed
+- MO-* updates: none
+
+**Files Modified:**
+- `docs/STAGED_MASTER_PROMPT.md` — new single-run staged master prompt
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** docs-only update; no runtime code changes
+
+**Handoff Notes:**
+> Use `docs/STAGED_MASTER_PROMPT.md` as the default single-prompt orchestrator when you want one pass to inventory, stage, execute same-agent unblocked work, and emit handoffs for other owners.
+
+---
+
+## [2026-02-26 ~03:40 UTC] — ARCH→IMPL→OPS — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Execute one staged orchestration pass that mirrors master-prompt control flow while completing same-agent unblocked work bundles.
+
+**Outcome:**
+- Completed required pre-read sequence and queue authority review.
+- Built staged bundles by owner and executed unblocked Copilot bundles:
+	- `BUNDLE-COPILOT-01`: ADR-018 enforcement + anti-substitution policy update
+	- `BUNDLE-COPILOT-02`: Step 62 MLP implementation
+- Produced OPS handoff readiness for MO-2/MO-7/MO-8 (no operator actions executed by agent).
+
+**Implementation Work Completed:**
+- ADR-018 enforcement in `src/execution/ibkr_broker.py`:
+	- client-id range validation for runtime/assistant bands
+	- bounded collision retry confined to the originating band
+- Research policy updates in `research/specs/RESEARCH_PROMOTION_POLICY.md`:
+	- synthetic data admissibility + anti-substitution controls (`data_source`, non-eligibility rules)
+	- MLP-before-LSTM gate thresholds (PR-AUC and Sharpe)
+- Step 62 MLP stack:
+	- new trainer module: `research/models/mlp_classifier.py`
+	- config support: `model_type` in `research/experiments/config.py`
+	- CLI support: `--model-type` in `src/cli/arguments.py`
+	- pipeline routing: `research/experiments/xgboost_pipeline.py` supports `xgboost`/`mlp`
+	- sample config: `research/experiments/configs/mlp_example.json`
+	- dependency update: `requirements.txt` includes `skorch>=0.15.0`
+
+**Tests:**
+- Targeted: `tests/test_ibkr_broker.py`, `tests/test_research_experiment_config.py`, `tests/test_research_xgboost_pipeline.py`, `tests/test_mlp_classifier.py` → **30 passed**
+- Full suite: `python -m pytest tests/ -v` → **568 passed**
+
+**Queue Changes:**
+- Steps started: 62
+- Steps completed: 62
+- Steps blocked: none changed
+- Remaining not-started Opus-gated steps: 32, 57
+- MO-* updates: none
+
+**Files Modified:**
+- `src/execution/ibkr_broker.py`, `tests/test_ibkr_broker.py`
+- `research/specs/RESEARCH_PROMOTION_POLICY.md`
+- `research/models/mlp_classifier.py`, `research/models/__init__.py`
+- `research/experiments/config.py`, `research/experiments/xgboost_pipeline.py`
+- `src/cli/arguments.py`
+- `research/experiments/configs/mlp_example.json`
+- `requirements.txt`
+- `tests/test_mlp_classifier.py`, `tests/test_research_experiment_config.py`, `tests/test_research_xgboost_pipeline.py`
+- `IMPLEMENTATION_BACKLOG.md`, `PROJECT_DESIGN.md`, `SESSION_LOG.md`
+
+**LPDD Sync:**
+- `IMPLEMENTATION_BACKLOG.md` updated: Step 62 marked COMPLETED; executive summary/test baseline refreshed.
+- `PROJECT_DESIGN.md` evolution log appended.
+- Post-session consistency gate run: `python scripts/lpdd_consistency_check.py --root .`.
+
+**Handoff Notes:**
+> Next implementation candidate remains blocked by governance/evidence gates (Step 32 depends on Step 62 performance gate + MO-7/MO-8). OPS critical path remains MO-2 in-window sessions.
+
+---
+
+## [2026-02-26 22:30 UTC] — OPS — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Execute one guarded MO-2 attempt with preflight enabled and return GO/NO-GO decision.
+
+**Outcome:**
+- Ran guarded MO-2 command with requested parameters:
+	- `./scripts/run_mo2_end_to_end.ps1 -Runs 3 -PaperDurationSeconds 1800 -MinFilledOrders 5 -MinSymbolDataAvailabilityRatio 0.80 -PreflightMinBarsPerSymbol 100`
+- Run failed immediately due in-window start guard:
+	- `MO-2 orchestrator must start in-window. Current UTC=2026-02-26 22:30:12, required window=8:00-16:00`
+- Latest available evidence artifacts were reviewed to confirm baseline health:
+	- `reports/uk_tax/mo2_orchestrator/session_20260226_154238/mo2_orchestrator_report.json`
+	- `reports/uk_tax/step1a_burnin/session_20260226_154242/step1a_burnin_report.json`
+	- `reports/uk_tax/step1a_burnin/session_20260226_154242/run_1/00_symbol_data_preflight.json`
+
+**Decision:** NO-GO
+**Reason bucket:** outside_allowed_window
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- MO-* updates: none
+
+**Files Modified:**
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** ops-only run; no code changes; tests not run
+
+**Handoff Notes:**
+> Re-run the same guarded MO-2 command at next in-window time (08:00–16:00 UTC, Mon–Fri). No threshold fallback is indicated because symbol preflight evidence is healthy (`availability_ratio=1.0`).
+
+---
+
+## [2026-02-26 22:45 UTC] — REVIEW — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Ticket policy/implementation work to preserve in-hours MO-2 signoff while unblocking functional-only testing paths.
+
+**Outcome:**
+- Added two new backlog tickets (review + implementation):
+	- Step 82: MO-2F functional-only signoff split (preserve MO-2 in-hours signoff)
+	- Step 83: functional burn-in duration optimization (minimum meaningful duration policy)
+- Added `MO-2F` operational lane in queue tables:
+	- out-of-hours functional evidence allowed
+	- explicitly non-signoff and non-substitutable for MO-2 qualifying evidence
+- Updated LPDD evolution log to record the ticketing decision.
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- Steps added: 82, 83 (both NOT STARTED)
+- MO-* updates: added MO-2F operational lane (OPEN)
+
+**Files Modified:**
+- `IMPLEMENTATION_BACKLOG.md`
+- `PROJECT_DESIGN.md`
+- `SESSION_LOG.md` (this entry)
+
+**Test Baseline:** docs/ticketing updates only; no runtime code changes
+
+**Handoff Notes:**
+> Next ARCH/IMPL pass should execute Step 82 first, then Step 83. This preserves existing MO-2 in-hours signoff while allowing functional-only dependencies to use MO-2F evidence.
+
+---
+
+## [2026-02-26 22:50 UTC] — REVIEW — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Run a staged ARCH→IMPL→OPS control pass, revalidate queue authority, and execute any unblocked Copilot-owned bundle.
+
+**Outcome:**
+- Re-read required control docs and rebuilt active-item inventory (Copilot, Opus-gated, Operator, RFC/ADR follow-ups).
+- Confirmed no unblocked Copilot implementation steps remain; Step 32 is evidence-gated and Steps 57/82/83 are Opus-gated.
+- Produced handoff-ready next actions: Opus-first Step 82 policy split, then Step 83 duration policy; Operator lane continues MO-2 in-window and MO-2F functional evidence.
+- Ran LPDD consistency gate: `passed=true`, `issue_count=0`.
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- Steps blocked: 32, 57, 82, 83 (per queue authority / dependencies)
+- MO-* updates: none
+
+**Files Modified:**
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** docs/review session only; tests not run
+
+**Handoff Notes:**
+> No Copilot-owned unblocked implementation work is available right now. Next execution sequence is Opus policy decision for Step 82, then Copilot implementation of Step 82/83, while operator continues MO-2 in-window qualifying attempts.
+
+---
+
+## [2026-02-26 23:00 UTC] — ARCH — Claude Opus 4.6
+
+**Goal:** Resolve Opus policy gates for Step 82 (MO-2F lane split) and Step 83 (duration profiles) to unblock Copilot implementation.
+
+**Outcome:**
+- Designed and froze dual-lane policy: `qualifying` (in-window, signoff-eligible) vs `functional_only` (any-time, non-signoff).
+- Produced admissibility matrix, artifact labeling schema (`evidence_lane`, `lane_reason`, `run_objective_profile`), and anti-substitution rule.
+- Designed 4 objective profiles: smoke (30–60s), orchestration (120–300s), reconcile (300–900s), qualifying (1800s+).
+- Duration guardrails: runs < 1800s never produce `signoff_ready=true`; non-qualifying profiles force `functional_only` lane.
+- Copilot implementation packet: 7 files to modify, 10 acceptance tests, 5 non-regression checks.
+- Steps 82/83 moved from Opus-gated → Immediately Actionable in Copilot queue.
+
+**Queue Changes:**
+- Steps unblocked: 82, 83 (Opus policy decided → Copilot implementation ready)
+- Steps completed: none (policy only; no runtime code)
+- MO-* updates: MO-2F in §9 updated with lane policy reference
+
+**Files Modified:**
+- `IMPLEMENTATION_BACKLOG.md` — Step 82/83 status, queue tables, executive summary
+- `PROJECT_DESIGN.md` — §6 evolution log, §9 MO-2F milestone
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** ARCH session; no code changes; tests not run
+
+**Handoff Notes:**
+> Steps 82 and 83 are now in the Copilot Immediately Actionable queue. Copilot should implement Step 82 first (lane taxonomy + artifact labeling + anti-substitution + tests), then Step 83 (profiles + duration floors + operator recipes). Co-bundle in one IMPL session. Full implementation packet in this log entry's parent session. MO-2 qualifying semantics are unchanged.
+
+---
+
+## [2026-02-26 23:09 UTC] — IMPL — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Implement Step 82 then Step 83 in one bundled pass (MO-2F lane split + functional duration profiles) without changing MO-2 qualifying semantics.
+
+**Outcome:**
+- Implemented lane/profile support in Step1A burn-in scripts with additive report fields: `run_objective_profile`, `evidence_lane`, `lane_reason`.
+- Enforced qualifying-lane guardrails: `qualifying` requires in-window + non-test mode + duration >= 1800; short-duration runs cannot be signoff-ready.
+- Added objective profiles with minimum/default durations (`smoke`, `orchestration`, `reconcile`, `qualifying`) and wrapper passthrough wiring.
+- Updated MO-2 orchestrator to hard-pin qualifying profile and fail pass-state if burn-in evidence lane is not `qualifying`.
+- Added/updated policy and adapter coverage docs/tests; full suite passed.
+
+**Queue Changes:**
+- Steps completed: 82, 83
+- Steps started: none
+- Steps blocked: none (newly completed bundle)
+- MO-* updates: MO-2F policy artifact published; MO-2 qualifying lane unchanged
+
+**Files Modified:**
+- `scripts/run_step1a_burnin.ps1`, `scripts/run_step1a_burnin_auto_client.ps1`
+- `scripts/run_step1a_market.ps1`, `scripts/run_step1a_market_if_window.ps1`, `scripts/run_step1a_functional.ps1`
+- `scripts/run_mo2_end_to_end.ps1`
+- `src/reporting/report_schema_adapter.py`
+- `tests/test_report_schema_adapter.py`, `tests/test_lane_policy.py`
+- `docs/MO2F_LANE_POLICY.md`, `UK_OPERATIONS.md`
+- `IMPLEMENTATION_BACKLOG.md`, `PROJECT_DESIGN.md`, `SESSION_LOG.md`
+
+**Test Baseline:** targeted 7 passing; full suite 572 passing
+
+**Handoff Notes:**
+> Step 82/83 implementation is complete and queue-updated. Next work remains Opus-gated (Steps 32/57) and operator milestones (MO-2/MO-2F/MO-7/MO-8). For MO-2 signoff, continue in-window qualifying runs only.
+
+---
+
+## [2026-02-26 23:20 UTC] — OPS/IMPL — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Run a short MO-2F smoke profile and verify lane-labeling fields in latest Step1A artifact.
+
+**Outcome:**
+- Executed `run_step1a_functional.ps1` with `RunObjectiveProfile=smoke`, `PaperDurationSeconds=60`.
+- Initial run surfaced PowerShell reserved-variable collision (`$host`) in endpoint tag helpers; fixed by renaming helper locals to `ibkrHost/ibkrPort` in Step1A/MO-2 scripts.
+- Re-ran smoke profile successfully to artifact generation; run failed preflight as expected out-of-hours, but lane metadata was correctly emitted.
+- Verified `step1a_burnin_latest.json` includes: `run_objective_profile="smoke"`, `evidence_lane="functional_only"`, `lane_reason="objective_profile_forces_functional"`, `signoff_ready=false`.
+
+**Queue Changes:**
+- Steps completed: none
+- Steps started: none
+- Steps blocked: none
+- MO-* updates: none
+
+**Files Modified:**
+- `scripts/run_step1a_burnin.ps1`, `scripts/run_step1a_burnin_auto_client.ps1`, `scripts/run_mo2_end_to_end.ps1`
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** targeted suite `test_lane_policy.py` + `test_report_schema_adapter.py` → 7 passing
+
+**Handoff Notes:**
+> Smoke functional lane labeling is working in real artifact output. Continue using functional profiles for out-of-hours checks and qualifying profile for in-window MO-2 signoff only.
+
+---
+
+## [2026-02-26 23:23 UTC] — OPS — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Run one qualifying MO-2 attempt with current lane guardrails and report GO/NO-GO outcome.
+
+**Outcome:**
+- Attempted command exactly as requested, but shell could not resolve script by bare name (`CommandNotFoundException`).
+- Re-ran with repository path using identical arguments:
+	- `./scripts/run_mo2_end_to_end.ps1 -Runs 3 -PaperDurationSeconds 1800 -MinFilledOrders 5 -MinSymbolDataAvailabilityRatio 0.80 -PreflightMinBarsPerSymbol 100 -AppendBacklogEvidence`
+- Run failed immediately on in-window guard:
+	- `MO-2 orchestrator must start in-window. Current UTC=2026-02-26 23:23:27, required window=8:00-16:00`
+- Latest available artifacts reviewed for output fields:
+	- MO-2 report: `reports/uk_tax/mo2_orchestrator/session_20260226_154238/mo2_orchestrator_report.json`
+	- burn-in latest: `reports/uk_tax/step1a_burnin/step1a_burnin_latest.json`
+	- observed lane in latest burn-in artifact: `functional_only`
+
+**Decision:** NO-GO
+**Reason bucket:** outside_allowed_window
+
+**Queue Changes:**
+- Steps started: none
+- Steps completed: none
+- Steps blocked: none
+- MO-* updates: none
+
+**Files Modified:**
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** ops-only run; no code changes; tests not run
+
+**Handoff Notes:**
+> Re-run the same MO-2 command during 08:00–16:00 UTC (Mon–Fri). Ensure latest burn-in report shows `evidence_lane=qualifying` and `signoff_ready=true` for qualifying evidence.
+
+---
+
+## [2026-02-26 23:45 UTC] — ARCH — Claude Opus 4.6
+
+**Goal:** Resolve Opus design gate for Step 57 (BTC LSTM feature engineering) — produce design decisions and Copilot-ready implementation contract.
+
+**Outcome:**
+- Resolved all four decision-scope items for Step 57:
+	1. **Feature-set boundaries**: 20 core features across 6 families (trend, volatility, momentum, volume, money flow, variance) on daily bars with 3 lookback windows (5/20/60)
+    2. **Admissible indicators + leakage guards**: Bounded-range preferred (Peng et al. 2022); 7 automated leakage checks (LG-01 to LG-07); prohibited transformation list; scaler train-fold only
+    3. **Train/val split policy**: BTC halving-aware expanding-window walk-forward (5 folds aligned to 2016/2020/2024 halvings); 5-day gap per H5 horizon
+	4. **Output schemas for Step 32 gating**: 20-column feature DataFrame + metadata (feature_count, leakage_checks_passed, fold_schedules)
+- Added ADR-020 to PROJECT_DESIGN.md §3
+- Published full spec: `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+- Updated `FEATURE_LABEL_SPEC.md` §3i with 20-feature crypto feature table
+- Moved Step 57 to Copilot Immediately Actionable queue in backlog
+- Updated Step 57 definition with refined execution prompt (20 features, 14 tests, no skorch/signal scope)
+- Step 32 remains separately gated (MLP + MO-7/MO-8)
+- Confirmed inventory: 5 blockers documented (BLK-S57-01/02, BLK-S32-01/02/03)
+
+**Queue Changes:**
+- Steps completed: none (ARCH design session only)
+- Steps unblocked: **57** (moved from Opus-gated to Immediately Actionable)
+- Steps blocked: 32 (unchanged — MLP gate + MO-7/MO-8)
+- MO-* updates: none
+
+**Files Modified:**
+- `research/specs/BTC_LSTM_FEATURE_SPEC.md` — new file (full decision package)
+- `research/specs/FEATURE_LABEL_SPEC.md` — added §3i Crypto/BTC Feature Set
+- `PROJECT_DESIGN.md` — ADR-020 added to §3; §6 evolution log entry
+- `IMPLEMENTATION_BACKLOG.md` — Step 57 updated; queue tables updated; executive summary updated
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:** ARCH session; no code changes; tests not run
+
+**Handoff Notes:**
+> Step 57 is now in the Copilot Immediately Actionable queue. Copilot should read `research/specs/BTC_LSTM_FEATURE_SPEC.md` in full before implementing. Key scope changes from original ticket: 20 features (not 21), no skorch dependency, no signal generation logic, 14 tests required. Step 32 remains separately gated. MO-2 qualifying runs and MO-7/MO-8 operator evidence remain on critical path.
+
+---
+
+## [2026-02-27 00:05 UTC] — IMPL — GitHub Copilot (GPT-5.3-Codex)
+
+**Goal:** Execute Step 57 implementation from ADR-020 spec and close LPDD artifacts.
+
+**Outcome:**
+- Implemented `research/data/crypto_features.py` with Step 57 BTC feature engineering API:
+	- `build_crypto_features(df, config)`
+	- `drop_nan_feature_rows(features)`
+	- `get_feature_columns()`
+- Delivered 20-feature daily BTC schema with multi-window indicators (5/20/60), bounded gap-fill policy (`max_ffill_bars=3`), UTC index handling, and zero-volume safeguards.
+- Added `research/experiments/configs/btc_lstm_example.json`.
+- Added `tests/test_crypto_features.py` with 14 tests for feature schema, lookahead safety, NaN behavior, timezone, and edge cases.
+- Updated LPDD docs to mark Step 57 completed and sync queue/state counters.
+
+**Queue Changes:**
+- Steps completed: 57
+- Steps started: none
+- Steps blocked: none newly blocked
+- MO-* updates: none
+
+**Files Modified:**
+- `research/data/crypto_features.py`
+- `research/experiments/configs/btc_lstm_example.json`
+- `tests/test_crypto_features.py`
+- `IMPLEMENTATION_BACKLOG.md`
+- `PROJECT_DESIGN.md`
+- `research/specs/BTC_LSTM_FEATURE_SPEC.md`
+- `SESSION_LOG.md` — this entry
+
+**Test Baseline:**
+- `python -m pytest tests/test_crypto_features.py -v` → **14 passed**
+- `python -m pytest tests/test_research_features_labels.py -v` → **5 passed**
+- `python -m pytest tests/ -v` → **586 passed**
+
+**Handoff Notes:**
+> Step 57 is closed. The only remaining not-started implementation step is Step 32, which remains Opus-gated behind MLP performance and MO-7/MO-8 operator evidence.
