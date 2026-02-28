@@ -1,4 +1,0 @@
-2026-02-25 11:30:40,086 [INFO] src.cli.runtime: UK tax export completed
-2026-02-25 11:30:40,087 [INFO] src.cli.runtime:   trade ledger: reports\uk_tax\step1a_burnin\session_20260225_110026\run_1\trade_ledger.csv
-2026-02-25 11:30:40,088 [INFO] src.cli.runtime:   realized gains: reports\uk_tax\step1a_burnin\session_20260225_110026\run_1\realized_gains.csv
-2026-02-25 11:30:40,089 [INFO] src.cli.runtime:   fx notes: reports\uk_tax\step1a_burnin\session_20260225_110026\run_1\fx_notes.csv

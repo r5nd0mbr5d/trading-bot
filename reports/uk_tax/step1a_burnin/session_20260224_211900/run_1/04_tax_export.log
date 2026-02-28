@@ -1,4 +1,0 @@
-2026-02-24 21:20:10,328 [INFO] __main__: UK tax export completed
-2026-02-24 21:20:10,329 [INFO] __main__:   trade ledger: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\trade_ledger.csv
-2026-02-24 21:20:10,330 [INFO] __main__:   realized gains: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\realized_gains.csv
-2026-02-24 21:20:10,331 [INFO] __main__:   fx notes: reports\uk_tax\step1a_burnin\session_20260224_211900\run_1\fx_notes.csv

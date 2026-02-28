@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlparse
 
+from src.cli.registry import command
+
 from config.settings import Settings
 from src.audit.logger import AuditLogger
 from src.audit.daily_report import DailyReportGenerator
@@ -95,6 +97,7 @@ def _sqlite_path_from_db_url(db_url: str) -> str:
     return parsed.path.lstrip("/")
 
 
+@command("resolve_runtime_db_path")
 def resolve_runtime_db_path(
     settings: Settings,
     runtime_mode: str,
@@ -170,6 +173,7 @@ def _ensure_trading_mode_matches(settings: Settings, runtime_mode: str, *, conte
         )
 
 
+@command("_require_explicit_confirmation")
 def _require_explicit_confirmation(
     mode: str,
     *,
@@ -189,6 +193,7 @@ def _require_explicit_confirmation(
         raise SystemExit(2)
 
 
+@command("apply_runtime_profile")
 def apply_runtime_profile(settings: Settings, profile: str) -> None:
     if profile == "uk_paper":
         settings.broker.provider = "ibkr"
@@ -237,6 +242,7 @@ def apply_runtime_profile(settings: Settings, profile: str) -> None:
         }
 
 
+@command("backtest")
 def cmd_backtest(settings: Settings, start: str, end: str) -> None:
     strategy = _build_strategy(settings)
     engine = BacktestEngine(settings, strategy)
@@ -244,11 +250,8 @@ def cmd_backtest(settings: Settings, start: str, end: str) -> None:
     results.print_report()
 
 
+@command("walk_forward")
 def cmd_walk_forward(
-    settings: Settings,
-    start: str,
-    end: str,
-    train_months: int,
     test_months: int,
     step_months: int,
 ) -> None:
@@ -264,6 +267,7 @@ def cmd_walk_forward(
     wf_results.print_report()
 
 
+@command("uk_tax_export")
 def cmd_uk_tax_export(
     settings: Settings,
     db_path: str,
@@ -287,6 +291,7 @@ def cmd_uk_tax_export(
     logger.info("  fx notes: %s", paths["fx_notes"])
 
 
+@command("paper_session_summary")
 def cmd_paper_session_summary(
     settings: Settings,
     db_path: str,
@@ -320,6 +325,7 @@ def cmd_paper_session_summary(
     return result
 
 
+@command("paper_reconcile")
 def cmd_paper_reconcile(
     settings: Settings,
     db_path: str,
@@ -367,6 +373,7 @@ def cmd_paper_reconcile(
     return int(report["drift_flag_count"])
 
 
+@command("execution_dashboard")
 def cmd_execution_dashboard(
     settings: Settings,
     db_path: str,
@@ -385,6 +392,7 @@ def cmd_execution_dashboard(
     logger.info("  events=%s symbols=%s", metrics["event_count"], len(metrics["reject_rate_by_symbol"]))
 
 
+@command("data_quality_report")
 def cmd_data_quality_report(
     settings: Settings,
     db_path: str,
@@ -404,6 +412,7 @@ def cmd_data_quality_report(
     logger.info("  symbols_checked=%s", report["symbols_checked"])
 
 
+@command("daily_report")
 def cmd_daily_report(
     settings: Settings,
     db_path: str,
@@ -431,6 +440,7 @@ def cmd_daily_report(
     }
 
 
+@command("promotion_checklist")
 def cmd_promotion_checklist(
     settings: Settings,
     *,
@@ -457,6 +467,7 @@ def cmd_promotion_checklist(
     logger.info("  decision: %s", result["decision"])
 
 
+@command("research_register_candidate")
 def cmd_research_register_candidate(
     settings: Settings,
     *,
@@ -593,6 +604,7 @@ async def _run_paper_for_duration(
         logger.info("Paper trial duration reached (%ss); stopping session", duration_seconds)
 
 
+@command("paper_trial")
 def cmd_paper_trial(
     settings: Settings,
     *,
@@ -704,6 +716,7 @@ def cmd_paper_trial(
     return 0
 
 
+@command("trial_batch")
 def cmd_trial_batch(
     settings: Settings,
     *,
@@ -776,6 +789,7 @@ def cmd_trial_batch(
     return report
 
 
+@command("rotate_paper_db")
 def cmd_rotate_paper_db(
     settings: Settings,
     *,
@@ -823,6 +837,7 @@ def cmd_rotate_paper_db(
     }
 
 
+@command("uk_health_check")
 def cmd_uk_health_check(
     settings: Settings,
     with_data_check: bool = False,
@@ -934,11 +949,13 @@ def cmd_uk_health_check(
     return errors
 
 
+@command("paper")
 async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool = True) -> None:
     from src.execution.ibkr_broker import IBKRBroker
     from src.portfolio.tracker import PortfolioTracker
     from src.risk.data_quality import DataQualityGuard
     from src.trading.loop import TradingLoopHandler, build_runtime_broker
+    from src.trading.pipeline import BarPipeline
     from src.trading.stream_events import (
         build_stream_error_handler,
         build_stream_heartbeat_handler,
@@ -1062,6 +1079,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         enqueue_audit=enqueue_audit,
         broker_retry_state=broker_retry_state,
     )
+    pipeline = BarPipeline(handler)
     handler._prewarm_strategy(feed)
 
     logger.info(
@@ -1084,7 +1102,7 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
 
         await feed.stream(
             settings.data.symbols,
-            handler.on_bar,
+            pipeline.process,
             interval_seconds=300,
             heartbeat_callback=on_stream_heartbeat,
             error_callback=on_stream_error,
