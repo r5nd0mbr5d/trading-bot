@@ -252,6 +252,10 @@ def cmd_backtest(settings: Settings, start: str, end: str) -> None:
 
 @command("walk_forward")
 def cmd_walk_forward(
+    settings: Settings,
+    start: str,
+    end: str,
+    train_months: int,
     test_months: int,
     step_months: int,
 ) -> None:

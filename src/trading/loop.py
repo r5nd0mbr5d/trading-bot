@@ -8,7 +8,7 @@ Responsible for:
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 from config.settings import Settings
 from src.audit.logger import AuditLogger
@@ -113,9 +113,9 @@ class TradingLoopHandler:
         self.broker_retry_state = broker_retry_state
         self.prev_portfolio_value = 0.0
         # Optional event hooks — set by BarPipeline; None means no-op
-        self._on_signal_generated: Optional[callable] = None
-        self._on_order_submitted: Optional[callable] = None
-        self._on_fill_received: Optional[callable] = None
+        self._on_signal_generated: Optional[Callable[[Signal], None]] = None
+        self._on_order_submitted: Optional[Callable[[Order], None]] = None
+        self._on_fill_received: Optional[Callable[[Order], None]] = None
 
     def _prewarm_strategy(self, feed) -> None:
         """Pre-warm strategy with recent 5-day history."""
