@@ -6,7 +6,7 @@ Requires TWS or IB Gateway running locally and `ib_insync` installed.
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 from src.data.models import Order, OrderSide, OrderStatus, Position
 from src.execution.broker import BrokerBase

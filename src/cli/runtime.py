@@ -14,14 +14,16 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlparse
 
-from src.cli.registry import command
-
+from backtest.engine import BacktestEngine
+from backtest.walk_forward import WalkForwardEngine
 from config.settings import Settings
-from src.audit.logger import AuditLogger
+from research.bridge.strategy_bridge import load_candidate_bundle, register_candidate_strategy
 from src.audit.daily_report import DailyReportGenerator
+from src.audit.logger import AuditLogger
 from src.audit.reconciliation import export_paper_reconciliation
 from src.audit.session_summary import export_paper_session_summary
 from src.audit.uk_tax_export import export_uk_tax_reports
+from src.cli.registry import command
 from src.data.feeds import MarketDataFeed
 from src.data.symbol_health import apply_symbol_universe_policy
 from src.execution.ibkr_broker import IBKRBroker
@@ -29,10 +31,6 @@ from src.monitoring.execution_trend import update_execution_trend
 from src.promotions.checklist import export_promotion_checklist
 from src.reporting.data_quality_report import export_data_quality_report
 from src.reporting.execution_dashboard import export_execution_dashboard
-from src.strategies.registry import StrategyRegistry
-from src.trial.manifest import TrialManifest
-from src.trial.runner import TrialAndRunner
-from research.bridge.strategy_bridge import load_candidate_bundle, register_candidate_strategy
 from src.risk.kill_switch import KillSwitch
 from src.risk.manager import RiskManager
 from src.strategies.adx_filter import ADXFilterStrategy
@@ -41,13 +39,14 @@ from src.strategies.base import BaseStrategy
 from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
+from src.strategies.ml_wrapper import MLStrategyWrapper
 from src.strategies.obv_momentum import OBVMomentumStrategy
 from src.strategies.pairs_mean_reversion import PairsMeanReversionStrategy
+from src.strategies.registry import StrategyRegistry
 from src.strategies.rsi_momentum import RSIMomentumStrategy
 from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
-from src.strategies.ml_wrapper import MLStrategyWrapper
-from backtest.engine import BacktestEngine
-from backtest.walk_forward import WalkForwardEngine
+from src.trial.manifest import TrialManifest
+from src.trial.runner import TrialAndRunner
 
 logging.basicConfig(
     level=logging.INFO,
@@ -683,6 +682,7 @@ def cmd_paper_trial(
 ) -> int:
     """Run an end-to-end paper trial: checks -> paper run -> summary -> reconcile."""
     import time
+
     from src.execution.ibkr_broker import IBKRBroker
 
     settings.broker.paper_trading = True

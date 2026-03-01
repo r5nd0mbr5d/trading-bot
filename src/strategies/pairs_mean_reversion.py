@@ -8,8 +8,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from config.settings import Settings
-from src.data.models import Signal
-from src.data.models import SignalType
+from src.data.models import Signal, SignalType
 from src.strategies.base import BaseStrategy
 
 

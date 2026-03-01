@@ -2,9 +2,11 @@
 
 import pytest
 
-from src.execution.assistant_tool_policy import endpoint_profile_tag
-from src.execution.assistant_tool_policy import validate_non_overlapping_bands
-from src.execution.assistant_tool_policy import validate_probe_range
+from src.execution.assistant_tool_policy import (
+    endpoint_profile_tag,
+    validate_non_overlapping_bands,
+    validate_probe_range,
+)
 
 
 def test_validate_non_overlapping_bands_rejects_overlap() -> None:

@@ -7,8 +7,12 @@ from datetime import datetime, timezone
 import pandas as pd
 
 from config.settings import Settings
-from src.data.alternative_feeds import AlternativeDataRegistry, BaseAlternativeDataProvider
-from src.data.alternative_feeds import WeatherDataProvider, register_configured_providers
+from src.data.alternative_feeds import (
+    AlternativeDataRegistry,
+    BaseAlternativeDataProvider,
+    WeatherDataProvider,
+    register_configured_providers,
+)
 from src.data.models import Bar
 from src.strategies.base import BaseStrategy
 

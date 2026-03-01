@@ -1,6 +1,7 @@
+import json
+
 import numpy as np
 import pandas as pd
-import json
 
 from research.data.snapshots import save_snapshot
 from research.experiments.xgboost_pipeline import run_xgboost_experiment

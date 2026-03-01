@@ -6,12 +6,12 @@ that merges provider outputs onto bar timestamps without lookahead.
 
 from __future__ import annotations
 
+import json
 from abc import ABC, abstractmethod
 from datetime import datetime
-import json
+from typing import Any, Optional
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
-from typing import Any, Optional
 
 import pandas as pd
 

@@ -4,9 +4,7 @@ import json
 
 import pytest
 
-from scripts.source_review import evaluate_review
-from scripts.source_review import score_to_verdict
-from scripts.source_review import validate_scores
+from scripts.source_review import evaluate_review, score_to_verdict, validate_scores
 
 
 def _base_payload() -> dict:

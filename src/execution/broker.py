@@ -11,8 +11,8 @@ To add Binance (crypto):    implement BrokerBase using python-binance.
 import logging
 import uuid
 from abc import ABC, abstractmethod
-from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict
 
 from src.data.models import Order, OrderSide, OrderStatus, Position
