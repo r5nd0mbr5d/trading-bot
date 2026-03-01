@@ -1,6 +1,7 @@
 data/cache/
 __pycache__/
 *.py[cod]
+*.pyo
 
 # Environment files (keep template tracked)
 .env
@@ -35,4 +36,7 @@ research/data/snapshots/
 htmlcov/
 
 # Local temporary archives
-tmp/*.zip
+tmp/
+
+# Log files
+*.log

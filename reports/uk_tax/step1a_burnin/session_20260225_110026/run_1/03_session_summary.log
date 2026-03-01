@@ -1,4 +1,0 @@
-2026-02-25 11:30:38,061 [INFO] src.cli.runtime: Paper session summary export completed
-2026-02-25 11:30:38,062 [INFO] src.cli.runtime:   json: reports\uk_tax\step1a_burnin\session_20260225_110026\run_1\paper_session_summary.json
-2026-02-25 11:30:38,063 [INFO] src.cli.runtime:   csv: reports\uk_tax\step1a_burnin\session_20260225_110026\run_1\paper_session_summary.csv
-2026-02-25 11:30:38,064 [INFO] src.cli.runtime:   fills=0/9 fill_rate=0.00% win_rate=0.00% pnl_gbp=0.00
