@@ -43,11 +43,18 @@ Follow these steps at the start of every Copilot session:
 4. **Check pre-conditions** — confirm all listed dependencies have Status = COMPLETED; if not, pick the next unblocked step
 5. **Implement** — follow the Execution Prompt exactly; create or extend files listed in Scope
 6. **Run the full test suite** — `python -m pytest tests/ -v`; all tests must pass before marking done
-7. **Update LPDD** (mandatory):
+7. **Run the Pre-Commit Hygiene Gate** — execute the checklist in `SESSION_TOPOLOGY.md §11` (ADR-021):
+   - Verify `.gitignore` covers all virtual environments, caches, and generated artifacts
+   - Scan staged diff for secrets (`api_key`, `token`, `password`, `.env`)
+   - Confirm no report outputs, database files, or cache artifacts are staged
+   - Check for large files (>500KB) in the diff
+   - Validate commit message format: `type(scope): description`
+   - For non-trivial commits (>3 files), run the full 10-point checklist
+8. **Update LPDD** (mandatory):
    - Change step Status to `COMPLETED` with today's date in `IMPLEMENTATION_BACKLOG.md`
    - Update the executive summary counts (Completed +1, Not Started −1, test count)
    - Append an entry to `PROJECT_DESIGN.md §6 Evolution Log`
-8. **Commit** with a clear message referencing the step number: `feat(step-63): add CoinbaseBroker`
+9. **Commit** with a clear message referencing the step number: `feat(step-63): add CoinbaseBroker`
 
 ### When to Stop and Escalate to Claude Opus
 
@@ -130,7 +137,7 @@ This project uses a **Living Project Design Document** in `PROJECT_DESIGN.md`.
 | Raising a design question | Add an RFC to `§4` with status `PROPOSED`; link to relevant backlog step |
 | Discovering technical debt | Add entry to `§5`; create a backlog step if actionable |
 
-- ADR numbering: `ADR-018`, `ADR-019`, ... (check §3 for last used number — currently ADR-017)
+- ADR numbering: `ADR-021`, `ADR-022`, ... (check §3 for last used number — currently ADR-021)
 - RFC numbering: `RFC-007`, `RFC-008`, ... (check §4 for last used — currently RFC-006)
 - **Never** retroactively change ACCEPTED ADRs — supersede with a new one
 
@@ -147,6 +154,7 @@ This project uses a **Living Project Design Document** in `PROJECT_DESIGN.md`.
 - Do not create a new `.md` file for a session result — use `archive/` or `PROJECT_DESIGN.md §6`
 - Do not set `coinbase_sandbox=False` or `binance_testnet=False` without explicit operator instruction
 - Do not attempt steps labelled **"Needs Claude Opus"** in the Copilot Task Queue
+- Do not commit without running the Pre-Commit Hygiene Gate (`SESSION_TOPOLOGY.md §11`) — see ADR-021
 
 ---
 
@@ -188,4 +196,4 @@ The MA crossover (`src/strategies/ma_crossover.py`) is the canonical example.
 
 *For full context: `PROJECT_DESIGN.md` (LPDD) · `CLAUDE.md` (session context) · `IMPLEMENTATION_BACKLOG.md` (task queue + Copilot Queue) · `.python-style-guide.md` (code style) · `SESSION_TOPOLOGY.md` (session types + routing) · `SESSION_LOG.md` (recent session history)*
 
-**Last Updated:** February 25, 2026
+**Last Updated:** March 1, 2026

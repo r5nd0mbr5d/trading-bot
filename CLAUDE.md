@@ -199,6 +199,11 @@ Never skip a failing test — fix the underlying code.
 - Signal `strength` must be in [0.0, 1.0]. It scales position size.
 - Never hardcode ticker symbols or dates outside `config/settings.py`.
 
+## Pre-Commit Hygiene Gate (ADR-021)
+
+Before every non-trivial `git commit`, run the 10-point checklist in `SESSION_TOPOLOGY.md §11`.
+For quick commits (≤3 files), checks 1–3 and 9 are sufficient. See ADR-021 in `PROJECT_DESIGN.md §3` for rationale.
+
 ## Current Status & Completion Tracker
 
 ### ✅ Completed (Foundation)
@@ -289,4 +294,5 @@ This includes:
 - Never hardcode ticker symbols or dates outside `config/settings.py`.
 - All timestamps must be timezone-aware (UTC).
 - Neural network models must be version-controlled with metadata (training date, parameters, performance metrics).
+- Before every non-trivial commit, run the Pre-Commit Hygiene Gate (`SESSION_TOPOLOGY.md §11`, ADR-021).
 

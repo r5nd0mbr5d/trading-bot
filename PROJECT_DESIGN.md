@@ -1,7 +1,7 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.5
-**Last Updated:** Feb 26, 2026
+**Version:** 1.6
+**Last Updated:** Mar 1, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
 > This is the canonical design document for the trading bot project.
@@ -563,6 +563,40 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 
 ---
 
+### ADR-021: Pre-Commit Repository Hygiene Gate
+**Status:** ACCEPTED
+**Date:** 2026-03-01
+**Author:** GitHub Copilot (REVIEW session 2026-03-01)
+**Ref:** Repository audit (Feb 28–Mar 1, 2026); hygiene commit `f59937a`
+
+**Context:** A repository audit revealed multiple hygiene issues that had accumulated over ~58 commits without detection: ~10K untracked `.venv_ci/` files due to a missing `.gitignore` glob, 149 tracked report artifacts that should have been gitignored, stale branches, CI producing silent failures (no verbose output), and a coverage threshold lowered without documentation. These problems were preventable if agents had performed a structured Git/repository review before committing.
+
+**Decision:** Every agent session that produces a `git commit` must execute a **Pre-Commit Repository Hygiene Gate** before staging and committing. The gate is defined in `SESSION_TOPOLOGY.md §11` and consists of a 10-point checklist covering:
+
+1. **`.gitignore` coverage** — verify no virtual environments, caches, IDE state, or generated artifacts are staged
+2. **Secrets scan** — confirm no API keys, tokens, `.env` files, or credentials are in the diff
+3. **Tracked artifact audit** — ensure report outputs, database files, and logs are not being committed
+4. **CI workflow validity** — if `.github/workflows/` was modified, confirm YAML is valid and jobs reference correct paths
+5. **Branch hygiene** — no orphaned local branches; current branch name follows convention
+6. **Commit message format** — follows `type(scope): description` convention with step/ADR references
+7. **Large file check** — no files >500KB in the staged diff (use `git diff --cached --stat`)
+8. **Configuration consistency** — `pyproject.toml`, `requirements.txt`, and `config/settings.py` are coherent
+9. **Test baseline** — all tests pass (`python -m pytest tests/ -v`); report count in commit or session log
+10. **Coverage threshold** — if `--cov` flags or `pyproject.toml [tool.coverage]` changed, verify `fail_under` is intentional and documented
+
+**Enforcement:**
+- The checklist is embedded in `SESSION_TOPOLOGY.md §11` and referenced from `.github/copilot-instructions.md`
+- Agents must run the gate before every non-trivial commit (>3 files changed OR any governance doc modified)
+- For trivial commits (typo fix, single test addition), items 1–3 and 9 are sufficient
+- The gate does **not** require a separate audit tool — it is a manual checklist run by the committing agent
+
+**Consequences:**
+- Prevents recurrence of the `.venv_ci/` gitignore miss, tracked report artifacts, and undocumented coverage changes
+- Adds ~2 minutes of review time per commit — acceptable given the cost of retroactive cleanup
+- Agents that skip the gate and cause a hygiene regression should note the skip reason in their session log
+
+---
+
 ## §4 Active RFCs (Change Proposals)
 
 > RFCs are proposals that have not yet been fully implemented. They become ADRs once accepted and completed.
@@ -760,10 +794,21 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 | **TD-018** | No request-type-specific yfinance retry policy; local cache sizing decision undocumented | MEDIUM | Step 73 / RFC-005 | Intermittent provider false negatives may cause avoidable run instability; design/implementation tracked under Step 73 with explicit feasibility note requirement. |
 | **TD-019** | Step1A runs rely on manual IBKR client-id selection, causing avoidable collision failures | MEDIUM (RESOLVED) | Step 74 / RFC-006 | Resolved Feb 25, 2026 — added auto client-id wrapper with bounded retry on collision evidence and non-collision fail-fast behavior. |
 | **TD-020** | Git/repository hygiene risk: tracked `.env`, tracked runtime DB artifacts, mixed stash content, and CI/pre-commit policy drift | HIGH (RESOLVED) | Step 76 | Step 76 completed (Feb 26, 2026): `.env` and runtime DB artifacts untracked, CI policy checks added, and stash/commit hygiene runbook added. Operator attestation recorded: current `.env` contains no sensitive values; no credential rotation required at this time. |
+| **TD-021** | No pre-commit repository hygiene gate for LLM agents | HIGH (RESOLVED) | ADR-021 | Resolved Mar 1, 2026 — ADR-021 established mandatory 10-point pre-commit checklist in `SESSION_TOPOLOGY.md §11`; referenced from `.github/copilot-instructions.md` and `CLAUDE.md`. Prevents recurrence of `.venv_ci/` gitignore miss, tracked report artifacts, and undocumented coverage changes. |
 
 ---
 
 ## §6 Evolution Log
+
+### [2026-03-01] REVIEW Session (GitHub Copilot) — ADR-021 Pre-Commit Repository Hygiene Gate
+- After a full repository audit (Feb 28–Mar 1, 2026) revealed 17 hygiene issues accumulated over 58 commits:
+    - Established **ADR-021**: mandatory Pre-Commit Repository Hygiene Gate for all agent sessions
+    - Added **SESSION_TOPOLOGY.md §11**: 10-point checklist covering .gitignore, secrets, artifacts, CI, branch hygiene, commit messages, large files, config consistency, test baseline, and coverage threshold
+    - Updated `.github/copilot-instructions.md`: added Commit Gate section to Task Pickup Protocol
+    - Updated `CLAUDE.md`: added invariant reference for the pre-commit gate
+    - Added **TD-021** (resolved) to §5 technical debt register
+- Preventive measure: agents must now run the checklist before every non-trivial commit
+- Prior hygiene commit `f59937a` fixed 9 specific issues found by the audit
 
 ### [2026-02-26] ARCH Session (Claude Opus 4.6) — Step 57 BTC LSTM Feature Design Decision
 - Resolved Opus design gate for Step 57 (BTC LSTM feature engineering):
