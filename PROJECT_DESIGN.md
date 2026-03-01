@@ -810,6 +810,16 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 - Preventive measure: agents must now run the checklist before every non-trivial commit
 - Prior hygiene commit `f59937a` fixed 9 specific issues found by the audit
 
+### [2026-03-01] IMPL→REVIEW Burn-Down Session (GitHub Copilot / Claude Opus 4.6)
+- Systematically closed all actionable open items from the backlog:
+    - **SR-2 (mojibake cleanup)**: fixed 552 double-encoded UTF-8 characters in IMPLEMENTATION_BACKLOG.md (CP1252 roundtrip corruption: `âœ…` → `✅`, `â€"` → `—`, `â‰¥` → `≥`, `â\x9dŒ` → `❌`, `Ã—` → `×`)
+    - **SR-1 (test imports from main)**: verified resolved — AST scan of all test files confirmed 0 imports from `main.py`; marked RESOLVED with evidence
+    - **Steps 100/101/103 backlog gap**: added full step definitions (scope, completion notes, test counts) for 3 previously-implemented-but-untracked steps (WeatherDataProvider, MLStrategyWrapper, JSON runtime profiles)
+    - **Step 36 (QuantConnect cross-validation)**: created `ma_crossover_qc.py` and `rsi_momentum_qc.py` QCAlgorithm ports + `results/comparison.md` template; awaiting operator cloud execution
+    - **Executive summary**: updated counts — Total 95 (+3), Completed 91 (+3), Tests 654 (+68), Strategies 10 (+1)
+- Test baseline: 654 passing (unchanged — no runtime code modified)
+- Queue state after session: 1 NOT STARTED (Step 32, Opus-gated), 2 IN PROGRESS (Step 1A operator burn-in, Step 36 operator QC run), 7 operator milestones (MO-2 through MO-8)
+
 ### [2026-02-26] ARCH Session (Claude Opus 4.6) — Step 57 BTC LSTM Feature Design Decision
 - Resolved Opus design gate for Step 57 (BTC LSTM feature engineering):
     - **Feature set**: 20 core features across 6 families (trend, volatility, momentum, volume, money flow, variance)
