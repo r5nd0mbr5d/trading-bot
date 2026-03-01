@@ -1,3 +1,7 @@
+# NOTE: This file is kept for tooling compatibility (e.g. pip install -r requirements.txt).
+# The canonical dependency list is in pyproject.toml [project.dependencies].
+# Keep this file in sync with pyproject.toml; do not add new dependencies here only.
+#
 # --- Core ---
 pandas>=2.0.0
 numpy>=1.24.0

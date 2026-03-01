@@ -1,4 +1,0 @@
-2026-02-24 21:16:49,419 [INFO] __main__: Paper session summary export completed
-2026-02-24 21:16:49,420 [INFO] __main__:   json: reports\uk_tax\step1a_burnin\session_20260224_211342\run_1\paper_session_summary.json
-2026-02-24 21:16:49,421 [INFO] __main__:   csv: reports\uk_tax\step1a_burnin\session_20260224_211342\run_1\paper_session_summary.csv
-2026-02-24 21:16:49,422 [INFO] __main__:   fills=0/8 fill_rate=0.00% win_rate=0.00% pnl_gbp=0.00

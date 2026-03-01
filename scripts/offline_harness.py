@@ -14,7 +14,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from config.settings import Settings  # noqa: E402
-from main import (  # noqa: E402
+from src.cli.runtime import (  # noqa: E402
     apply_runtime_profile,
     cmd_paper_reconcile,
     cmd_paper_session_summary,

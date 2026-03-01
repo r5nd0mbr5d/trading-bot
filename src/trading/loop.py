@@ -8,7 +8,7 @@ Responsible for:
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 from config.settings import Settings
 from src.audit.logger import AuditLogger
@@ -112,6 +112,10 @@ class TradingLoopHandler:
         self.enqueue_audit = enqueue_audit
         self.broker_retry_state = broker_retry_state
         self.prev_portfolio_value = 0.0
+        # Optional event hooks — set by BarPipeline; None means no-op
+        self._on_signal_generated: Optional[Callable[[Signal], None]] = None
+        self._on_order_submitted: Optional[Callable[[Order], None]] = None
+        self._on_fill_received: Optional[Callable[[Order], None]] = None
 
     def _prewarm_strategy(self, feed) -> None:
         """Pre-warm strategy with recent 5-day history."""
@@ -249,6 +253,8 @@ class TradingLoopHandler:
             symbol=signal.symbol,
             strategy=signal.strategy_name,
         )
+        if self._on_signal_generated:
+            self._on_signal_generated(signal)
         return signal
 
     def _gate_risk(self, signal: Signal, price: float) -> Optional[Order]:
@@ -311,6 +317,8 @@ class TradingLoopHandler:
             symbol=order.symbol,
             strategy=signal.strategy_name,
         )
+        if self._on_order_submitted:
+            self._on_order_submitted(order)
         try:
             filled = run_broker_operation(
                 self.settings,
@@ -354,6 +362,8 @@ class TradingLoopHandler:
                     symbol=filled.symbol,
                     strategy=signal.strategy_name,
                 )
+                if self._on_fill_received:
+                    self._on_fill_received(filled)
             else:
                 logger.warning(
                     f"Order {filled.status.value}: "

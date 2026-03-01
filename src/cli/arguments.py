@@ -5,12 +5,16 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
 from config.settings import Settings
+from src.cli.registry import get_registry
 from src.trial.manifest import TrialManifest
+
+_logger = logging.getLogger(__name__)
 
 MODE_CHOICES = [
     "backtest",
@@ -171,22 +175,23 @@ def dispatch(
     args: argparse.Namespace,
     settings: Settings,
     *,
-    handlers: dict[str, Callable[..., Any]],
     ibkr_broker_cls,
 ) -> None:
     """Dispatch parsed args to selected runtime mode.
 
     Notes:
-    - `handlers` is injected from main to avoid circular imports.
-    - Public behavior mirrors previous inline dispatch block.
+    - Handlers are looked up from the command registry populated by
+      ``@command`` decorators in ``src/cli/runtime.py``.
+    - ``ibkr_broker_cls`` is still injected to allow substitution in tests.
     """
+    _reg = get_registry()
     mode = args.mode
 
     if mode == "backtest":
-        handlers["cmd_backtest"](settings, args.start, args.end)
+        _reg["backtest"](settings, args.start, args.end)
 
     elif mode == "walk_forward":
-        handlers["cmd_walk_forward"](
+        _reg["walk_forward"](
             settings,
             args.start,
             args.end,
@@ -196,7 +201,7 @@ def dispatch(
         )
 
     elif mode in ("paper", "live"):
-        handlers["_require_explicit_confirmation"](
+        _reg["_require_explicit_confirmation"](
             mode,
             confirm_paper=args.confirm_paper,
             confirm_live=args.confirm_live,
@@ -227,24 +232,24 @@ def dispatch(
         if settings.broker.provider.lower() == "ibkr":
             broker = ibkr_broker_cls(settings)
         try:
-            asyncio.run(handlers["cmd_paper"](settings, broker=broker))
+            asyncio.run(_reg["paper"](settings, broker=broker))
         finally:
             if broker is not None:
                 broker.disconnect()
 
     elif mode == "uk_tax_export":
-        export_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
-        handlers["cmd_uk_tax_export"](settings, export_db_path, args.output_dir)
+        export_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+        _reg["uk_tax_export"](settings, export_db_path, args.output_dir)
 
     elif mode == "paper_session_summary":
-        summary_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
-        handlers["cmd_paper_session_summary"](settings, summary_db_path, args.output_dir)
+        summary_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+        _reg["paper_session_summary"](settings, summary_db_path, args.output_dir)
 
     elif mode == "paper_reconcile":
         if not args.expected_json:
             raise SystemExit("--expected-json is required for paper_reconcile mode")
-        reconcile_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
-        drift_count = handlers["cmd_paper_reconcile"](
+        reconcile_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+        drift_count = _reg["paper_reconcile"](
             settings,
             reconcile_db_path,
             args.output_dir,
@@ -255,7 +260,7 @@ def dispatch(
             raise SystemExit(1)
 
     elif mode == "paper_trial":
-        handlers["_require_explicit_confirmation"](
+        _reg["_require_explicit_confirmation"](
             mode,
             confirm_paper=args.confirm_paper,
             confirm_live=args.confirm_live,
@@ -263,10 +268,10 @@ def dispatch(
         )
         if args.manifest:
             manifest = TrialManifest.from_json(args.manifest)
-            handlers["logger"].info("Loaded trial manifest: %s", manifest.name)
+            _logger.info("Loaded trial manifest: %s", manifest.name)
 
             if manifest.profile:
-                handlers["apply_runtime_profile"](settings, manifest.profile)
+                _reg["apply_runtime_profile"](settings, manifest.profile)
             if manifest.strategy:
                 settings.strategy.name = manifest.strategy
             if manifest.symbols:
@@ -274,10 +279,8 @@ def dispatch(
             if manifest.capital:
                 settings.initial_capital = manifest.capital
 
-            trial_db_path = manifest.db_path or handlers["resolve_runtime_db_path"](
-                settings, "paper"
-            )
-            exit_code = handlers["cmd_paper_trial"](
+            trial_db_path = manifest.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+            exit_code = _reg["paper_trial"](
                 settings,
                 duration_seconds=manifest.duration_seconds,
                 db_path=trial_db_path,
@@ -289,8 +292,8 @@ def dispatch(
                 skip_rotate=manifest.skip_rotate,
             )
         else:
-            trial_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
-            exit_code = handlers["cmd_paper_trial"](
+            trial_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+            exit_code = _reg["paper_trial"](
                 settings,
                 duration_seconds=args.paper_duration_seconds,
                 db_path=trial_db_path,
@@ -305,7 +308,7 @@ def dispatch(
             raise SystemExit(exit_code)
 
     elif mode == "trial_batch":
-        handlers["_require_explicit_confirmation"](
+        _reg["_require_explicit_confirmation"](
             "paper_trial",
             confirm_paper=args.confirm_paper,
             confirm_live=args.confirm_live,
@@ -313,7 +316,7 @@ def dispatch(
         )
         if not args.manifests:
             raise SystemExit("--manifests is required for trial_batch mode")
-        handlers["cmd_trial_batch"](
+        _reg["trial_batch"](
             settings,
             manifest_patterns=args.manifests,
             output_dir=args.output_dir,
@@ -321,9 +324,9 @@ def dispatch(
         )
 
     elif mode == "execution_dashboard":
-        dashboard_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
+        dashboard_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
         dashboard_output = args.output or "reports/execution_dashboard.html"
-        handlers["cmd_execution_dashboard"](
+        _reg["execution_dashboard"](
             settings,
             dashboard_db_path,
             dashboard_output,
@@ -331,9 +334,9 @@ def dispatch(
         )
 
     elif mode == "data_quality_report":
-        quality_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
+        quality_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
         quality_output = args.output or "reports/data_quality.json"
-        handlers["cmd_data_quality_report"](
+        _reg["data_quality_report"](
             settings,
             quality_db_path,
             quality_output,
@@ -341,8 +344,8 @@ def dispatch(
         )
 
     elif mode == "daily_report":
-        report_db_path = args.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
-        handlers["cmd_daily_report"](
+        report_db_path = args.db_path or _reg["resolve_runtime_db_path"](settings, "paper")
+        _reg["daily_report"](
             settings,
             report_db_path,
             output_dir=args.output_dir or "reports/daily",
@@ -352,7 +355,7 @@ def dispatch(
 
     elif mode == "promotion_checklist":
         checklist_output_dir = args.output_dir or "reports/promotions"
-        handlers["cmd_promotion_checklist"](
+        _reg["promotion_checklist"](
             settings,
             strategy=settings.strategy.name,
             output_dir=checklist_output_dir,
@@ -363,7 +366,7 @@ def dispatch(
     elif mode == "research_register_candidate":
         if not args.candidate_dir:
             raise SystemExit("--candidate-dir is required for research_register_candidate mode")
-        handlers["cmd_research_register_candidate"](
+        _reg["research_register_candidate"](
             settings,
             candidate_dir=args.candidate_dir,
             output_dir=args.output_dir,
@@ -473,7 +476,7 @@ def dispatch(
             trainer=trainer,
         )
 
-        handlers["logger"].info("XGBoost experiment complete: %s", result.training_report_path)
+        _logger.info("XGBoost experiment complete: %s", result.training_report_path)
 
     elif mode == "research_download_ticks":
         if not args.symbols or len(args.symbols) != 1:
@@ -519,8 +522,8 @@ def dispatch(
             trade_date = json_path.stem.split("_")[-1]
             csv_path = Path(args.tick_output_dir) / f"polygon_{symbol}_{trade_date}.csv"
             convert_polygon_json_to_tick_csv(json_path, output_csv=csv_path, symbol_override=symbol)
-            handlers["logger"].info("Downloaded Polygon ticks JSON: %s", json_path)
-            handlers["logger"].info("Converted canonical tick CSV: %s", csv_path)
+            _logger.info("Downloaded Polygon ticks JSON: %s", json_path)
+            _logger.info("Converted canonical tick CSV: %s", csv_path)
 
         if args.tick_build_manifest:
             from research.data.tick_backlog import build_tick_backlog_manifest
@@ -534,7 +537,7 @@ def dispatch(
                 data_dir=args.tick_output_dir,
                 output_path=manifest_path,
             )
-            handlers["logger"].info("Tick backlog manifest written: %s", result)
+            _logger.info("Tick backlog manifest written: %s", result)
 
     elif mode == "research_build_tick_splits":
         if not args.tick_input_manifest:
@@ -557,10 +560,10 @@ def dispatch(
             val_end=args.tick_val_end,
         )
 
-        handlers["logger"].info("Tick split bundle (train): %s", outputs["train"])
-        handlers["logger"].info("Tick split bundle (val): %s", outputs["val"])
-        handlers["logger"].info("Tick split bundle (test): %s", outputs["test"])
-        handlers["logger"].info("Tick split summary: %s", outputs["summary"])
+        _logger.info("Tick split bundle (train): %s", outputs["train"])
+        _logger.info("Tick split bundle (val): %s", outputs["val"])
+        _logger.info("Tick split bundle (test): %s", outputs["test"])
+        _logger.info("Tick split summary: %s", outputs["summary"])
 
     elif mode == "research_ingest_flat_files":
         if not args.symbols:
@@ -578,13 +581,13 @@ def dispatch(
             manifest_path=args.flat_manifest_path,
             skip_existing=args.flat_skip_existing,
         )
-        handlers["logger"].info("Flat file ingestion completed")
-        handlers["logger"].info("  manifest: %s", result.manifest_path)
-        handlers["logger"].info("  files: %s", result.file_count)
-        handlers["logger"].info("  rows: %s", result.total_rows)
+        _logger.info("Flat file ingestion completed")
+        _logger.info("  manifest: %s", result.manifest_path)
+        _logger.info("  files: %s", result.file_count)
+        _logger.info("  rows: %s", result.total_rows)
 
     elif mode == "uk_health_check":
-        error_count = handlers["cmd_uk_health_check"](
+        error_count = _reg["uk_health_check"](
             settings,
             with_data_check=args.with_data_check,
             json_output=args.health_json,
@@ -593,7 +596,7 @@ def dispatch(
             raise SystemExit(1)
 
     elif mode == "rotate_paper_db":
-        handlers["cmd_rotate_paper_db"](
+        _reg["rotate_paper_db"](
             settings,
             archive_dir=args.archive_dir,
             keep_original=args.keep_original,
