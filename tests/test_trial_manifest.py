@@ -1,10 +1,7 @@
 """Tests for trial manifest loading and management."""
 
 import json
-import tempfile
 from pathlib import Path
-
-import pytest
 
 from src.trial.manifest import TrialBatch, TrialManifest
 

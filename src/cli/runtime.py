@@ -6,12 +6,10 @@ import hashlib
 import json
 import logging
 import os
-import random
 import shutil
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlparse
 
 from backtest.engine import BacktestEngine

@@ -7,10 +7,8 @@ and that they interact correctly with other risk gates.
 
 from datetime import datetime, timezone
 
-import pytest
-
 from config.settings import Settings
-from src.data.models import OrderSide, Signal, SignalType
+from src.data.models import Signal, SignalType
 from src.risk.manager import RiskManager
 
 

@@ -2,8 +2,6 @@
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
 from config.settings import Settings
 from src.data.models import Bar, SignalType
 from src.strategies.atr_stops import ATRStopsStrategy

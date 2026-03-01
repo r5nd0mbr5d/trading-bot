@@ -164,7 +164,7 @@ class TestRiskManager:
         assert order is None
 
     def test_intraday_circuit_breaker_resets_on_new_day(self):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timezone
 
         self.risk.cfg.max_intraday_loss_pct = 0.02
         # Day 1: trigger intraday halt

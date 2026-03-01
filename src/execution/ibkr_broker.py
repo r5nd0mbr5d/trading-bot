@@ -4,7 +4,6 @@ Requires TWS or IB Gateway running locally and `ib_insync` installed.
 """
 
 import logging
-import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 

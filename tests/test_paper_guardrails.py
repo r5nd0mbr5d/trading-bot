@@ -13,8 +13,6 @@ Tests cover:
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import pytest
-
 from config.settings import PaperGuardrailsConfig
 from src.risk.paper_guardrails import PaperGuardrails
 
