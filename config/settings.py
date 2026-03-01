@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
+from src.data.models import AssetClass
 
 load_dotenv()
 
@@ -34,11 +35,35 @@ class DataConfig:
     lookback_days: int = 365
     cache_dir: str = "data/cache"
     cache_enabled: bool = True
+    asset_class: str = "auto"  # auto | equity | crypto
+
+
+@dataclass
+class AlternativeDataConfig:
+    """Alternative data provider registry configuration."""
+
+    enabled: bool = False
+    providers: List[str] = field(default_factory=lambda: ["weather"])
+    provider_enabled: Dict[str, bool] = field(default_factory=dict)
+    provider_api_keys: Dict[str, str] = field(default_factory=dict)
+    max_ffill_bars: int = 3
+    weather_symbol_locations: Dict[str, Dict[str, float]] = field(
+        default_factory=lambda: {
+            "DEFAULT": {"latitude": 51.5072, "longitude": -0.1276},
+            "HSBA.L": {"latitude": 51.5072, "longitude": -0.1276},
+            "VOD.L": {"latitude": 51.5072, "longitude": -0.1276},
+            "BP.L": {"latitude": 51.5072, "longitude": -0.1276},
+            "BARC.L": {"latitude": 51.5072, "longitude": -0.1276},
+            "SHEL.L": {"latitude": 51.5072, "longitude": -0.1276},
+        }
+    )
 
 
 @dataclass
 class StrategyConfig:
     name: str = "ma_crossover"         # ma_crossover | rsi_momentum | atr_stops | obv_momentum | stochastic_oscillator
+    model_path: str = ""
+    model_threshold: float = 0.6
     # Moving Average Crossover
     fast_period: int = 20
     slow_period: int = 50
@@ -270,6 +295,7 @@ class BrokerConfig:
 @dataclass
 class Settings:
     data: DataConfig = field(default_factory=DataConfig)
+    alternative_data: AlternativeDataConfig = field(default_factory=AlternativeDataConfig)
     strategy: StrategyConfig = field(default_factory=StrategyConfig)
     atr: ATRConfig = field(default_factory=ATRConfig)
     obv: OBVConfig = field(default_factory=OBVConfig)
@@ -366,14 +392,23 @@ class Settings:
 
     def is_crypto(self, symbol: str) -> bool:
         """Return True when a symbol is configured as crypto asset class."""
+        return self.get_symbol_asset_class(symbol) == AssetClass.CRYPTO
+
+    def get_symbol_asset_class(self, symbol: str) -> AssetClass:
+        """Return normalized asset class for a symbol."""
         normalized_symbol = (symbol or "").strip().upper()
         if not normalized_symbol:
-            return False
+            return AssetClass.EQUITY
 
         symbol_map = self.data.symbol_asset_class_map or {}
         mapped_value = symbol_map.get(normalized_symbol)
         if mapped_value is None:
-            return False
+            crypto_symbols = {(item or "").strip().upper() for item in (self.data.crypto_symbols or [])}
+            if normalized_symbol in crypto_symbols:
+                return AssetClass.CRYPTO
+            return AssetClass.EQUITY
 
         normalized_asset = str(mapped_value).strip().upper()
-        return normalized_asset in {"CRYPTO", "ASSETCLASS.CRYPTO"}
+        if normalized_asset in {"CRYPTO", "ASSETCLASS.CRYPTO"}:
+            return AssetClass.CRYPTO
+        return AssetClass.EQUITY

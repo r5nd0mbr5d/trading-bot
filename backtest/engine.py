@@ -23,6 +23,7 @@ from typing import Dict, List
 import pandas as pd
 
 from config.settings import Settings
+from src.data.alternative_feeds import AlternativeDataRegistry, register_configured_providers
 from src.data.feeds import MarketDataFeed
 from src.data.models import Bar, Signal
 from src.execution.broker import PaperBroker
@@ -117,19 +118,33 @@ class BacktestEngine:
     def __init__(self, settings: Settings, strategy: BaseStrategy):
         self.settings = settings
         self.strategy = strategy
+        self.alternative_registry = AlternativeDataRegistry()
+        register_configured_providers(self.alternative_registry, settings)
+        if hasattr(self.strategy, "set_alternative_registry"):
+            self.strategy.set_alternative_registry(self.alternative_registry)
         self.risk = RiskManager(settings)
         self.broker = PaperBroker(initial_cash=settings.initial_capital)
         self.feed = MarketDataFeed(settings)
 
     def run(self, start: str, end: str) -> BacktestResults:
         symbols = self.settings.data.symbols
+        extra_symbols = list(dict.fromkeys(self.strategy.required_symbols()))
+        fetch_symbols = list(dict.fromkeys(symbols + extra_symbols))
         logger.info(f"Backtest: {symbols}  {start} -> {end}")
 
         # Fetch all data upfront using explicit date range (more reliable than period="max")
         all_data: Dict[str, pd.DataFrame] = {}
-        for symbol in symbols:
+        for symbol in fetch_symbols:
             df = self.feed.fetch_historical(symbol, interval="1d", start=start, end=end)
             all_data[symbol] = df
+
+        if self.settings.alternative_data.enabled:
+            for symbol in fetch_symbols:
+                self.alternative_registry.prefetch(
+                    symbol,
+                    start=pd.to_datetime(start, utc=True).to_pydatetime(),
+                    end=pd.to_datetime(end, utc=True).to_pydatetime(),
+                )
 
         all_dates = sorted(set().union(*[set(df.index) for df in all_data.values()]))
 

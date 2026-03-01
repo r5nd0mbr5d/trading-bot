@@ -1,0 +1,15 @@
+{
+  "asset_class": "crypto",
+  "symbols": ["BTCGBP"],
+  "strategy": "rsi_momentum",
+  "broker": "alpaca",
+  "session_window": {
+    "start_hour": 0,
+    "end_hour": 23
+  },
+  "risk": {
+    "max_position_pct": 0.15,
+    "stop_loss_pct": 0.08,
+    "take_profit_pct": 0.2
+  }
+}

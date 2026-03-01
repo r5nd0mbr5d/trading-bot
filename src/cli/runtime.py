@@ -43,6 +43,7 @@ from src.strategies.obv_momentum import OBVMomentumStrategy
 from src.strategies.pairs_mean_reversion import PairsMeanReversionStrategy
 from src.strategies.rsi_momentum import RSIMomentumStrategy
 from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
+from src.strategies.ml_wrapper import MLStrategyWrapper
 from backtest.engine import BacktestEngine
 from backtest.walk_forward import WalkForwardEngine
 
@@ -56,6 +57,7 @@ logger = logging.getLogger(__name__)
 STRATEGIES = {
     "atr_stops": ATRStopsStrategy,
     "bollinger_bands": BollingerBandsStrategy,
+    "ml_model": MLStrategyWrapper,
     "ma_crossover": MACrossoverStrategy,
     "macd_crossover": MACDCrossoverStrategy,
     "obv_momentum": OBVMomentumStrategy,
@@ -189,7 +191,65 @@ def _require_explicit_confirmation(
         raise SystemExit(2)
 
 
+def _apply_profile_risk_overrides(settings: Settings, asset_class: str, overrides: dict[str, Any]) -> None:
+    normalized_asset = (asset_class or "equity").strip().lower()
+    if normalized_asset == "crypto":
+        target_cfg = settings.crypto_risk
+    else:
+        target_cfg = settings.risk
+
+    for key, value in overrides.items():
+        if not hasattr(target_cfg, key):
+            raise ValueError(f"Unknown risk override field: {key}")
+        setattr(target_cfg, key, value)
+
+
+def _apply_json_runtime_profile(settings: Settings, profile_path: str) -> None:
+    profile_file = Path(profile_path)
+    if not profile_file.exists():
+        raise ValueError(f"Profile file not found: {profile_path}")
+
+    payload = json.loads(profile_file.read_text())
+    if not isinstance(payload, dict):
+        raise ValueError("Profile payload must be a JSON object")
+
+    asset_class = payload.get("asset_class", "auto")
+    if asset_class is not None:
+        normalized_asset_class = str(asset_class).strip().lower()
+        if normalized_asset_class not in {"auto", "equity", "crypto"}:
+            raise ValueError("Profile asset_class must be one of: auto, equity, crypto")
+        settings.data.asset_class = normalized_asset_class
+
+    strategy_name = payload.get("strategy")
+    if strategy_name is not None:
+        settings.strategy.name = str(strategy_name).strip()
+
+    model_path = payload.get("model_path")
+    if model_path is not None:
+        settings.strategy.model_path = str(model_path).strip()
+
+    symbols = payload.get("symbols")
+    if symbols is not None:
+        if not isinstance(symbols, list) or not all(isinstance(symbol, str) for symbol in symbols):
+            raise ValueError("Profile symbols must be a list of symbol strings")
+        settings.data.symbols = [symbol.strip() for symbol in symbols if symbol.strip()]
+
+    broker = payload.get("broker")
+    if broker is not None:
+        settings.broker.provider = str(broker).strip().lower()
+
+    risk_overrides = payload.get("risk")
+    if risk_overrides is not None:
+        if not isinstance(risk_overrides, dict):
+            raise ValueError("Profile risk must be an object")
+        _apply_profile_risk_overrides(settings, settings.data.asset_class, risk_overrides)
+
+
 def apply_runtime_profile(settings: Settings, profile: str) -> None:
+    if profile.endswith(".json"):
+        _apply_json_runtime_profile(settings, profile)
+        return
+
     if profile == "uk_paper":
         settings.broker.provider = "ibkr"
         settings.broker.paper_trading = True
@@ -235,6 +295,10 @@ def apply_runtime_profile(settings: Settings, profile: str) -> None:
                 "primary_exchange": "LSE",
             },
         }
+        return
+
+    if profile not in {"default", ""}:
+        raise ValueError(f"Unknown runtime profile: {profile}")
 
 
 def cmd_backtest(settings: Settings, start: str, end: str) -> None:
