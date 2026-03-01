@@ -146,21 +146,13 @@ def _ensure_db_matches_mode(
     if expected is None:
         return
     if db_path != expected:
-        raise RuntimeError(
-            f"{context} DB mismatch: mode={mode} expects {expected}, got {db_path}"
-        )
+        raise RuntimeError(f"{context} DB mismatch: mode={mode} expects {expected}, got {db_path}")
     if mode == "paper" and db_path in {live_db, test_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: paper mode cannot use live/test DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: paper mode cannot use live/test DB ({db_path})")
     if mode == "live" and db_path in {paper_db, test_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: live mode cannot use paper/test DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: live mode cannot use paper/test DB ({db_path})")
     if mode == "test" and db_path in {paper_db, live_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: test mode cannot use paper/live DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: test mode cannot use paper/live DB ({db_path})")
 
 
 def _ensure_trading_mode_matches(settings: Settings, runtime_mode: str, *, context: str) -> None:
@@ -191,7 +183,9 @@ def _require_explicit_confirmation(
         raise SystemExit(2)
 
 
-def _apply_profile_risk_overrides(settings: Settings, asset_class: str, overrides: dict[str, Any]) -> None:
+def _apply_profile_risk_overrides(
+    settings: Settings, asset_class: str, overrides: dict[str, Any]
+) -> None:
     normalized_asset = (asset_class or "equity").strip().lower()
     if normalized_asset == "crypto":
         target_cfg = settings.crypto_risk
@@ -446,7 +440,9 @@ def cmd_execution_dashboard(
     metrics = result["metrics"]
     logger.info("Execution dashboard export completed")
     logger.info("  html: %s", result["output_path"])
-    logger.info("  events=%s symbols=%s", metrics["event_count"], len(metrics["reject_rate_by_symbol"]))
+    logger.info(
+        "  events=%s symbols=%s", metrics["event_count"], len(metrics["reject_rate_by_symbol"])
+    )
 
 
 def cmd_data_quality_report(
@@ -672,14 +668,16 @@ def cmd_paper_trial(
     """Run an end-to-end paper trial: checks -> paper run -> summary -> reconcile."""
     import time
     from src.execution.ibkr_broker import IBKRBroker
-    
+
     settings.broker.paper_trading = True
     _ensure_db_matches_mode(settings, "paper", db_path, context="paper_trial")
 
     if not skip_health_check:
         health_errors = cmd_uk_health_check(settings, with_data_check=False, json_output=False)
         if health_errors > 0:
-            logger.error("Paper trial aborted: health check reported %s blocking error(s)", health_errors)
+            logger.error(
+                "Paper trial aborted: health check reported %s blocking error(s)", health_errors
+            )
             return 2
         # Allow event loop to fully clean up after health check broker disconnect
         time.sleep(0.5)
@@ -731,7 +729,7 @@ def cmd_paper_trial(
     broker = None
     if settings.broker.provider.lower() == "ibkr":
         broker = IBKRBroker(settings)
-    
+
     logger.info("Starting timed paper trial for %ss", duration_seconds)
     try:
         asyncio.run(
@@ -961,9 +959,15 @@ def cmd_uk_health_check(
                 mode = "paper" if broker.is_paper_account() else "live"
                 ok(f"IBKR account detected: {account} ({mode})", "ibkr_account")
                 if settings.broker.paper_trading and broker.is_live_account():
-                    fail("Running in paper mode but connected account appears live", "ibkr_mode_match")
+                    fail(
+                        "Running in paper mode but connected account appears live",
+                        "ibkr_mode_match",
+                    )
                 if (not settings.broker.paper_trading) and broker.is_paper_account():
-                    fail("Running in live mode but connected account appears paper", "ibkr_mode_match")
+                    fail(
+                        "Running in live mode but connected account appears paper",
+                        "ibkr_mode_match",
+                    )
             else:
                 warn("IBKR account not detected yet", "ibkr_account")
         finally:
@@ -1021,11 +1025,11 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
 
     strategy = _build_strategy(settings)
     risk = RiskManager(settings)
-    
+
     # Use pre-created broker if provided, otherwise create new one
     if broker is None:
         broker = build_runtime_broker(settings)
-    
+
     if broker is not None:
         if isinstance(broker, IBKRBroker):
             account = broker.get_primary_account()
@@ -1045,14 +1049,10 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         elif hasattr(broker, "is_paper_mode"):
             actual_paper = broker.is_paper_mode()
             if settings.broker.paper_trading and not actual_paper:
-                raise RuntimeError(
-                    "Alpaca live endpoint detected while running in paper mode."
-                )
+                raise RuntimeError("Alpaca live endpoint detected while running in paper mode.")
             if (not settings.broker.paper_trading) and actual_paper:
-                raise RuntimeError(
-                    "Alpaca paper endpoint detected while running in live mode."
-                )
-    
+                raise RuntimeError("Alpaca paper endpoint detected while running in live mode.")
+
     tracker = PortfolioTracker(settings.initial_capital)
     feed = MarketDataFeed(settings)
     data_quality = DataQualityGuard(
@@ -1152,9 +1152,15 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
             interval_seconds=300,
             heartbeat_callback=on_stream_heartbeat,
             error_callback=on_stream_error,
-            backoff_base_seconds=float(getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.25),
-            backoff_max_seconds=float(getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 2.0),
-            max_consecutive_failure_cycles=int(getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 3),
+            backoff_base_seconds=float(
+                getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.25
+            ),
+            backoff_max_seconds=float(
+                getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 2.0
+            ),
+            max_consecutive_failure_cycles=int(
+                getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 3
+            ),
         )
     finally:
         await audit.log_event(
@@ -1176,5 +1182,3 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                 broker.disconnect()
             except Exception as exc:
                 logger.error("Broker cleanup failed: %s", exc)
-
-

@@ -52,10 +52,14 @@ def run_broker_operation(
     attempts = max(int(getattr(settings.broker, "outage_retry_attempts", 3) or 1), 1)
     if bool(getattr(settings.broker, "outage_skip_retries", False)):
         attempts = 1
-    base_delay = max(float(getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.0), 0.0)
+    base_delay = max(
+        float(getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.0), 0.0
+    )
     max_delay = max(float(getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 0.0), 0.0)
     jitter = max(float(getattr(settings.broker, "outage_backoff_jitter_seconds", 0.1) or 0.0), 0.0)
-    failure_limit = max(int(getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 1), 1)
+    failure_limit = max(
+        int(getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 1), 1
+    )
 
     last_exc: Exception | None = None
     for attempt in range(1, attempts + 1):

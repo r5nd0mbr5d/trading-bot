@@ -94,7 +94,9 @@ class YFinanceProvider:
         for attempt in range(1, max_attempts + 1):
             try:
                 if start:
-                    result = ticker.history(start=start, end=end, interval=interval, auto_adjust=True)
+                    result = ticker.history(
+                        start=start, end=end, interval=interval, auto_adjust=True
+                    )
                 else:
                     result = ticker.history(period=period, interval=interval, auto_adjust=True)
 

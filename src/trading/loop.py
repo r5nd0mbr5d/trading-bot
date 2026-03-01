@@ -173,9 +173,7 @@ class TradingLoopHandler:
         if (
             self.settings.enforce_market_hours
             and not self.settings.is_crypto(bar.symbol)
-            and not is_market_open(
-            bar.symbol, bar.timestamp
-            )
+            and not is_market_open(bar.symbol, bar.timestamp)
         ):
             logger.debug(
                 "Skipping %s bar at %s: market closed",

@@ -46,7 +46,10 @@ class PairsMeanReversionStrategy(BaseStrategy):
         primary_df = self.get_history_df(self.primary_symbol)
         secondary_df = self.get_history_df(self.secondary_symbol)
 
-        if len(primary_df) < self.min_bars_required() or len(secondary_df) < self.min_bars_required():
+        if (
+            len(primary_df) < self.min_bars_required()
+            or len(secondary_df) < self.min_bars_required()
+        ):
             return None
 
         lookback = min(self.lookback, len(primary_df), len(secondary_df))

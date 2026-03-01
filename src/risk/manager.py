@@ -279,7 +279,9 @@ class RiskManager:
         atr_multiplier = (
             self._crypto_cfg.atr_multiplier if is_crypto_symbol else self.cfg.atr_multiplier
         )
-        stop_loss_pct = self._crypto_cfg.stop_loss_pct if is_crypto_symbol else self.cfg.stop_loss_pct
+        stop_loss_pct = (
+            self._crypto_cfg.stop_loss_pct if is_crypto_symbol else self.cfg.stop_loss_pct
+        )
         if self.cfg.use_atr_stops and atr and atr > 0 and price > 0:
             stop_loss = round(max(price - atr_multiplier * atr, 0.0001), 4)
             take_profit = round(price + self.cfg.atr_tp_multiplier * atr, 4)
@@ -295,7 +297,9 @@ class RiskManager:
             take_profit = round(price * (1 + self.cfg.take_profit_pct), 4)
             effective_stop_pct = stop_loss_pct
 
-        max_position_pct = self._crypto_cfg.max_position_pct if is_crypto_symbol else self.cfg.max_position_pct
+        max_position_pct = (
+            self._crypto_cfg.max_position_pct if is_crypto_symbol else self.cfg.max_position_pct
+        )
         qty = self._size_position(
             portfolio_value,
             price,

@@ -108,7 +108,9 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("--label-version", default="h5")
     parser.add_argument("--xgb-params-json", default=None)
     parser.add_argument("--xgb-preset", default=None)
-    parser.add_argument("--xgb-presets-path", default="research/experiments/configs/xgb_params_presets.json")
+    parser.add_argument(
+        "--xgb-presets-path", default="research/experiments/configs/xgb_params_presets.json"
+    )
     parser.add_argument("--print-presets", action="store_true")
     parser.add_argument("--calibrate", action="store_true")
     parser.add_argument("--label-type", choices=["direction", "threshold"], default="direction")
@@ -272,7 +274,9 @@ def dispatch(
             if manifest.capital:
                 settings.initial_capital = manifest.capital
 
-            trial_db_path = manifest.db_path or handlers["resolve_runtime_db_path"](settings, "paper")
+            trial_db_path = manifest.db_path or handlers["resolve_runtime_db_path"](
+                settings, "paper"
+            )
             exit_code = handlers["cmd_paper_trial"](
                 settings,
                 duration_seconds=manifest.duration_seconds,
@@ -389,7 +393,9 @@ def dispatch(
             if not args.experiment_id:
                 raise SystemExit("--experiment-id is required for research_train_xgboost mode")
             if not args.symbols or len(args.symbols) != 1:
-                raise SystemExit("--symbols must include exactly one symbol for research_train_xgboost")
+                raise SystemExit(
+                    "--symbols must include exactly one symbol for research_train_xgboost"
+                )
 
         params = None
         if args.xgb_params_json:
@@ -471,7 +477,9 @@ def dispatch(
 
     elif mode == "research_download_ticks":
         if not args.symbols or len(args.symbols) != 1:
-            raise SystemExit("--symbols must include exactly one symbol for research_download_ticks")
+            raise SystemExit(
+                "--symbols must include exactly one symbol for research_download_ticks"
+            )
         if not args.tick_date and not (args.tick_start_date and args.tick_end_date):
             raise SystemExit("Provide --tick-date or both --tick-start-date and --tick-end-date")
 
@@ -530,7 +538,9 @@ def dispatch(
 
     elif mode == "research_build_tick_splits":
         if not args.tick_input_manifest:
-            raise SystemExit("--tick-input-manifest is required for research_build_tick_splits mode")
+            raise SystemExit(
+                "--tick-input-manifest is required for research_build_tick_splits mode"
+            )
         if not args.tick_train_end or not args.tick_val_end:
             raise SystemExit("--tick-train-end and --tick-val-end are required")
 

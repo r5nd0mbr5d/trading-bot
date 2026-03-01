@@ -107,7 +107,9 @@ class MLStrategyWrapper(BaseStrategy):
     def __init__(self, settings: Settings):
         super().__init__(settings)
         self._threshold = float(settings.strategy.model_threshold)
-        model_paths = [path.strip() for path in settings.strategy.model_path.split(",") if path.strip()]
+        model_paths = [
+            path.strip() for path in settings.strategy.model_path.split(",") if path.strip()
+        ]
         if not model_paths:
             raise ValueError("MLStrategyWrapper requires settings.strategy.model_path")
 

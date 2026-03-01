@@ -239,7 +239,9 @@ class BinanceBroker(BrokerBase):
                 return order
 
             if order.side == OrderSide.BUY:
-                response: Dict[str, Any] = self._client.order_market_buy(symbol=symbol, quantity=qty)
+                response: Dict[str, Any] = self._client.order_market_buy(
+                    symbol=symbol, quantity=qty
+                )
             else:
                 response = self._client.order_market_sell(symbol=symbol, quantity=qty)
 
@@ -483,7 +485,10 @@ class CoinbaseBroker(BrokerBase):
             response = self._client.cancel_orders(order_ids=[order_id])
             payload = self._to_dict(response)
             if "results" in payload and isinstance(payload["results"], list):
-                return any(str(result.get("success", "")).lower() == "true" for result in payload["results"])
+                return any(
+                    str(result.get("success", "")).lower() == "true"
+                    for result in payload["results"]
+                )
             return True
         except Exception as exc:
             logger.error("Coinbase cancel_order failed: %s", exc)
@@ -495,7 +500,9 @@ class CoinbaseBroker(BrokerBase):
         try:
             product = self._client.get_product(product_id=product_id)
             payload = self._to_dict(product)
-            value = payload.get("price") or payload.get("last_price") or payload.get("mid_market_price")
+            value = (
+                payload.get("price") or payload.get("last_price") or payload.get("mid_market_price")
+            )
             return float(value or 0.0)
         except Exception:
             return 0.0

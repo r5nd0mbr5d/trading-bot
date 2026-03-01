@@ -92,7 +92,9 @@ class DummyKillSwitch:
         return None
 
 
-def _build_handler(settings: Settings, risk: DummyRisk, broker: DummyBroker, data_quality: DummyDataQuality):
+def _build_handler(
+    settings: Settings, risk: DummyRisk, broker: DummyBroker, data_quality: DummyDataQuality
+):
     audit_events = []
 
     def enqueue_audit(event_type, payload, **kwargs):

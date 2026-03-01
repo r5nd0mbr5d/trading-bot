@@ -88,9 +88,7 @@ def evaluate_symbol_universe_health(
     healthy_count = len(healthy_symbols)
     ratio = (healthy_count / total_symbols) if total_symbols > 0 else 0.0
     threshold = float(settings.symbol_universe_min_availability_ratio)
-    required_count = (
-        int(math.ceil(total_symbols * threshold)) if total_symbols > 0 else 0
-    )
+    required_count = int(math.ceil(total_symbols * threshold)) if total_symbols > 0 else 0
 
     return {
         "total_symbols": total_symbols,
@@ -179,9 +177,7 @@ def apply_symbol_universe_policy(
     else:
         selected_symbols = healthy_symbol_list[: max(target_symbols, min_symbols)]
 
-    removed_symbols = [
-        symbol for symbol in configured_symbols if symbol not in selected_symbols
-    ]
+    removed_symbols = [symbol for symbol in configured_symbols if symbol not in selected_symbols]
 
     return {
         "allowed": True,

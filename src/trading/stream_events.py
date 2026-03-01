@@ -55,8 +55,7 @@ def build_stream_error_handler(
         if event == "STREAM_FAILURE_LIMIT_REACHED":
             severity = "critical"
             kill_switch.trigger(
-                "stream_failure_limit_reached: "
-                f"{payload.get('consecutive_failure_cycles')}"
+                "stream_failure_limit_reached: " f"{payload.get('consecutive_failure_cycles')}"
             )
         enqueue_audit(
             event,

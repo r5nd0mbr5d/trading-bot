@@ -27,7 +27,11 @@ def _make_bundle(probability: float, asset_class: AssetClass = AssetClass.EQUITY
         model=_DummyModel(probability),
         model_type="xgboost",
         model_path="dummy_model.bin",
-        metadata={"model_type": "xgboost", "asset_class": asset_class.value, "min_bars_required": 1},
+        metadata={
+            "model_type": "xgboost",
+            "asset_class": asset_class.value,
+            "min_bars_required": 1,
+        },
         asset_class=asset_class,
     )
 

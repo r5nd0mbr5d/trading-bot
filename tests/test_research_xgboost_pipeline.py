@@ -116,5 +116,7 @@ def test_run_xgboost_experiment_accepts_mlp_model_type_with_stub_trainer(tmp_pat
         trainer=trainer,
     )
 
-    summary_payload = json.loads(result.experiment_report.aggregate_summary_path.read_text(encoding="utf-8"))
+    summary_payload = json.loads(
+        result.experiment_report.aggregate_summary_path.read_text(encoding="utf-8")
+    )
     assert summary_payload["metadata"]["model_type"] == "mlp"

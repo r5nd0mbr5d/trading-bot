@@ -10,9 +10,7 @@ from src.api.app import create_app
 
 def _seed_db(path: str) -> None:
     conn = sqlite3.connect(path)
-    conn.execute(
-        "CREATE TABLE kill_switch (id INTEGER PRIMARY KEY AUTOINCREMENT, reason TEXT)"
-    )
+    conn.execute("CREATE TABLE kill_switch (id INTEGER PRIMARY KEY AUTOINCREMENT, reason TEXT)")
     conn.execute(
         "CREATE TABLE audit_log ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -26,7 +24,13 @@ def _seed_db(path: str) -> None:
     conn.execute("INSERT INTO kill_switch (reason) VALUES ('manual_test')")
     conn.execute(
         "INSERT INTO audit_log (timestamp, event_type, payload, symbol, strategy) VALUES (?, ?, ?, ?, ?)",
-        ("2026-02-25T09:00:00Z", "STREAM_HEARTBEAT", json.dumps({"event": "STREAM_HEARTBEAT"}), "", "ma_crossover"),
+        (
+            "2026-02-25T09:00:00Z",
+            "STREAM_HEARTBEAT",
+            json.dumps({"event": "STREAM_HEARTBEAT"}),
+            "",
+            "ma_crossover",
+        ),
     )
     conn.execute(
         "INSERT INTO audit_log (timestamp, event_type, payload, symbol, strategy) VALUES (?, ?, ?, ?, ?)",
