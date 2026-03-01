@@ -8,16 +8,14 @@ __pycache__/
 .env.*
 !.env.example
 
-# Virtual environments
+# Virtual environments (any .venv* prefix covers .venv_ci/, .venv_test/, etc.)
+.venv*/
 .venv/
 venv/
 env/
 ENV/
 
-# Generated runtime/session artifacts
-reports/uk_tax/mo2_orchestrator/session_*/
-reports/uk_tax/step1a_burnin/session_*/
-reports/uk_tax/step1a_preflight/
+# Generated runtime/session artifacts (covered by reports/ rules below)
 
 # Local research stores/snapshots
 research/data/local_store/
@@ -40,3 +38,12 @@ tmp/
 
 # Log files
 *.log
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
+# Generated report artifacts (keep schema/fixture files tracked)
+reports/execution_dashboard.html
+reports/reconcile/
+reports/rca/
+reports/uk_tax/
