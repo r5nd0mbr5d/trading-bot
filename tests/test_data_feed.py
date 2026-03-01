@@ -34,6 +34,7 @@ def test_fetch_historical_converts_tz_aware_index_to_utc(monkeypatch):
     monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
 
     settings = Settings()
+    settings.data.source = "yfinance"
     settings.data.cache_enabled = False
     feed = MarketDataFeed(settings)
     df = feed.fetch_historical("AAPL", period="1d", interval="1m")
@@ -52,6 +53,7 @@ def test_fetch_historical_localizes_naive_index_to_utc(monkeypatch):
     monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
 
     settings = Settings()
+    settings.data.source = "yfinance"
     settings.data.cache_enabled = False
     feed = MarketDataFeed(settings)
     df = feed.fetch_historical("MSFT", period="5d", interval="1d")
@@ -70,6 +72,7 @@ def test_fetch_historical_logs_warning_on_naive_index(monkeypatch, caplog):
     monkeypatch.setattr("src.data.providers.yf.Ticker", lambda symbol: FakeTicker())
 
     settings = Settings()
+    settings.data.source = "yfinance"
     settings.data.cache_enabled = False
     feed = MarketDataFeed(settings)
     with caplog.at_level("WARNING"):

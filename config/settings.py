@@ -18,8 +18,8 @@ load_dotenv()
 
 @dataclass
 class DataConfig:
-    source: str = "yfinance"           # yfinance | alpaca | polygon
-    fallback_sources: List[str] = field(default_factory=list)
+    source: str = "eodhd"              # eodhd | yfinance | alpaca | polygon
+    fallback_sources: List[str] = field(default_factory=lambda: ["yfinance"])
     symbols: List[str] = field(
         default_factory=lambda: ["HSBA.L", "LLOY.L", "BP.L", "RIO.L", "GLEN.L"]  # UK LSE symbols
     )
@@ -123,11 +123,11 @@ class ATRConfig:
 @dataclass
 class DataQualityConfig:
     """Guards against stale bars and large session gaps."""
-    max_bar_age_seconds: int = 1200    # 20 min for paper/yfinance (1-min bars often delay 10-15 min)
+    max_bar_age_seconds: int = 1200    # 20 min conservative threshold for delayed provider bars
     max_bar_gap_seconds: int = 3600
     max_consecutive_stale: int = 3
     session_gap_skip_bars: int = 1
-    enable_stale_check: bool = True    # Disable for paper trading with yfinance (known latency issue)
+    enable_stale_check: bool = True    # Can be disabled for delayed-paper feeds if needed
 
 
 @dataclass

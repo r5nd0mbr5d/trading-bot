@@ -10,7 +10,7 @@
 ## Status
 
 **PENDING OPERATOR ACTION** — The QCAlgorithm files have been created but must
-be uploaded to QuantConnect Cloud and backtested manually (free tier).
+be uploaded to QuantConnect Cloud and backtested manually (**free tier only**).
 
 ### Steps to complete
 
@@ -56,7 +56,7 @@ be uploaded to QuantConnect Cloud and backtested manually (free tier).
    UK trades incur 0.5 % SDRT on buys — QC may apply this.
 
 3. **Data source**: LEAN uses its own equity data feed (QuantQuote / Morningstar
-   base); our bot uses yfinance (Yahoo Finance adjusted closes). Minor
+   base); our bot baseline uses EODHD adjusted daily bars. Minor
    differences in adjusted close values after corporate actions are possible.
 
 4. **Fill timing**: LEAN fills market orders at the next bar's open by default;
