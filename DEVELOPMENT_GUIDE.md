@@ -100,10 +100,11 @@ For your target outcome (profitability as a UK-based operator), keep runtime tra
 strategy research in the **same project**, but isolate experimental work in a dedicated
 research layer so only validated candidates are promoted into runtime.
 
-### Scope alignment (UK-first, not US-only)
+### Scope alignment (UK-based, globally accessible)
 
-- Primary market focus: UK-listed equities/ETFs and GBP base-currency reporting
-- Optional expansion: US/EU/global symbols only when portfolio-level profitability improves
+- Operated from the UK: base currency GBP, UK tax reporting, UK session guardrails as default
+- Trades any equity market accessible from the UK via IBKR (US, EU, APAC, and other global exchanges) and EODHD (70+ exchanges)
+- Research baseline: UK equities (FTSE 100/250) for initial strategy validation; global equities for expanded universe when hypothesis requires cross-market signals
 - Promotion standard: all research candidates must pass paper-trial and risk gates before runtime enablement
 
 ### Suggested structure
@@ -186,7 +187,7 @@ Use **LibreChat → qwen2.5:14b or Gemini** before starting any new feature.
 
 ```
 You are a quantitative analyst at a hedge fund.
-I'm building a Python algorithmic trading bot for a UK-based operator trading UK-first but not US-only equities.
+I'm building a Python algorithmic trading bot operated from the UK, trading global equities (UK, US, EU, APAC) accessible via IBKR and EODHD.
 List the 10 most important signals/indicators used in professional
 systematic strategies, with a one-sentence explanation of each,
 and note which are already in pandas-ta.

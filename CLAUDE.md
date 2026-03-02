@@ -13,8 +13,8 @@ It provides the architectural context needed to work autonomously.
 6. **`.python-style-guide.md`** — How to write the code (read before writing any non-trivial code)
 
 ## Project purpose
-**Enterprise-grade algorithmic trading platform** for UK-first multi-asset markets (FTSE 100/250 equities, BTC/GBP crypto, planned forex) with:
-1. Historical data collection & analysis — EODHD as primary data source, yfinance as fallback
+**Enterprise-grade algorithmic trading platform** operated from the UK, trading global equities (UK LSE, US NYSE/NASDAQ, European, and other IBKR-accessible exchanges), crypto (BTC/GBP), and planned forex. Key capabilities:
+1. Historical data collection & analysis — EODHD as primary data source (70+ global exchanges), yfinance as fallback
 2. Systematic strategy development (rule-based + ML/neural net) including fundamental and correlational analysis
 3. Real-time paper trading (sandbox first, PROD path available)
 
@@ -221,16 +221,16 @@ For quick commits (≤3 files), checks 1–3 and 9 are sufficient. See ADR-021 i
 
 ## Current Status & Completion Tracker
 
-### ✅ Completed (Foundation + UK Operational)
+### ✅ Completed (Foundation + Global Operational)
 - [x] 10 strategies (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops, Pairs, MLStrategyWrapper)
 - [x] Backtesting engine with event-driven replay + walk-forward harness
 - [x] Risk manager with VaR gate, circuit breakers, kill switch, correlation limits
-- [x] EODHD primary data provider + yfinance fallback
+- [x] EODHD primary data provider (70+ global exchanges) + yfinance fallback
 - [x] Multi-provider stack: EODHD, yfinance, Polygon/Massive, Alpha Vantage (scaffold)
-- [x] Alpaca paper trading + IBKR live trading
+- [x] Alpaca paper trading + IBKR live trading (global exchange access)
 - [x] CoinbaseBroker (crypto primary) + BinanceBroker (crypto fallback)
 - [x] Audit logger (async queue → SQLite) + daily report generator
-- [x] UK profile: FX-normalised GBP portfolio, UK tax export, session guardrails
+- [x] UK operational profile: FX-normalised GBP portfolio, UK tax export, session guardrails
 - [x] XGBoost ML pipeline (walk-forward, SHAP, promotion check)
 - [x] MLP baseline (skorch, pre-LSTM gate)
 - [x] Research track governance (4-stage promotion R1→R4)

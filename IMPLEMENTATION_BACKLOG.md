@@ -6,13 +6,13 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 102 (7 Prompts + 94 Next Steps + Code Style Governance)
+**Total Items**: 107 (7 Prompts + 99 Next Steps + Code Style Governance)
 **Completed**: 91 (Prompts 1–7 + completed steps listed in their individual entries; includes Steps 100/101/103 added Mar 1)
 **In Progress**: 2 (Step 1A burn-in; Step 36 QC cross-validation — code done, awaiting operator cloud run)
-**Not Started**: 8 (Steps 32, 104–110 — Step 32 gated behind MLP + MO-7/MO-8; Steps 104–110 new EODHD/fundamentals/correlations/forex pipeline)
+**Not Started**: 13 (Steps 32, 104–115 — Step 32 gated behind MLP + MO-7/MO-8; Steps 104–115 new EODHD/fundamentals/correlations/forex/scalability pipeline)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
 **Note — Step 102**: No Step 102 exists (numbering jumps 101 → 103). Reserved for future use.
-**Test suite**: 657 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 10 | **Asset classes**: 2 | **Data provider**: EODHD (primary, ADR-022)
+**Test suite**: 657 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 10 | **Asset classes**: 2 | **Data provider**: EODHD (primary, ADR-022) | **Equity scope**: Global (ADR-023)
 
 ---
 
@@ -33,6 +33,11 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 | **MEDIUM** | **108** | EODHD Bulk Data Cache Backfill | 4–8 hrs | EODHDProvider (done) |
 | **MEDIUM** | **109** | Fundamental-Driven Strategy (Earnings Momentum) | 6–8 hrs | Step 105 |
 | **LOW** | **110** | Documentation Sync Verification | 2–3 hrs | Steps 104–109 |
+| **LOW** | **111** | EODHD WebSocket Real-Time Feeds | 6–8 hrs | EODHDProvider (done) |
+| **LOW** | **112** | Multi-Strategy Ensemble Voting | 6–10 hrs | ≥3 strategies validated |
+| **LOW** | **113** | Feature Store Abstraction | 4–6 hrs | Steps 104–106 |
+| **LOW** | **114** | Event-Driven Architecture (Message Bus) | 8–12 hrs | None (greenfield) |
+| **LOW** | **115** | REST API Dashboard (FastAPI) | 6–8 hrs | None (scaffold exists) |
 
 ### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
 
@@ -3856,6 +3861,122 @@ Once all items are Complete:
 - Test count alignment across all files
 
 **Pre-conditions**: Steps 104–109 (at least Steps 104–106 complete)
+
+---
+
+### Step 111: EODHD WebSocket Real-Time Feeds
+**Status**: NOT STARTED
+**Priority**: LOW — enables sub-daily strategies; not required for current EOD-based pipeline
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement real-time data ingestion via EODHD WebSocket/streaming endpoint:
+1. Add `EODHDRealtimeProvider` class (or extend `EODHDProvider`) using EODHD's real-time API (`/api/real-time/{ticker}` and/or WebSocket endpoint)
+2. Emit `Bar` objects compatible with the existing `TradingLoopHandler.on_bar()` interface
+3. Support configurable polling interval (1s, 5s, 30s) or true WebSocket push where available
+4. Graceful degradation: fall back to polling `/api/real-time/{ticker}` if WebSocket connection fails
+5. Add reconnection logic with exponential backoff
+6. Wire into `src/trading/loop.py` as an alternative to the current sleep-based polling loop
+7. Add tests: mock WebSocket connection, bar emission, reconnection behaviour
+
+**Scope**:
+- `src/data/providers.py` or `src/data/realtime_feed.py` — new real-time provider
+- `src/trading/loop.py` — alternative real-time data source wiring
+- `config/settings.py` — `RealtimeConfig` with interval, enabled flag
+- `tests/test_realtime_feed.py` — new test file (≥6 tests)
+
+**Pre-conditions**: EODHDProvider implemented (✅), EODHD paid plan (real-time API not available on free tier)
+
+---
+
+### Step 112: Multi-Strategy Ensemble Voting
+**Status**: NOT STARTED
+**Priority**: LOW — reduces false positive rate by combining signals from multiple strategies
+**Intended Agent**: Claude Opus (design) → Copilot (implementation)
+**Execution Prompt**: Design and implement an ensemble layer that aggregates signals from multiple strategies:
+1. Create `src/strategies/ensemble.py` with `EnsembleStrategy(BaseStrategy)` class
+2. Accept a list of child strategies and their weights
+3. For each bar: collect `Signal` objects from all child strategies for each symbol
+4. Aggregate using configurable method: weighted vote (majority), weighted average (strength), or meta-model (XGBoost on child signals)
+5. Emit a single consolidated `Signal` per symbol with combined strength
+6. `min_bars_required()` = max of all child strategies' requirements
+7. Register in `src/cli/runtime.py` strategy map
+8. Add tests for: unanimous agreement, majority vote, weighted average, conflicting signals, insufficient data
+
+**Scope**:
+- `src/strategies/ensemble.py` — new strategy file
+- `src/cli/runtime.py` — register strategy
+- `config/settings.py` — `EnsembleConfig` with strategy list, weights, aggregation method
+- `tests/test_strategies.py` — extend (≥8 new tests)
+
+**Pre-conditions**: ≥3 strategies validated in paper trial
+**Note**: Aggregation method and weight allocation should be designed by Claude Opus.
+
+---
+
+### Step 113: Feature Store Abstraction
+**Status**: NOT STARTED
+**Priority**: LOW — centralises feature engineering to prevent training/inference skew
+**Intended Agent**: Copilot
+**Execution Prompt**: Create a feature store abstraction layer:
+1. Create `research/data/feature_store.py` with `FeatureStore` class
+2. Define versioned feature schemas (feature name, dtype, computation function, version hash)
+3. Compute features on-demand from raw data (OHLCV, fundamentals, sentiment, correlations)
+4. Cache computed features in Parquet files keyed by (symbol, date_range, feature_version)
+5. Provide `get_features(symbols, date_range, feature_set) -> pd.DataFrame` API
+6. Ensure identical features are used in training and inference (hash-based validation)
+7. Add tests: feature computation, cache hit/miss, version mismatch detection
+
+**Scope**:
+- `research/data/feature_store.py` — new module
+- `research/specs/FEATURE_STORE_SPEC.md` — schema documentation
+- `tests/test_feature_store.py` — new test file (≥8 tests)
+
+**Pre-conditions**: Steps 104–106 (features from OHLCV + fundamentals + correlations available)
+
+---
+
+### Step 114: Event-Driven Architecture (Message Bus)
+**Status**: NOT STARTED
+**Priority**: LOW — long-term scalability improvement; replaces polling loop with decoupled events
+**Intended Agent**: Claude Opus (design) → Copilot (implementation)
+**Execution Prompt**: Design and implement an in-process event bus to decouple the trading pipeline:
+1. Create `src/core/event_bus.py` with `EventBus` class supporting typed events
+2. Define event types: `BarEvent`, `SignalEvent`, `OrderEvent`, `FillEvent`, `RiskEvent`, `AuditEvent`
+3. Allow components to subscribe to specific event types via `bus.subscribe(EventType, handler)`
+4. Replace direct method calls in `TradingLoopHandler` with event emission
+5. Preserve existing behaviour: signals → risk gate → orders → fills → audit (same flow, event-mediated)
+6. Add event replay capability for debugging (log all events, replay from log)
+7. Add tests: event emission, subscription, ordering, replay
+
+**Scope**:
+- `src/core/event_bus.py` — new module (new `src/core/` package)
+- `src/core/events.py` — event type definitions
+- `src/trading/loop.py` — refactor to use event bus
+- `tests/test_event_bus.py` — new test file (≥10 tests)
+
+**Pre-conditions**: None (greenfield). Design should be reviewed by Claude Opus before implementation.
+
+---
+
+### Step 115: REST API Dashboard (FastAPI)
+**Status**: NOT STARTED
+**Priority**: LOW — enables remote monitoring without SSH; scaffold already exists
+**Intended Agent**: Copilot
+**Execution Prompt**: Build out the FastAPI REST API dashboard:
+1. Extend existing `scripts/api_server.py` scaffold into a proper FastAPI application
+2. Endpoints: `GET /portfolio` (current positions + P&L), `GET /signals` (recent signals), `GET /orders` (order history), `GET /risk` (risk metrics, VaR, circuit breaker status), `GET /health` (system status + data freshness)
+3. Read-only API — no order submission via REST (orders must go through RiskManager invariant)
+4. Serve a minimal HTML dashboard (static page with auto-refresh or simple Jinja2 template)
+5. Authentication: API key in header (configurable, optional for local use)
+6. Add tests: endpoint responses, auth enforcement, empty portfolio handling
+
+**Scope**:
+- `scripts/api_server.py` — expand into full API
+- `templates/dashboard.html` — minimal dashboard page
+- `config/settings.py` — `APIConfig` with port, api_key, enabled flag
+- `tests/test_api_server.py` — new test file (≥8 tests)
+- `requirements.txt` — add `fastapi`, `uvicorn` if not already present
+
+**Pre-conditions**: None (scaffold exists). FastAPI + uvicorn must be in requirements.
   - paper_reconcile: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\05_reconcile.log
 - Notes: criteria_not_met
 

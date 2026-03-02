@@ -1,6 +1,6 @@
-# Research Track (UK-First Strategy R&D)
+# Research Track (Global Strategy R&D — UK-Based)
 
-Purpose: develop and evaluate new profit-seeking strategies offline, then promote only validated candidates into runtime.
+Purpose: develop and evaluate new profit-seeking strategies offline across global equity markets, then promote only validated candidates into runtime.
 
 ## Why this stays in the same repo
 
@@ -113,9 +113,10 @@ Expected outputs (demo or pipeline run):
 - **No rows for symbol**: the snapshot does not include the requested `symbol` column or symbol values; verify the dataset.
 - **Not enough rows to split**: increase the snapshot window or reduce `horizon_days` to retain usable rows.
 
-## UK-specific defaults
+## UK-based operational defaults
 
 - Base currency: GBP
-- Session assumptions: UK/London session first
+- Session assumptions: UK/London session as default guardrail; exchange-specific sessions for non-UK markets
 - Tax/report compatibility: preserve UK export compatibility (`uk_tax_export` flow)
-- Universe baseline: FTSE 100/250 + liquid ETFs; add non-UK instruments only when justified by risk-adjusted return improvements
+- Research baseline universe: FTSE 100/250 + liquid ETFs for initial validation
+- Expanded universe: US, European, Asian, and other global equities accessible via IBKR/EODHD — add when hypothesis requires cross-market signals, sector rotation, or diversification analysis

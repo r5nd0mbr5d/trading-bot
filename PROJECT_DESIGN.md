@@ -41,11 +41,11 @@
 ## §1 Project Identity
 
 ### Purpose
-Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (FTSE 100/250 equities, BTC/GBP crypto, planned forex), supporting:
-1. Historical data collection & analysis — EODHD as primary data source, yfinance as fallback
+Enterprise-grade algorithmic trading platform operated from the UK, trading global equities (UK LSE, US NYSE/NASDAQ, European exchanges, and other IBKR-accessible markets), crypto (BTC/GBP), and planned forex. Supporting:
+1. Historical data collection & analysis — EODHD as primary data source (70+ global exchanges), yfinance as fallback
 2. Systematic rule-based strategy development and backtesting
 3. ML/research track (XGBoost → MLP → LSTM promotion pipeline) including fundamental and correlational analysis
-4. Paper trading via Alpaca and live trading via IBKR
+4. Paper trading via Alpaca and live trading via IBKR (global exchange routing)
 
 ### Current Phase
 **Phase: Paper Trial Validation** — Step 1 backtest signed off (Feb 24, 2026). Awaiting MO-2: 3 consecutive in-window paper sessions with fills. Latest Step 1A report remains non-qualifying (`signoff_ready=false`).
@@ -55,7 +55,7 @@ Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (
 - Options or futures (derivatives; out of scope indefinitely)
 - Crypto as primary focus — spot crypto (BTC/USD) is a planned secondary asset class (see ADR-015); full crypto support is gated behind MO-2 equity live gate
 - Multi-user / multi-tenant deployment
-- US equities as primary focus (UK-first; US equities only when justified by risk-adjusted return improvement)
+- Single-market restriction — the platform trades any market accessible from the UK via IBKR/EODHD, not limited to UK or US equities
 
 ### Guiding Philosophy
 > "Correctness before performance. Paper before live. Evidence before promotion."
@@ -227,7 +227,7 @@ Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (
 **Supersedes:** ADR-004
 **Ref:** Operator directive (Mar 1, 2026)
 
-**Context:** The operator directed that EODHD be used as the primary market data source. EODHD provides OHLCV, fundamentals (earnings, financials, ratios), corporate actions, and forex data via a single REST API with an API key. yfinance (free, unofficial, no SLA) was previously Tier 1 but is unreliable for production use. EODHD offers `.LSE` suffix for UK equities, matching the project's UK-first focus.
+**Context:** The operator directed that EODHD be used as the primary market data source. EODHD provides OHLCV, fundamentals (earnings, financials, ratios), corporate actions, and forex data via a single REST API with an API key covering 70+ global exchanges. yfinance (free, unofficial, no SLA) was previously Tier 1 but is unreliable for production use. EODHD supports global exchange symbology (`.LSE`, `.US`, `.PA`, `.XETRA`, etc.), enabling the platform's global equity scope (ADR-023).
 
 **Decision:** Four-tier data provider stack with EODHD as primary:
 
@@ -328,8 +328,9 @@ Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (
 ---
 
 ### ADR-009: UK-First Strategy Development
-**Status:** ACCEPTED
+**Status:** SUPERSEDED BY ADR-023
 **Date:** 2026-02-23
+**Superseded:** 2026-03-02 (scope expanded to global equities; see ADR-023)
 
 **Context:** Project originally designed for US equities. Pivoted to UK-first after user direction.
 
@@ -340,6 +341,45 @@ Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (
 - ✅ GBP FX normalisation in `PortfolioTracker`
 - ✅ UK tax export (`uk_tax_export` flow) preserved
 - ❌ yfinance LSE data has 15–30 min delay and `.L` suffix quirks — managed by `enable_stale_check=False` in `uk_paper` profile
+
+---
+
+### ADR-023: UK-Based Global Equity Scope
+**Status:** ACCEPTED
+**Date:** 2026-03-02
+**Author:** GitHub Copilot (IMPL session 2026-03-02)
+**Supersedes:** ADR-009
+**Ref:** Operator directive (Mar 2, 2026)
+
+**Context:** ADR-009 restricted the tradable universe to "UK-first" (FTSE 100/250 + liquid ETFs) with US equities only when justified by risk-adjusted return improvement. The operator clarified that the bot is operated from the UK but should trade **all applicable stocks accessible from the UK** — including US, European, Asian, and other global equities routable via IBKR. EODHD supports 70+ global exchanges. The previous UK-only restriction unnecessarily limited the strategy universe.
+
+**Decision:** The platform trades **any equity market accessible from the UK** via IBKR (execution) and EODHD (data). Base currency remains GBP. UK operational infrastructure (tax export, FX normalisation, session guardrails) is preserved.
+
+**Tradable universe (by exchange access):**
+
+| Region | Exchanges | Symbol Suffix (EODHD) | IBKR Routing |
+|--------|-----------|----------------------|--------------|
+| UK | LSE | `.LSE` | ✅ Native |
+| US | NYSE, NASDAQ | `.US` | ✅ Via IBKR |
+| Europe | Euronext, XETRA, SIX | `.PA`, `.XETRA`, `.SW` | ✅ Via IBKR |
+| Asia-Pacific | TSE, ASX, HKEX | `.TSE`, `.AU`, `.HK` | ✅ Via IBKR |
+| Other | Any EODHD-supported exchange | Per-exchange suffix | Via IBKR where available |
+
+**Research universe policy:**
+- UK equities (FTSE 100/250) remain the **baseline research universe** for initial strategy validation (regime coverage, walk-forward folds)
+- Global equities are added to the **expanded research universe** when the hypothesis requires cross-market signals, sector rotation, or diversification analysis
+- Symbol liquidity filters (ADV, spread) apply universally regardless of exchange
+- FX risk must be explicitly modelled for non-GBP instruments
+
+**Consequences:**
+- ✅ Strategy universe expanded from ~40 UK symbols to thousands of global equities
+- ✅ EODHD covers 70+ exchanges with a single API — no additional data vendors needed
+- ✅ IBKR routes orders to 150+ exchanges globally — execution path already exists
+- ✅ UK operational infrastructure preserved: GBP base, UK tax export, session guardrails for UK paper trials
+- ✅ Diversification benefit: strategies can access uncorrelated markets (US tech, EU industrials, APAC growth)
+- ❌ Additional FX complexity for non-GBP instruments — `PortfolioTracker` must handle multi-currency P&L
+- ❌ Session guardrails must be exchange-aware (LSE: 08:00–16:30, NYSE: 14:30–21:00 UK time, etc.)
+- ❌ Symbol normalisation in `symbol_utils.py` needs per-exchange suffix mapping for EODHD
 
 ---
 
@@ -839,6 +879,15 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 ---
 
 ## §6 Evolution Log
+
+### [2026-03-02] IMPL Session (GitHub Copilot) — Global Equity Scope + Forward Recommendations Backlog
+- **ADR-023** accepted: UK-Based Global Equity Scope (supersedes ADR-009 UK-First restriction)
+    - Platform now trades any equity market accessible from the UK via IBKR/EODHD (US, EU, APAC, etc.)
+    - UK operational infrastructure preserved: GBP base currency, UK tax export, session guardrails
+    - Research baseline remains UK equities (FTSE 100/250); global equities expand the available universe
+- Forward technical recommendations recorded as backlog Steps 111–115 (WebSocket feeds, ensemble voting, feature store, event-driven architecture, REST API dashboard)
+- Comprehensive README.md created for the project
+- Documentation updated across all governance files to reflect global equity scope
 
 ### [2026-03-01] IMPL Session (GitHub Copilot) — EODHD Primary Provider + Documentation Overhaul
 - **ADR-022** accepted: EODHD as primary data provider (supersedes ADR-004 yfinance Tier 1)

@@ -158,11 +158,11 @@ Would contain:
 
 ---
 
-### 9. **research/README.md** — UK-First Strategy Research Track
+### 9. **research/README.md** — Global Strategy Research Track (UK-Based)
 **Research operating guide** for offline strategy R&D and promotion into runtime.
 
 **Contains:**
-- UK-first market scope and profitability objective
+- Global equity market scope (UK-based operation with IBKR/EODHD global access) and profitability objective
 - In-repo research structure and governance boundaries
 - Promotion contract from research candidates to runtime use
 - Research pipeline outputs and troubleshooting references
