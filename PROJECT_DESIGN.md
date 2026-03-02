@@ -41,10 +41,11 @@
 ## §1 Project Identity
 
 ### Purpose
-Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/250 + liquid ETFs), supporting:
-1. Systematic rule-based strategy development and backtesting
-2. ML/research track (XGBoost → LSTM promotion pipeline)
-3. Paper trading via Alpaca and live trading via IBKR
+Enterprise-grade algorithmic trading platform for UK-first multi-asset markets (FTSE 100/250 equities, BTC/GBP crypto, planned forex), supporting:
+1. Historical data collection & analysis — EODHD as primary data source, yfinance as fallback
+2. Systematic rule-based strategy development and backtesting
+3. ML/research track (XGBoost → MLP → LSTM promotion pipeline) including fundamental and correlational analysis
+4. Paper trading via Alpaca and live trading via IBKR
 
 ### Current Phase
 **Phase: Paper Trial Validation** — Step 1 backtest signed off (Feb 24, 2026). Awaiting MO-2: 3 consecutive in-window paper sessions with fills. Latest Step 1A report remains non-qualifying (`signoff_ready=false`).
@@ -72,7 +73,8 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 │  main.py CLI (55 lines — entrypoint-only wiring)                     │
 │    │                                                                 │
 │    ├─ MarketDataFeed ──► HistoricalDataProvider (Protocol)          │
-│    │        ├─ YFinanceProvider       ✅ Implemented                │
+│    │        ├─ EODHDProvider          ✅ Primary (ADR-022)          │
+│    │        ├─ YFinanceProvider       ✅ Fallback                   │
 │    │        ├─ PolygonProvider        ✅ Implemented (Step 24)      │
 │    │        ├─ AlphaVantageProvider   ✅ Implemented (Step 29)      │
 │    │        └─ MassiveWebSocketFeed   ✅ Scaffold (Step 30 pending) │
@@ -127,12 +129,13 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/46/47/48/49/50–56/58/59/60/61/63)
-- Test suite: **561 tests passing**
+### Key Metrics (Mar 1, 2026 — post EODHD primary provider switch)
+- Test suite: **657 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
-- Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
+- Strategies registered: **10** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops, Pairs, MLStrategyWrapper)
 - Asset classes: **2** (EQUITY via IBKR/Alpaca paper; CRYPTO via Coinbase sandbox primary + Binance testnet fallback — BTCGBP)
+- Data provider: **EODHD (primary)**, yfinance (fallback) — ADR-022
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
 
 ---
@@ -199,7 +202,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ---
 
 ### ADR-004: Tiered Data Provider Stack
-**Status:** ACCEPTED
+**Status:** SUPERSEDED BY ADR-022
 **Date:** 2026-02-23
 **Ref:** AQ4
 
@@ -213,13 +216,50 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 | 2 | Massive (Polygon.io) | Production UK equities | Paid |
 | 3 | Alpha Vantage | US equities fallback | Free (25 req/day) |
 
-**Consequences:**
-- ✅ Swappable providers via protocol — strategies never touch provider code
-- ✅ Free development tier; production tier available when needed
-- ❌ yfinance is unofficial (no SLA, 15–30 min LSE delay) — acceptable for paper, not production
-- ❌ Alpha Vantage 25 req/day limit requires Step 34 (persistent cache) before use
+**Superseded:** ADR-022 replaces this with EODHD as Tier 1 primary provider (Mar 1, 2026).
 
-**Note:** IEX Cloud was in original design; **permanently removed April 2025** (provider shut down). See session notes Feb 24, 2026.
+---
+
+### ADR-022: EODHD as Primary Data Provider
+**Status:** ACCEPTED
+**Date:** 2026-03-01
+**Author:** GitHub Copilot (IMPL session 2026-03-01)
+**Supersedes:** ADR-004
+**Ref:** Operator directive (Mar 1, 2026)
+
+**Context:** The operator directed that EODHD be used as the primary market data source. EODHD provides OHLCV, fundamentals (earnings, financials, ratios), corporate actions, and forex data via a single REST API with an API key. yfinance (free, unofficial, no SLA) was previously Tier 1 but is unreliable for production use. EODHD offers `.LSE` suffix for UK equities, matching the project's UK-first focus.
+
+**Decision:** Four-tier data provider stack with EODHD as primary:
+
+| Tier | Provider | Use | Cost | Status |
+|---|---|---|---|---|
+| **1 (Primary)** | **EODHD** | OHLCV, fundamentals, corporate actions, forex | API key required (free tier: 20 req/day; paid tiers available) | ✅ Implemented |
+| 2 (Fallback) | yfinance | Fallback OHLCV when EODHD unavailable | Free (unofficial, no SLA) | ✅ Implemented |
+| 3 | Massive (Polygon.io) | Tick data, WebSocket, partner APIs | Paid | ✅ Implemented |
+| 4 | Alpha Vantage | US equities fallback, server-side indicators | Free (25 req/day) | Scaffolded |
+
+**Configuration:**
+- `DataConfig.source = "eodhd"` (default)
+- `DataConfig.fallback_sources = ["yfinance"]`
+- `EODHD_API_KEY` env var required
+- Symbol mapping: `.L` (yfinance LSE suffix) → `.LSE` (EODHD LSE suffix)
+
+**EODHD capabilities (current + planned):**
+- ✅ Daily OHLCV via `/api/eod/{ticker}` — implemented in `EODHDProvider`
+- ✅ Corporate actions via `/api/div/{ticker}` and `/api/splits/{ticker}` — implemented in `EODHDCorporateActionsProvider`
+- 🔲 Fundamentals via `/api/fundamentals/{ticker}` — planned (earnings, financials, ratios)
+- 🔲 Forex via `/api/eod/{pair}.FOREX` — planned
+- 🔲 Bulk data via `/api/eod-bulk-last-day/{exchange}` — planned for cache backfill
+
+**Consequences:**
+- ✅ Single vendor for OHLCV + fundamentals + corporate actions + forex — reduces multi-vendor complexity
+- ✅ API-key-authenticated with SLA — production-grade reliability vs yfinance's unofficial status
+- ✅ UK LSE symbols supported natively (`.LSE` suffix)
+- ✅ yfinance preserved as zero-cost fallback for development and offline work
+- ❌ EODHD free tier limited to 20 API calls/day — paid plan recommended for production
+- ❌ EODHD API key must be in `.env` — no API-key-free development path (use yfinance fallback)
+
+**Note:** IEX Cloud was in original ADR-004 design; **permanently removed April 2025** (provider shut down).
 
 ---
 
@@ -799,6 +839,21 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 ---
 
 ## §6 Evolution Log
+
+### [2026-03-01] IMPL Session (GitHub Copilot) — EODHD Primary Provider + Documentation Overhaul
+- **ADR-022** accepted: EODHD as primary data provider (supersedes ADR-004 yfinance Tier 1)
+    - `EODHDProvider` implemented in `src/data/providers.py` with `.L` → `.LSE` symbol mapping
+    - `DataConfig.source` default changed from `"yfinance"` to `"eodhd"` with `fallback_sources=["yfinance"]`
+    - EODHD Corporate Actions provider already existed (`src/data/corporate_actions.py`)
+- Comprehensive documentation overhaul to align all docs with EODHD-as-primary reality:
+    - `CLAUDE.md`: project purpose (UK-first multi-asset), tech stack (EODHD primary), architecture table, completion tracker
+    - `PROJECT_DESIGN.md`: §1 purpose, §2 architecture snapshot + metrics, ADR-022
+    - `.github/copilot-instructions.md`: architecture table, test baseline (551 → 657)
+    - `DOCUMENTATION_INDEX.md`: stale test counts fixed, EODHD references added
+    - `docs/DATA_PROVIDERS_REFERENCE.md`: EODHD added as Provider #1
+    - `DEVELOPMENT_GUIDE.md`: EODHD references added
+- New backlog tickets added for: EODHD fundamentals pipeline, cross-dataset correlational analysis, forex integration, EODHD bulk cache, fundamental-driven strategies
+- Test baseline: **657 passing**
 
 ### [2026-03-01] REVIEW Session (GitHub Copilot) — ADR-021 Pre-Commit Repository Hygiene Gate
 - After a full repository audit (Feb 28–Mar 1, 2026) revealed 17 hygiene issues accumulated over 58 commits:

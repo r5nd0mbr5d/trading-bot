@@ -90,10 +90,11 @@ Stop immediately and leave a `**BLOCKED:**` note in the step's Completion Notes 
 | Layer | File(s) | Responsibility |
 |-------|---------|----------------|
 | Config | `config/settings.py` | All parameters — edit here first |
-| Data | `src/data/feeds.py` | Fetch OHLCV via yfinance |
+| Data | `src/data/feeds.py` | Fetch OHLCV via provider layer (EODHD primary, yfinance fallback) |
+| Providers | `src/data/providers.py` | EODHDProvider, YFinanceProvider, PolygonProvider, AlphaVantageProvider |
 | Symbol utils | `src/data/symbol_utils.py` | Provider-specific symbol normalisation |
 | Models | `src/data/models.py` | Bar, Signal, Order, Position, AssetClass dataclasses |
-| Strategies | `src/strategies/` | One file per strategy (9 total); all inherit `BaseStrategy` |
+| Strategies | `src/strategies/` | One file per strategy (10 total); all inherit `BaseStrategy` |
 | Risk | `src/risk/manager.py` | Gate between signals and orders; crypto overlay via `CryptoRiskConfig` |
 | Broker — Equities paper | `src/execution/broker.py` → `AlpacaBroker` | Alpaca paper trading (equities) |
 | Broker — Equities live | `src/execution/broker.py` → `IBKRBroker` | Interactive Brokers live |
@@ -166,7 +167,7 @@ All tests must pass before any task is considered complete:
 python -m pytest tests/ -v
 ```
 
-Current baseline: **551 passing**. Never skip a failing test — fix the underlying code.
+Current baseline: **657 passing**. Never skip a failing test — fix the underlying code.
 
 ---
 

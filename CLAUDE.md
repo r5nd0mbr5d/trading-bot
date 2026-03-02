@@ -13,9 +13,9 @@ It provides the architectural context needed to work autonomously.
 6. **`.python-style-guide.md`** — How to write the code (read before writing any non-trivial code)
 
 ## Project purpose
-**Enterprise-grade algorithmic trading platform** for US equities with:
-1. Historical data collection & analysis
-2. Systematic strategy development (rule-based + neural net)
+**Enterprise-grade algorithmic trading platform** for UK-first multi-asset markets (FTSE 100/250 equities, BTC/GBP crypto, planned forex) with:
+1. Historical data collection & analysis — EODHD as primary data source, yfinance as fallback
+2. Systematic strategy development (rule-based + ML/neural net) including fundamental and correlational analysis
 3. Real-time paper trading (sandbox first, PROD path available)
 
 No real money is used unless the user explicitly enables production mode with funded account.
@@ -23,10 +23,12 @@ No real money is used unless the user explicitly enables production mode with fu
 ## Three Core Pillars
 
 ### Pillar 1: Historical Data Collection & Analysis
-- Fetch OHLCV data from multiple providers (yfinance, Massive/Polygon.io, Alpha Vantage, Alpaca)
-- Normalize across providers, store in SQLite with time-series indexes
+- Fetch OHLCV data from multiple providers — **EODHD (primary)**, yfinance (fallback), Massive/Polygon.io, Alpha Vantage, Alpaca
+- Normalize across providers, store in SQLite + Parquet with time-series indexes
+- Fundamental data pipeline (earnings, financials, ratios) via EODHD Fundamentals API
+- Cross-dataset correlational analysis: OHLCV × fundamentals × sentiment × macro
 - Exploratory data analysis: trends, seasonality, anomalies, regime detection
-- Corporate action adjustments (splits, dividends)
+- Corporate action adjustments (splits, dividends) via EODHD Corporate Actions API
 
 ### Pillar 2: Strategy Development & Evaluation
 **Implemented:**
@@ -50,15 +52,20 @@ No real money is used unless the user explicitly enables production mode with fu
 
 ## Tech stack
 - Python 3.10+
-- yfinance (free market data, no API key needed)
+- **EODHD API** (primary market data: OHLCV, fundamentals, corporate actions, forex — API key required)
+- yfinance (fallback market data, no API key needed)
 - pandas, numpy (data manipulation)
 - ta (technical indicators)
-- PyTorch (neural networks - optional)
-- XGBoost (gradient boosting - optional)
-- scikit-learn (calibration/metrics - optional)
+- PyTorch (neural networks — MLP implemented, LSTM planned)
+- XGBoost (gradient boosting — implemented)
+- scikit-learn (calibration/metrics)
+- skorch (PyTorch wrapper for sklearn-compatible training)
 - alpaca-py (broker, paper trading is free at alpaca.markets)
-- pytest (testing)
-- SQLite (time-series data storage - planned)
+- coinbase-advanced-py (crypto broker — Coinbase Advanced Trade)
+- python-binance (crypto fallback broker — Binance)
+- pytest (testing — 657 tests passing)
+- SQLite (operational data: audit log, registry, kill switch)
+- Parquet (research data: historical OHLCV snapshots)
 
 ## Code Style & Standards
 
@@ -130,21 +137,29 @@ pylint src/ --rcfile=.pylintrc
 | Layer | File(s) | Responsibility |
 |-------|---------|----------------|
 | Config | `config/settings.py` | All parameters — edit here first |
-| Data | `src/data/feeds.py` | Fetch OHLCV via yfinance |
-| Models | `src/data/models.py` | Bar, Signal, Order, Position dataclasses |
-| Strategies | `src/strategies/` | One file per strategy, all inherit BaseStrategy |
-| Risk | `src/risk/manager.py` | Gate between signals and orders |
-| Broker | `src/execution/broker.py` | AlpacaBroker (live/paper) + PaperBroker (backtest) |
-| Portfolio | `src/portfolio/tracker.py` | P&L and metrics |
+| Data | `src/data/feeds.py` | Fetch OHLCV via provider layer (EODHD primary, yfinance fallback) |
+| Providers | `src/data/providers.py` | EODHDProvider, YFinanceProvider, PolygonProvider, AlphaVantageProvider |
+| Symbol utils | `src/data/symbol_utils.py` | Provider-specific symbol normalisation |
+| Models | `src/data/models.py` | Bar, Signal, Order, Position, AssetClass dataclasses |
+| Strategies | `src/strategies/` | One file per strategy (10 total); all inherit BaseStrategy |
+| Risk | `src/risk/manager.py` | Gate between signals and orders; crypto overlay via `CryptoRiskConfig` |
+| Broker — Equities paper | `src/execution/broker.py` → `AlpacaBroker` | Alpaca paper trading (equities) |
+| Broker — Equities live | `src/execution/ibkr_broker.py` → `IBKRBroker` | Interactive Brokers live |
+| Broker — Crypto primary | `src/execution/broker.py` → `CoinbaseBroker` | Coinbase Advanced Trade |
+| Broker — Crypto fallback | `src/execution/broker.py` → `BinanceBroker` | Binance fallback (testnet) |
+| Broker — Backtest | `src/execution/broker.py` → `PaperBroker` | In-memory simulation; BacktestEngine only |
+| Portfolio | `src/portfolio/tracker.py` | P&L and metrics (GBP base) |
 | Backtest | `backtest/engine.py` | Bar replay, zero lookahead |
-| Entry | `main.py` | CLI: backtest / paper / live modes |
+| Trading loop | `src/trading/loop.py` | `TradingLoopHandler`; broker factory with crypto fallback |
+| CLI | `src/cli/arguments.py`, `src/cli/runtime.py` | Argument parsing and mode dispatch |
+| Entry | `main.py` | 62-line wiring only — do NOT add logic here |
 
 ## How to add a new strategy (standard pattern)
 
 1. Create `src/strategies/<name>.py` subclassing `BaseStrategy`
 2. Implement `generate_signal(symbol) -> Optional[Signal]`
-3. Set `min_bars_required()` to the longest lookback period needed
-4. Register it in `main.py` STRATEGIES dict
+3. Set `min_bars_required()` to the longest lookback period (use ≥ 3× for ATR-dependent strategies)
+4. Register in `src/cli/runtime.py` strategy map (not `main.py`)
 5. Add tests in `tests/test_strategies.py`
 
 The MA crossover (`src/strategies/ma_crossover.py`) is the canonical example.
@@ -206,71 +221,48 @@ For quick commits (≤3 files), checks 1–3 and 9 are sufficient. See ADR-021 i
 
 ## Current Status & Completion Tracker
 
-### ✅ Completed (Foundation)
-- [x] MA Crossover strategy (golden/death cross)
-- [x] RSI Momentum strategy (overbought/oversold detection)
-- [x] MACD Crossover strategy (momentum signals)
-- [x] Bollinger Bands strategy (mean reversion)
-- [x] Backtesting engine with event-driven replay
-- [x] Risk manager with position sizing
-- [x] Alpaca paper trading integration
-- [x] Strategy registry & loading system
-- [x] Comprehensive test suite (17/17 passing)
+### ✅ Completed (Foundation + UK Operational)
+- [x] 10 strategies (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops, Pairs, MLStrategyWrapper)
+- [x] Backtesting engine with event-driven replay + walk-forward harness
+- [x] Risk manager with VaR gate, circuit breakers, kill switch, correlation limits
+- [x] EODHD primary data provider + yfinance fallback
+- [x] Multi-provider stack: EODHD, yfinance, Polygon/Massive, Alpha Vantage (scaffold)
+- [x] Alpaca paper trading + IBKR live trading
+- [x] CoinbaseBroker (crypto primary) + BinanceBroker (crypto fallback)
+- [x] Audit logger (async queue → SQLite) + daily report generator
+- [x] UK profile: FX-normalised GBP portfolio, UK tax export, session guardrails
+- [x] XGBoost ML pipeline (walk-forward, SHAP, promotion check)
+- [x] MLP baseline (skorch, pre-LSTM gate)
+- [x] Research track governance (4-stage promotion R1→R4)
+- [x] 657 passing tests
 
-### 🚧 In Progress (Tier 1: Foundation)
-**Phase 1 — Data Pipelines:**
-- [ ] Multi-provider data adapter (Alpha Vantage, Alpaca data API) — Massive/Polygon already implemented
-- [ ] SQLite time-series storage with proper indexing
-- [ ] Incremental backfill with resume capability
-- [ ] Data quality validation (OHLC ordering, gaps, outliers)
+### 🚧 In Progress
+- [ ] MO-2: 3 consecutive in-window paper sessions with fills
+- [ ] Step 36: QuantConnect free-tier cross-validation (awaiting operator)
+- [ ] EODHD fundamental data pipeline (new — see ticket plan below)
+- [ ] Cross-dataset correlational analysis framework (new)
 
-**Phase 2 — Exploratory Analysis:**
-- [ ] Statistical profiling notebook (Jupyter)
-- [ ] Correlation matrix & factor decomposition
-- [ ] Regime identification (bull/bear/sideways)
-- [ ] Seasonality & structural break analysis
-
-### 📋 Upcoming (Tier 2: Enhancement)
-**Indicators:**
-- [ ] ATR (volatility-scaled stops)
-- [ ] ADX (trend strength filter)
-- [ ] OBV (volume accumulation)
-- [ ] Stochastic Oscillator (%K/%D)
-
-**Risk & Execution:**
-- [ ] Walk-forward optimization
-- [ ] Correlation-based position limits
-- [ ] Slippage & commission modeling
-- [ ] Trade audit trail persistence
-
-**Paper Trading:**
-- [ ] 24/5 continuous bot daemon
-- [ ] Daily P&L reports + email alerts
-- [ ] Live vs backtest performance comparison
-
-### 🎯 Future (Tier 3: ML/Enterprise)
-- [ ] LSTM price predictor (PyTorch)
-- [ ] XGBoost direction classifier
-- [ ] NN model serialization & versioning
-- [ ] MLflow experiment tracking
+### 🎯 Future (Planned)
+- [ ] LSTM/deep-sequence model (gated behind MLP performance)
+- [ ] Forex data integration via EODHD
+- [ ] Fundamental-driven strategies (earnings, valuation factors)
 - [ ] Multi-strategy ensemble voting
 - [ ] WebSocket real-time feeds
-- [ ] REST API dashboard (FastAPI)
-- [ ] Kubernetes deployment
+- [ ] REST API dashboard (FastAPI scaffold exists)
 
 ## Next Immediate Steps
 
 **For current outstanding tasks, prompts, and next steps (consolidated in one place), see:**
 **[IMPLEMENTATION_BACKLOG.md](IMPLEMENTATION_BACKLOG.md)**
 
-This includes:
-- 7 explicit prompts (with model recommendations and completion tracking)
-- 7 operational milestones  
-- Priority levels (CRITICAL, HIGH, MEDIUM)
-- Dependency graph
-- Recommended timeline
+**Key priorities:**
+1. EODHD fundamental data pipeline (earnings, financials, ratios)
+2. Cross-dataset correlational analysis framework
+3. Forex integration via EODHD
+4. MO-2 in-window paper session sign-off (operator)
+5. LSTM baseline (gated behind MLP gate)
 
-**Historical note:** Earlier roadmap items (multi-provider data, exploratory notebooks, backtest reporting enhancements, ATR/ADX) are now tracked in the centralized backlog or may have been superseded by newer priorities (e.g., paper trial automation, broker reconciliation). Refer to IMPLEMENTATION_BACKLOG for authoritative next steps.
+Refer to IMPLEMENTATION_BACKLOG for the full Copilot Task Queue and operational milestones.
 
 ## Enterprise Checklist (before going to production)
 

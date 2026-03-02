@@ -2,7 +2,7 @@
 
 **Purpose**: LLM-optimised reference for all external data and execution providers used in this project.
 **Audience**: Claude Code, Copilot, any LLM agent working on the codebase.
-**Last reviewed**: 2026-02-24
+**Last reviewed**: 2026-03-01
 
 ---
 
@@ -10,16 +10,17 @@
 
 | # | Provider | Type | Status | Auth Env Var | Cost |
 |---|----------|------|--------|-------------|------|
-| 1 | **yfinance (Yahoo Finance)** | Historical OHLCV | ✅ Implemented | None | Free |
-| 2 | **Massive (formerly Polygon.io)** | Historical + Tick + Real-time | ✅ Implemented | `POLYGON_API_KEY` | Paid |
-| 3 | **Alpha Vantage** | Historical OHLCV (fallback) | ⚠️ Scaffolded | `ALPHA_VANTAGE_API_KEY` | Free / Paid |
-| 4 | ~~**IEX Cloud**~~ | ~~Historical + Fundamentals~~ | ❌ Removed — shut down April 2025 | N/A | N/A |
-| 5 | **Alpaca (Data API)** | Real-time streaming | ⚠️ Scaffolded | `ALPACA_API_KEY` | Paid |
-| 6 | **Alpaca (Broker)** | Paper trading execution | ✅ Implemented | `ALPACA_API_KEY` / `ALPACA_SECRET_KEY` | Free (paper) |
-| 7 | **Interactive Brokers (IBKR)** | Paper + Live execution | ✅ Implemented | `IBKR_HOST` / `IBKR_PORT` / `IBKR_CLIENT_ID` | Free (paper) |
-| 8 | **Benzinga** | News + Analyst ratings | ⚠️ Available via Massive | `POLYGON_API_KEY` | Free (news via `/v2/reference/news`); Massive tier for partner endpoints |
-| 9 | **ETF Global** | ETF analytics + constituents | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
-| 10 | **TMX / Wall Street Horizon** | Corporate events calendar | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
+| 1 | **EODHD (EOD Historical Data)** | **Primary: OHLCV + Fundamentals + Corporate Actions + Forex** | ✅ **Primary** (ADR-022) | `EODHD_API_KEY` | API key required (free 20 req/day; paid tiers) |
+| 2 | **yfinance (Yahoo Finance)** | Historical OHLCV (fallback) | ✅ Fallback | None | Free |
+| 3 | **Massive (formerly Polygon.io)** | Historical + Tick + Real-time | ✅ Implemented | `POLYGON_API_KEY` | Paid |
+| 4 | **Alpha Vantage** | Historical OHLCV (fallback) | ⚠️ Scaffolded | `ALPHA_VANTAGE_API_KEY` | Free / Paid |
+| 5 | ~~**IEX Cloud**~~ | ~~Historical + Fundamentals~~ | ❌ Removed — shut down April 2025 | N/A | N/A |
+| 6 | **Alpaca (Data API)** | Real-time streaming | ⚠️ Scaffolded | `ALPACA_API_KEY` | Paid |
+| 7 | **Alpaca (Broker)** | Paper trading execution | ✅ Implemented | `ALPACA_API_KEY` / `ALPACA_SECRET_KEY` | Free (paper) |
+| 8 | **Interactive Brokers (IBKR)** | Paper + Live execution | ✅ Implemented | `IBKR_HOST` / `IBKR_PORT` / `IBKR_CLIENT_ID` | Free (paper) |
+| 9 | **Benzinga** | News + Analyst ratings | ⚠️ Available via Massive | `POLYGON_API_KEY` | Free (news via `/v2/reference/news`); Massive tier for partner endpoints |
+| 10 | **ETF Global** | ETF analytics + constituents | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
+| 11 | **TMX / Wall Street Horizon** | Corporate events calendar | ⚠️ Available via Massive | `POLYGON_API_KEY` | Massive tier |
 
 ---
 
@@ -27,16 +28,65 @@
 
 ---
 
-### 2.1 yfinance — Yahoo Finance
+### 2.0 EODHD — EOD Historical Data (PRIMARY)
+
+**Full name**: EOD Historical Data
+**Site**: https://eodhd.com
+**Docs**: https://eodhd.com/financial-apis
+**Library**: Direct REST via `requests` (no SDK needed)
+
+**Role**: **Primary data provider** — EODHD is the default data source for all OHLCV, fundamentals, corporate actions, and planned forex data. (ADR-022, supersedes ADR-004.)
+
+**Current use (implemented)**:
+- Daily OHLCV adjusted bars via `/api/eod/{ticker}?api_token=...&fmt=json`
+- Corporate actions (dividends, splits) via `EODHDCorporateActionsProvider` in `src/data/corporate_actions.py`
+- UK LSE equities: `.LSE` suffix (e.g. `HSBA.LSE`, `BARC.LSE`)
+- Symbol mapping: yfinance `.L` suffix → EODHD `.LSE` suffix (handled in `EODHDProvider._resolve_eodhd_symbol()`)
+
+**Planned use (not yet implemented)**:
+- Fundamental data via `/api/fundamentals/{ticker}` — earnings, financials, balance sheet, ratios
+- Forex via `/api/eod/{pair}.FOREX` — GBP/USD, EUR/GBP, etc.
+- Bulk daily data via `/api/eod-bulk-last-day/{exchange}` — efficient cache backfill
+- Live/delayed prices via `/api/real-time/{ticker}`
+
+**Implementation**: `EODHDProvider` in [src/data/providers.py](../src/data/providers.py)
+**Config key**: `data.source = "eodhd"` (default in `config/settings.py`)
+**Fallback**: `data.fallback_sources = ["yfinance"]`
+**Auth env var**: `EODHD_API_KEY`
+**Cost**: Free tier = 20 API calls/day; paid tiers from $19.99/month (see https://eodhd.com/pricing)
+**Rate limit (free)**: 20 calls/day total
+**Rate limit (paid)**: 100,000 calls/day (All World tier)
+
+**Key endpoints**:
+| Endpoint | Description | Status |
+|---|---|---|
+| `GET /api/eod/{ticker}` | Daily OHLCV adjusted bars | ✅ Implemented |
+| `GET /api/div/{ticker}` | Dividend history | ✅ Implemented (corporate actions) |
+| `GET /api/splits/{ticker}` | Stock split history | ✅ Implemented (corporate actions) |
+| `GET /api/fundamentals/{ticker}` | Earnings, financials, ratios | 🔲 Planned |
+| `GET /api/eod-bulk-last-day/{exchange}` | Bulk daily bars per exchange | 🔲 Planned |
+| `GET /api/eod/{pair}.FOREX` | Forex OHLCV (e.g. `GBPUSD.FOREX`) | 🔲 Planned |
+| `GET /api/real-time/{ticker}` | Live/delayed prices | 🔲 Planned |
+| `GET /api/calendar/earnings` | Earnings calendar | 🔲 Planned |
+
+**Symbol format**:
+- UK: `HSBA.LSE`, `BARC.LSE`, `AZN.LSE`
+- US: `AAPL.US`, `MSFT.US`
+- Forex: `GBPUSD.FOREX`, `EURGBP.FOREX`
+- Crypto: `BTC-USD.CC`
+
+---
+
+### 2.1 yfinance — Yahoo Finance (FALLBACK)
 
 **Full name**: Yahoo Finance (via the `yfinance` Python library)
 **Site**: https://finance.yahoo.com | https://pypi.org/project/yfinance/
 **Library**: `pip install yfinance`
 
 **Proposed use**:
-- Default provider for historical OHLCV (daily and intraday)
+- Fallback provider for historical OHLCV when EODHD is unavailable
 - UK LSE equities (`.L` suffix — e.g. `HSBA.L`, `BARC.L`)
-- Backtesting and offline research data
+- Backtesting and offline research data when no EODHD API key is set
 - No API key required; free forever
 - Automatic split/dividend adjustment via `auto_adjust=True`
 
@@ -303,7 +353,7 @@ No replacement provider registration is required — existing providers cover al
 ### 3a. How Historical Data Is Used (Current Architecture)
 
 ```
-Data Provider (yfinance / Massive)
+Data Provider (EODHD primary / yfinance fallback / Massive)
         │
         ▼
 MarketDataFeed (src/data/feeds.py)
@@ -318,7 +368,7 @@ BacktestEngine              Research Track
    ▼                             ▼
 Strategy.generate_signal()   feature engineering
 RiskManager.approve()        walk-forward training
-PaperBroker.submit()         XGBoost / LSTM
+PaperBroker.submit()         XGBoost / MLP / LSTM
 BacktestResults              Promotion Pipeline
 ```
 
@@ -524,6 +574,7 @@ All variables read from `.env` at project root:
 
 ```bash
 # --- Data Providers ---
+EODHD_API_KEY=            # EODHD (PRIMARY) — OHLCV, fundamentals, corporate actions, forex
 POLYGON_API_KEY=          # Massive / Polygon.io REST + WebSocket + Partner APIs
 ALPHA_VANTAGE_API_KEY=    # Alpha Vantage (not yet wired; add when implementing Step 29)
 # IEX Cloud removed — service shut down April 2025

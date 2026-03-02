@@ -6,13 +6,13 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 ## Executive Summary
 
-**Total Items**: 95 (7 Prompts + 87 Next Steps + Code Style Governance)
+**Total Items**: 102 (7 Prompts + 94 Next Steps + Code Style Governance)
 **Completed**: 91 (Prompts 1–7 + completed steps listed in their individual entries; includes Steps 100/101/103 added Mar 1)
 **In Progress**: 2 (Step 1A burn-in; Step 36 QC cross-validation — code done, awaiting operator cloud run)
-**Not Started**: 1 (Step 32 — gated behind MLP + MO-7/MO-8)
+**Not Started**: 8 (Steps 32, 104–110 — Step 32 gated behind MLP + MO-7/MO-8; Steps 104–110 new EODHD/fundamentals/correlations/forex pipeline)
 **Note — Step 35**: No Step 35 exists in this backlog (numbering jumps 34 → 36). This is a known gap; no item was ever defined. Reserved for future use.
 **Note — Step 102**: No Step 102 exists (numbering jumps 101 → 103). Reserved for future use.
-**Test suite**: 654 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 10 | **Asset classes**: 2
+**Test suite**: 657 passing | **main.py**: 62 lines | **Test imports from main**: 0 | **Strategies**: 10 | **Asset classes**: 2 | **Data provider**: EODHD (primary, ADR-022)
 
 ---
 
@@ -26,7 +26,13 @@ Tracking document for outstanding tasks, prompts, and their completion status.
 
 | Priority | Step | Name | Effort | Depends on |
 |---|---|---|---|---|
-| — | — | No unblocked Copilot implementation steps (remaining items are Opus-gated or operator milestones) | — | — |
+| **CRITICAL** | **104** | EODHD Fundamentals Provider | 6–10 hrs | EODHDProvider (done) |
+| **HIGH** | **105** | Fundamentals Data Models + Storage | 4–6 hrs | Step 104 |
+| **HIGH** | **106** | Cross-Dataset Correlational Analysis Framework | 8–12 hrs | Step 105 |
+| **MEDIUM** | **107** | EODHD Forex Provider | 4–6 hrs | EODHDProvider (done) |
+| **MEDIUM** | **108** | EODHD Bulk Data Cache Backfill | 4–8 hrs | EODHDProvider (done) |
+| **MEDIUM** | **109** | Fundamental-Driven Strategy (Earnings Momentum) | 6–8 hrs | Step 105 |
+| **LOW** | **110** | Documentation Sync Verification | 2–3 hrs | Steps 104–109 |
 
 ### 🔶 Needs Claude Opus Design Session First — Do NOT Attempt Alone
 
@@ -3696,6 +3702,160 @@ Once all items are Complete:
   - paper_trial: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\02_paper_trial.log
   - paper_session_summary: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\03_session_summary.log
   - uk_tax_export: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\04_tax_export.log
+
+---
+
+### Step 104: EODHD Fundamentals Provider
+**Status**: NOT STARTED
+**Priority**: CRITICAL — blocks fundamental-driven strategies and cross-dataset correlational analysis
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement `EODHDFundamentalsProvider` in `src/data/fundamentals.py` (new module) that fetches company fundamental data from the EODHD Fundamentals API (`GET /api/fundamentals/{ticker}?api_token=...&fmt=json`). The provider must:
+1. Fetch and parse General (sector, industry, market cap), Financials (income statement, balance sheet, cash flow), Earnings (quarterly and annual EPS/revenue), and Valuation metrics (P/E, P/B, dividend yield)
+2. Return normalized `FundamentalData` dataclass (new in `src/data/models.py`) with typed fields
+3. Support UK LSE symbols (`.LSE` suffix via existing `_resolve_eodhd_symbol()` logic)
+4. Cache results in SQLite (`fundamentals` table) to avoid redundant API calls (EODHD free tier = 20 calls/day)
+5. Provide `fetch_fundamentals(symbol: str) -> FundamentalData` and `fetch_earnings_history(symbol: str) -> pd.DataFrame` public methods
+6. Add exponential backoff on 429/503 (max 3 retries, base 2s)
+7. Add tests: successful fetch (mocked), cache hit, missing API key, malformed response, retry on 429
+
+**Scope**:
+- `src/data/fundamentals.py` — new module: `EODHDFundamentalsProvider`, `FundamentalData` dataclass
+- `src/data/models.py` — add `FundamentalData` dataclass (sector, industry, market_cap, pe_ratio, pb_ratio, dividend_yield, eps_quarterly, revenue_quarterly, etc.)
+- `config/settings.py` — add `FundamentalsConfig` with cache_ttl_hours, enabled flag
+- `tests/test_fundamentals.py` — new test file (≥8 tests)
+
+**Pre-conditions**: EODHDProvider implemented (✅), EODHD_API_KEY in .env (✅)
+
+---
+
+### Step 105: Fundamentals Data Models + Storage
+**Status**: NOT STARTED
+**Priority**: HIGH — enables cross-dataset joins between OHLCV and fundamental data
+**Intended Agent**: Copilot
+**Execution Prompt**: Extend the data storage layer to persist fundamental data alongside OHLCV:
+1. Add SQLite table `fundamentals` with columns: symbol, fetch_date, sector, industry, market_cap, pe_ratio, pb_ratio, dividend_yield, eps_ttm, revenue_ttm, etc.
+2. Add SQLite table `earnings_history` with columns: symbol, report_date, period, eps_actual, eps_estimate, revenue_actual, revenue_estimate, surprise_pct
+3. Add `FundamentalsStore` class (following existing SQLite patterns) with `upsert_fundamentals()`, `get_latest()`, `get_earnings_timeline()` methods
+4. Wire `EODHDFundamentalsProvider` to auto-cache on fetch
+5. Add migration/schema creation to startup path
+6. Add tests for store operations (insert, upsert, query, date filtering)
+
+**Scope**:
+- `src/data/fundamentals.py` — extend with `FundamentalsStore` class
+- `tests/test_fundamentals.py` — extend (≥6 additional tests for storage)
+
+**Pre-conditions**: Step 104
+
+---
+
+### Step 106: Cross-Dataset Correlational Analysis Framework
+**Status**: NOT STARTED
+**Priority**: HIGH — core new capability: correlate OHLCV with fundamentals, sentiment, and macro data
+**Intended Agent**: Claude Opus (design) → Copilot (implementation)
+**Execution Prompt**: Design and implement a cross-dataset correlational analysis module that:
+1. Joins OHLCV price data with fundamental snapshots (P/E, earnings surprise) by symbol and date
+2. Joins with existing sentiment data (`research/data/news_features.py` — Step 33)
+3. Computes rolling correlations (30/60/90-day windows) between: price returns × earnings surprise, returns × sentiment score, volume × article count, P/E × forward returns
+4. Produces a correlation matrix DataFrame and a time-series of rolling correlation coefficients
+5. Outputs summary statistics (mean correlation, significance via p-values, regime-dependent correlations)
+6. Integrates as features into the research pipeline (joinable by symbol/date)
+
+**Scope**:
+- `research/data/correlation_analysis.py` — new module: `CrossDatasetCorrelator` class
+- `research/specs/CORRELATION_ANALYSIS_SPEC.md` — new spec document defining methodology
+- `tests/test_correlation_analysis.py` — new test file (≥10 tests)
+
+**Pre-conditions**: Step 105 (fundamentals storage), Step 33 (sentiment — ✅ done)
+**Note**: Design decisions (which correlation methods, rolling window sizes, significance thresholds) should be reviewed by Claude Opus before Copilot implements.
+
+---
+
+### Step 107: EODHD Forex Provider
+**Status**: NOT STARTED
+**Priority**: MEDIUM — enables forex data integration for GBP/USD hedging and multi-asset analysis
+**Intended Agent**: Copilot
+**Execution Prompt**: Extend `EODHDProvider` to support forex pair OHLCV via EODHD's forex endpoint:
+1. Add `fetch_forex(pair: str, start: str, end: str) -> pd.DataFrame` method to `EODHDProvider` using `GET /api/eod/{pair}.FOREX?api_token=...&fmt=json`
+2. Support common pairs: GBPUSD, EURGBP, EURUSD, USDJPY
+3. Add `ForexConfig` to `config/settings.py` with `pairs`, `enabled` flag
+4. Add symbol normalisation for forex pairs (user input `GBPUSD` → EODHD `GBPUSD.FOREX`)
+5. Store forex OHLCV in the existing cache layer
+6. Add tests: successful forex fetch (mocked), symbol normalisation, missing API key
+
+**Scope**:
+- `src/data/providers.py` — extend `EODHDProvider` with forex methods
+- `src/data/symbol_utils.py` — add forex symbol normalisation
+- `config/settings.py` — add `ForexConfig` dataclass
+- `tests/test_data_providers.py` — extend (≥5 new forex tests)
+
+**Pre-conditions**: EODHDProvider implemented (✅)
+
+---
+
+### Step 108: EODHD Bulk Data Cache Backfill
+**Status**: NOT STARTED
+**Priority**: MEDIUM — efficient daily cache refresh using bulk endpoint instead of per-symbol calls
+**Intended Agent**: Copilot
+**Execution Prompt**: Implement a bulk data backfill utility using EODHD's bulk endpoint:
+1. Add `bulk_fetch_daily(exchange: str, date: str) -> Dict[str, pd.DataFrame]` to `EODHDProvider` using `GET /api/eod-bulk-last-day/{exchange}?api_token=...&fmt=json`
+2. Support LSE exchange code for UK equities
+3. Parse bulk response into per-symbol DataFrames
+4. Feed results into the existing persistent market data cache (Step 34)
+5. Add CLI command: `python main.py backfill_eodhd --exchange LSE --date 2026-03-01`
+6. Add tests: bulk fetch (mocked), per-symbol parsing, cache integration
+
+**Scope**:
+- `src/data/providers.py` — extend `EODHDProvider` with `bulk_fetch_daily()`
+- `src/cli/runtime.py` — add `backfill_eodhd` CLI command
+- `scripts/backfill_eodhd.py` — optional standalone script
+- `tests/test_data_providers.py` — extend (≥4 new bulk tests)
+
+**Pre-conditions**: EODHDProvider implemented (✅), Step 34 cache (✅)
+
+---
+
+### Step 109: Fundamental-Driven Strategy (Earnings Momentum)
+**Status**: NOT STARTED
+**Priority**: MEDIUM — first strategy combining OHLCV with fundamental data
+**Intended Agent**: Claude Opus (design) → Copilot (implementation)
+**Execution Prompt**: Implement an earnings momentum strategy that combines fundamental data with price action:
+1. Create `src/strategies/earnings_momentum.py` subclassing `BaseStrategy`
+2. Signal logic: BUY when earnings surprise > threshold AND price momentum positive (RSI > 50, price above 20-day MA)
+3. Signal logic: SELL when earnings surprise < -threshold OR price breaks below 50-day MA
+4. `min_bars_required()` = 60 (for 50-day MA + buffer)
+5. `generate_signal()` fetches latest earnings data from `FundamentalsStore`, combines with OHLCV indicators
+6. Register in `src/cli/runtime.py` strategy map
+7. Add tests for signal generation, min bars requirement, and edge cases
+
+**Scope**:
+- `src/strategies/earnings_momentum.py` — new strategy file
+- `src/cli/runtime.py` — register strategy
+- `config/settings.py` — add `EarningsMomentumConfig` with surprise threshold, lookback periods
+- `tests/test_strategies.py` — extend (≥5 new tests)
+
+**Pre-conditions**: Step 105 (fundamentals storage)
+**Note**: Strategy design (surprise threshold, indicator combination, position sizing) should be reviewed by Claude Opus.
+
+---
+
+### Step 110: Documentation Sync Verification
+**Status**: NOT STARTED
+**Priority**: LOW — ensures all documentation remains aligned after Steps 104–109
+**Intended Agent**: Copilot
+**Execution Prompt**: Run a comprehensive documentation sync pass after Steps 104–109 are complete:
+1. Update `CLAUDE.md` completion tracker with new capabilities
+2. Update `PROJECT_DESIGN.md` §2 architecture snapshot (add fundamentals, correlation, forex layers)
+3. Update `DOCUMENTATION_INDEX.md` with any new spec docs created
+4. Update `.github/copilot-instructions.md` architecture table if new layers added
+5. Update test baseline counts across all docs
+6. Run `scripts/lpdd_consistency_check.py` and fix any drift
+7. Verify all new modules have docstrings and type hints per `.python-style-guide.md`
+
+**Scope**:
+- All governance docs (CLAUDE.md, PROJECT_DESIGN.md, DOCUMENTATION_INDEX.md, copilot-instructions.md)
+- Test count alignment across all files
+
+**Pre-conditions**: Steps 104–109 (at least Steps 104–106 complete)
   - paper_reconcile: reports\uk_tax\step1a_burnin\session_20260225_094635\run_1\05_reconcile.log
 - Notes: criteria_not_met
 
