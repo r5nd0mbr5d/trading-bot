@@ -94,7 +94,9 @@ class YFinanceProvider:
         for attempt in range(1, max_attempts + 1):
             try:
                 if start:
-                    result = ticker.history(start=start, end=end, interval=interval, auto_adjust=True)
+                    result = ticker.history(
+                        start=start, end=end, interval=interval, auto_adjust=True
+                    )
                 else:
                     result = ticker.history(period=period, interval=interval, auto_adjust=True)
 
@@ -414,14 +416,113 @@ class AlphaVantageProvider:
         return frame.sort_index()
 
 
+@dataclass
+class EODHDProvider:
+    """EODHD end-of-day OHLCV provider."""
+
+    api_key: str | None = None
+    base_url: str = "https://eodhd.com/api"
+
+    def _resolve_api_key(self) -> str:
+        key = (self.api_key or os.getenv("EODHD_API_KEY", "")).strip()
+        if not key:
+            raise ProviderError("EODHD_API_KEY is required for EODHDProvider")
+        return key
+
+    @staticmethod
+    def _resolve_eodhd_symbol(symbol: str) -> str:
+        clean = (symbol or "").strip().upper()
+        if not clean:
+            raise ProviderError("EODHD symbol cannot be empty")
+        if clean.endswith(".L"):
+            return clean.replace(".L", ".LSE")
+        return clean
+
+    @staticmethod
+    def _parse_payload(payload: object) -> pd.DataFrame:
+        if isinstance(payload, dict):
+            message = payload.get("message") or payload.get("error")
+            if message:
+                raise ProviderError(str(message))
+
+        if not isinstance(payload, list):
+            raise ProviderError("EODHD response format is invalid")
+
+        if not payload:
+            return pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
+
+        frame = pd.DataFrame(payload)
+        frame = frame.rename(
+            columns={
+                "date": "timestamp",
+                "open": "open",
+                "high": "high",
+                "low": "low",
+                "close": "close",
+                "volume": "volume",
+            }
+        )
+        if "timestamp" not in frame.columns:
+            raise ProviderError("EODHD response missing date field")
+
+        frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True)
+        frame = frame.set_index("timestamp")
+
+        required_cols = ["open", "high", "low", "close", "volume"]
+        for col in required_cols:
+            if col not in frame.columns:
+                raise ProviderError(f"EODHD response missing field: {col}")
+
+        return frame[required_cols].astype(float).sort_index()
+
+    def fetch_historical(
+        self,
+        symbol: str,
+        period: str = "1y",
+        interval: str = "1d",
+        start: str | None = None,
+        end: str | None = None,
+    ) -> pd.DataFrame:
+        if interval and interval != "1d":
+            raise ProviderError("EODHD free plan integration supports daily bars only")
+
+        api_key = self._resolve_api_key()
+        ticker = self._resolve_eodhd_symbol(symbol)
+        query = {
+            "api_token": api_key,
+            "fmt": "json",
+            "period": "d",
+            "order": "a",
+        }
+        if start:
+            query["from"] = start
+        if end:
+            query["to"] = end
+
+        url = f"{self.base_url}/eod/{ticker}?{urlencode(query)}"
+
+        try:
+            with urlopen(url, timeout=20) as response:  # noqa: S310
+                payload = json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            if exc.code == 429:
+                raise ProviderError("EODHD rate limit exceeded") from exc
+            raise ProviderError(f"EODHD request failed ({exc.code})") from exc
+        except URLError as exc:
+            raise ProviderError(f"EODHD network error: {exc.reason}") from exc
+        except json.JSONDecodeError as exc:
+            raise ProviderError("EODHD returned invalid JSON") from exc
+
+        return self._parse_payload(payload)
+
+
 def get_provider(
     name: str,
     yfinance_provider: YFinanceProvider | None = None,
 ) -> HistoricalDataProvider:
     """Factory for known providers.
 
-    Implemented: yfinance, polygon
-    Implemented: yfinance, polygon, alpha_vantage
+    Implemented: yfinance, polygon, alpha_vantage, eodhd
     Scaffolded: alpaca
     """
     normalized = (name or "yfinance").strip().lower()
@@ -431,6 +532,8 @@ def get_provider(
         return PolygonProvider()
     if normalized in {"alpha_vantage"}:
         return AlphaVantageProvider()
+    if normalized in {"eodhd"}:
+        return EODHDProvider()
     if normalized in {"alpaca"}:
         return NotImplementedProvider(normalized)
 

@@ -1,5 +1,4 @@
 import json
-from datetime import date
 
 from research.data.tick_download import (
     build_polygon_trades_url,

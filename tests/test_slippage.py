@@ -45,9 +45,13 @@ class EntryExitStrategy(BaseStrategy):
         return None
 
 
-def _sample_frame(days: int = 20, base_price: float = 100.0, volume: float = 5_000.0) -> pd.DataFrame:
+def _sample_frame(
+    days: int = 20, base_price: float = 100.0, volume: float = 5_000.0
+) -> pd.DataFrame:
     rows = []
-    timestamps = [datetime(2024, 1, 1, tzinfo=timezone.utc) + timedelta(days=i) for i in range(days)]
+    timestamps = [
+        datetime(2024, 1, 1, tzinfo=timezone.utc) + timedelta(days=i) for i in range(days)
+    ]
     for i, ts in enumerate(timestamps):
         open_price = base_price + i * 0.8
         rows.append(
@@ -107,7 +111,9 @@ def test_higher_slippage_preset_reduces_backtest_return(monkeypatch):
     pessimistic_settings.slippage.preset = "pessimistic"
 
     optimistic_engine = BacktestEngine(optimistic_settings, EntryExitStrategy(optimistic_settings))
-    pessimistic_engine = BacktestEngine(pessimistic_settings, EntryExitStrategy(pessimistic_settings))
+    pessimistic_engine = BacktestEngine(
+        pessimistic_settings, EntryExitStrategy(pessimistic_settings)
+    )
 
     frame = _sample_frame()
 

@@ -40,9 +40,7 @@ def make_bar_received_event(symbol: str, bar_data: dict[str, Any]) -> dict[str, 
     }
 
 
-def make_signal_generated_event(
-    symbol: str, signal: str, confidence: float
-) -> dict[str, Any]:
+def make_signal_generated_event(symbol: str, signal: str, confidence: float) -> dict[str, Any]:
     """Build a ``signal.generated`` event payload.
 
     Parameters
@@ -68,9 +66,7 @@ def make_signal_generated_event(
     }
 
 
-def make_order_submitted_event(
-    order_id: str, symbol: str, side: str, qty: float
-) -> dict[str, Any]:
+def make_order_submitted_event(order_id: str, symbol: str, side: str, qty: float) -> dict[str, Any]:
     """Build an ``order.submitted`` event payload.
 
     Parameters

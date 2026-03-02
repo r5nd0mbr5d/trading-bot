@@ -158,11 +158,11 @@ Would contain:
 
 ---
 
-### 9. **research/README.md** — UK-First Strategy Research Track
+### 9. **research/README.md** — Global Strategy Research Track (UK-Based)
 **Research operating guide** for offline strategy R&D and promotion into runtime.
 
 **Contains:**
-- UK-first market scope and profitability objective
+- Global equity market scope (UK-based operation with IBKR/EODHD global access) and profitability objective
 - In-repo research structure and governance boundaries
 - Promotion contract from research candidates to runtime use
 - Research pipeline outputs and troubleshooting references
@@ -468,7 +468,7 @@ files modified, test baseline, handoff notes). Tagged by session type for filter
 | CODE (src/) | Implementation | 3500+ | 🔍 Deep dive | Per feature |
 | TESTS (tests/) | Validation | 2000+ | 🧪 Always | Per test add |
 
-**Total documentation:** ~7,500 lines | **Total code:** ~6,500 lines | **Tests:** 317+ passing (see IMPLEMENTATION_BACKLOG.md for latest count)
+**Total documentation:** ~9,400 lines | **Total code:** ~6,500 lines | **Tests:** 657 passing (see IMPLEMENTATION_BACKLOG.md for latest count)
 
 ---
 
@@ -674,10 +674,10 @@ files modified, test baseline, handoff notes). Tagged by session type for filter
 
 ---
 
-**Last Updated:** February 25, 2026
-**Total Documentation:** ~9,400 lines (26 active docs; 11 archived; 3 custom agent definitions)
-**Test Coverage:** 551+ passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
-**Status:** Foundation ~75% complete → UK paper-trading + promotion framework + research track specs all operational
+**Last Updated:** March 1, 2026
+**Total Documentation:** ~9,400 lines (28 active docs; 11 archived; 3 custom agent definitions)
+**Test Coverage:** 657 passing ✓ (see IMPLEMENTATION_BACKLOG.md for exact count)
+**Status:** Foundation ~85% complete → UK paper-trading + promotion framework + research track + EODHD primary provider all operational
 **LPDD:** `PROJECT_DESIGN.md` is now the primary architectural authority — see it for ADRs, RFCs, and evolution log
 **Session Management:** `SESSION_TOPOLOGY.md` + `SESSION_LOG.md` (ADR-016) — see `.github/copilot-instructions.md` for reading order
 **Custom Agents:** `.github/agents/*.agent.md` (ADR-017) — lpdd-auditor, ops-runner, research-reviewer

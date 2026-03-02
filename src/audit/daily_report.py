@@ -76,7 +76,11 @@ class DailyReportGenerator:
                 fills += 1
                 pnl_proxy += self._detect_pnl(payload)
 
-            if "GUARDRAIL" in event_type or "CIRCUIT_BREAKER" in event_type or event_type == "KILL_SWITCH":
+            if (
+                "GUARDRAIL" in event_type
+                or "CIRCUIT_BREAKER" in event_type
+                or event_type == "KILL_SWITCH"
+            ):
                 guardrail_firings += 1
 
             if isinstance(payload.get("sharpe"), (int, float)):

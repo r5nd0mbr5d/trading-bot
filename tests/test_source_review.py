@@ -4,9 +4,7 @@ import json
 
 import pytest
 
-from scripts.source_review import evaluate_review
-from scripts.source_review import score_to_verdict
-from scripts.source_review import validate_scores
+from scripts.source_review import evaluate_review, score_to_verdict, validate_scores
 
 
 def _base_payload() -> dict:
@@ -65,7 +63,7 @@ def test_validate_scores_missing_dimension_raises():
 def test_validate_scores_out_of_range_raises():
     payload = _base_payload()
     payload["scores"]["risk_controls"] = 101
-    with pytest.raises(ValueError, match="must be in \[0, 100\]"):
+    with pytest.raises(ValueError, match=r"must be in \[0, 100\]"):
         validate_scores(payload)
 
 

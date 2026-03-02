@@ -1,7 +1,6 @@
 import json
 from urllib.error import HTTPError
 
-import pandas as pd
 import pytest
 
 from src.data.providers import AlphaVantageProvider, ProviderError

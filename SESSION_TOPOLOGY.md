@@ -1,7 +1,7 @@
 # Session Topology — LLM-Managed Copilot Sessions
 
-**Version:** 1.1
-**Last Updated:** Feb 25, 2026
+**Version:** 1.2
+**Last Updated:** Mar 1, 2026
 **Status:** ACTIVE
 **ADR:** ADR-016
 
@@ -118,7 +118,7 @@ follow the corresponding protocol.
 | **Pre-reads** | `DOCUMENTATION_INDEX.md`, `PROJECT_DESIGN.md` (§1–§3), `SESSION_LOG.md` (last 3 entries), `.gitignore`, `pyproject.toml`, `requirements.txt`, `.github/workflows/ci.yml` |
 | **Artifacts** | Updated docs, reclassified queue items, archived stale files, scorecard entries |
 | **Handoff** | Updated queue counts, index refreshes, write `SESSION_LOG.md` entry |
-| **Scope guard** | Do not write production code. Consolidate, archive, and organize. |
+| **Scope guard** | Do not write production code. Consolidate, archive, and organize. For Git hygiene audits, follow the full §11 checklist before committing fixes. |
 
 **Trigger phrases:** "review these sources...", "clean up the docs", "update the queues", "consolidate...", "git hygiene audit", "repository governance review"
 
@@ -448,4 +448,120 @@ Before ending any non-trivial session, run this quick consistency check:
 4. **Consistency check (optional but recommended)**
    - Run: `python scripts/lpdd_consistency_check.py --root .`
    - Ensure no missing required docs, malformed summary lines, or missing `Last Updated` fields
+
+---
+
+## §11 Pre-Commit Repository Hygiene Gate
+
+> **ADR-021** — Every agent session that produces a `git commit` must execute this checklist
+> before staging and committing. This prevents the class of issues found in the
+> Feb 28–Mar 1 2026 repository audit (`.venv_ci/` gitignore miss, 149 tracked
+> report artifacts, undocumented coverage threshold, silent CI failures).
+
+### When to run
+
+| Commit type | Required checks |
+|---|---|
+| **Non-trivial** (>3 files changed OR any governance doc modified) | All 10 checks |
+| **Trivial** (typo fix, single test, docstring-only) | Checks 1–3 and 9 only |
+| **Documentation-only** (`.md` files, no code) | Checks 1–3, 5–6 only |
+
+### The 10-Point Checklist
+
+Run these checks **after staging but before committing**. If any check fails,
+fix the issue before proceeding.
+
+#### 1. `.gitignore` Coverage
+```bash
+git status --short | Select-String "^\?\?"
+# OR on Linux: git status --short | grep '^??'
+```
+- Verify no virtual environments (`venv/`, `.venv*/`), caches (`__pycache__/`, `.pytest_cache/`),
+  IDE state (`.idea/`, `.vscode/settings.json`), or generated artifacts appear as untracked.
+- If they do, update `.gitignore` before committing.
+
+#### 2. Secrets Scan
+```bash
+git diff --cached | Select-String "(api_key|secret|token|password|credential|ALPACA|IBKR|COINBASE|BINANCE)" -CaseSensitive:$false
+```
+- Zero matches expected. If any match, remove the sensitive value and rotate the credential.
+- `.env` files must **never** be staged. Verify: `git diff --cached --name-only | Select-String "\.env"`
+
+#### 3. Tracked Artifact Audit
+```bash
+git diff --cached --name-only | Select-String "(reports/|data/cache/|archives/db/|trading.*\.db|\.sqlite)"
+```
+- Report outputs, database files, and cache artifacts should be gitignored, not committed.
+- If matched, run `git rm --cached <file>` and add the pattern to `.gitignore`.
+
+#### 4. CI Workflow Validity
+- Only required if `.github/workflows/` files are in the staged diff.
+- Verify YAML syntax: indentation, job names, step references.
+- Confirm `pytest` invocation includes `-v --tb=long` for diagnosable CI output.
+- Confirm `--cov=src` scope (not bare `--cov`) for accurate coverage measurement.
+
+#### 5. Branch Hygiene
+```bash
+git branch --merged | Select-String -NotMatch "(main|copilot/)" | Measure-Object
+```
+- Delete any fully-merged local branches that are not `main` or the current working branch.
+- Current branch name must follow convention: `copilot/<scope>`, `feat/<scope>`, `fix/<scope>`, or `docs/<scope>`.
+
+#### 6. Commit Message Format
+- Must follow: `type(scope): description`
+- Valid types: `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`
+- Reference step numbers or ADRs when applicable: `feat(step-63): add CoinbaseBroker`
+- Body (optional) should explain **why**, not **what** (the diff shows what).
+
+#### 7. Large File Check
+```bash
+git diff --cached --stat | Select-Object -Last 1
+```
+- No single file should add >500KB. Use `git diff --cached --stat` to verify.
+- Binary files (images, compiled artifacts, model weights) must not be committed to the main tree.
+  Use `research/experiments/<id>/artifacts/` with `.gitignore` protection.
+
+#### 8. Configuration Consistency
+- If `requirements.txt` was modified, confirm `pyproject.toml` dependencies section is coherent.
+- If `config/settings.py` was modified, confirm no hardcoded symbols, dates, or credentials.
+- If `pyproject.toml [tool.coverage]` was modified, confirm `fail_under` is intentional and has a documentation comment.
+
+#### 9. Test Baseline
+```bash
+python -m pytest tests/ -v --tb=short
+```
+- **All tests must pass.** Report the count in the commit message body or session log.
+- Never commit with known test failures unless explicitly documented as a WIP branch.
+
+#### 10. Coverage Threshold
+- Only required if coverage configuration or test infrastructure was modified.
+- Run: `python -m pytest tests/ --cov=src --cov-report=term-missing`
+- Confirm `fail_under` in `pyproject.toml` matches actual coverage (±2%).
+- Any threshold change must include a documentation comment explaining the reason and restoration plan.
+
+### Quick Reference (copy-paste block)
+
+```powershell
+# Pre-commit hygiene gate (run from repo root)
+git diff --cached --name-only                                    # Review staged files
+git diff --cached | Select-String "(api_key|secret|token|password)" -CaseSensitive:$false  # Secrets
+git diff --cached --name-only | Select-String "(\.env|reports/|trading.*\.db)"             # Artifacts
+git diff --cached --stat | Select-Object -Last 1                 # Large files
+python -m pytest tests/ -v --tb=short                            # Test baseline
+```
+
+### What to do when a check fails
+
+| Check | Failure action |
+|---|---|
+| 1 (gitignore) | Add missing pattern to `.gitignore`; re-stage |
+| 2 (secrets) | Remove value, rotate credential, add to `.gitignore` |
+| 3 (artifacts) | `git rm --cached <file>`; add pattern to `.gitignore` |
+| 4 (CI) | Fix YAML; validate with `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` |
+| 5 (branches) | `git branch -d <branch>` for merged branches |
+| 6 (message) | Rewrite message to follow `type(scope): description` |
+| 7 (large files) | Remove or `.gitignore` the file; consider Git LFS for legitimate large assets |
+| 8 (config) | Fix the inconsistency before committing |
+| 9 (tests) | Fix failing tests — never commit broken tests to a shared branch |
+| 10 (coverage) | Document the threshold change with a comment in `pyproject.toml` |
 

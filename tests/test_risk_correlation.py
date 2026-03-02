@@ -1,7 +1,7 @@
 """Unit tests for correlation-based concentration limits in RiskManager."""
 
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 
 from config.settings import Settings
 from src.data.models import Position, Signal, SignalType
@@ -92,7 +92,9 @@ def test_correlation_limit_scales_position_when_mode_scale(tmp_path):
     _write_corr_matrix(baseline_settings.correlation.matrix_path)
     baseline_risk = RiskManager(baseline_settings)
 
-    baseline_order = baseline_risk.approve_signal(_signal("HSBA.L"), 100_000.0, 100.0, open_positions)
+    baseline_order = baseline_risk.approve_signal(
+        _signal("HSBA.L"), 100_000.0, 100.0, open_positions
+    )
 
     assert scaled_order is not None
     assert baseline_order is not None

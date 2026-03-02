@@ -58,7 +58,7 @@ All question text, answer slots, and status tracking live in:
 - **Q1 (storage):** Use DuckDB + Parquet for research/history; keep SQLite for registry/audit/kill-switch metadata.
 - **Q2 (engine style):** Keep event-driven architecture for parity with live trading; use queue/callback flow to avoid code duplication.
 - **Q3 (registry):** Use hybrid registry: metadata in SQLite + artifacts on disk with SHA256 hash validation.
-- **Q4 (data providers):** Use mixed free stack: Yahoo/yfinance for broad historical backfill, Alpaca/IBKR for runtime feed, optional Polygon/Tiingo as quality upgrade.
+- **Q4 (data providers):** EODHD is the primary data source (OHLCV + fundamentals + corporate actions + forex). yfinance serves as a free fallback. Massive/Polygon.io for tick data. Alpha Vantage as additional fallback. See ADR-022.
 - **Q5 (streaming):** Use WebSocket streaming for paper/runtime where available; implement heartbeat, reconnect with backoff, and idempotent resubscribe.
 - **Q6 (features):** Prioritize return/volatility/momentum/volume regime features with leakage-safe rolling normalization and strict timestamp alignment.
 - **Q7 (NN baseline):** Start with XGBoost/MLP baseline first, then LSTM only if sequence signal justifies complexity; use time-based train/val/test splits.
@@ -100,10 +100,11 @@ For your target outcome (profitability as a UK-based operator), keep runtime tra
 strategy research in the **same project**, but isolate experimental work in a dedicated
 research layer so only validated candidates are promoted into runtime.
 
-### Scope alignment (UK-first, not US-only)
+### Scope alignment (UK-based, globally accessible)
 
-- Primary market focus: UK-listed equities/ETFs and GBP base-currency reporting
-- Optional expansion: US/EU/global symbols only when portfolio-level profitability improves
+- Operated from the UK: base currency GBP, UK tax reporting, UK session guardrails as default
+- Trades any equity market accessible from the UK via IBKR (US, EU, APAC, and other global exchanges) and EODHD (70+ exchanges)
+- Research baseline: UK equities (FTSE 100/250) for initial strategy validation; global equities for expanded universe when hypothesis requires cross-market signals
 - Promotion standard: all research candidates must pass paper-trial and risk gates before runtime enablement
 
 ### Suggested structure
@@ -186,7 +187,7 @@ Use **LibreChat → qwen2.5:14b or Gemini** before starting any new feature.
 
 ```
 You are a quantitative analyst at a hedge fund.
-I'm building a Python algorithmic trading bot for a UK-based operator trading UK-first but not US-only equities.
+I'm building a Python algorithmic trading bot operated from the UK, trading global equities (UK, US, EU, APAC) accessible via IBKR and EODHD.
 List the 10 most important signals/indicators used in professional
 systematic strategies, with a one-sentence explanation of each,
 and note which are already in pandas-ta.
@@ -382,9 +383,9 @@ The trading bot is built on three core pillars. Use this roadmap to guide develo
 **Objective:** Build a robust data foundation for strategy research and backtesting.
 
 #### Phase 1.1 — Data Pipeline Setup
-- [ ] **Multiple provider support** — implement adapters for Alpha Vantage, Alpaca data API (yfinance + Massive/Polygon already implemented)
-  - File: `src/data/providers/` (new directory with provider adapters)
-  - Pattern: abstract base class + concrete implementations
+- [x] **Multiple provider support** — EODHD primary (ADR-022), yfinance fallback, Massive/Polygon tick data, Alpha Vantage scaffolded
+  - File: `src/data/providers.py` (all providers in single module)
+  - Pattern: `HistoricalDataProvider` protocol + concrete implementations + factory
 - [ ] **OHLCV data persistence** — extend to store in SQLite with proper indexes
   - File: `src/data/store.py` (new)
   - Include: instruments, bars, trades, corporate actions schemas
@@ -1124,12 +1125,18 @@ python main.py paper --strategy ma_crossover
   - Doc: https://ta-lib.org/
 
 **Data Sources & APIs**
-- **yfinance**: Free OHLCV data (Yahoo Finance, no API key, stable)
-  - Current integration in settings.py `source: 'yfinance'`
-  - Suitable for Tier 1 research; real-time trading: add Alpaca data API or Massive WebSocket
+- **EODHD (PRIMARY)**: OHLCV, fundamentals, corporate actions, forex (API key required)
+  - Current integration in settings.py `source: 'eodhd'` (default)
+  - Implementation: `EODHDProvider` in `src/data/providers.py`
+  - Supports UK LSE (`.LSE` suffix), US (`.US`), forex (`.FOREX`), crypto (`.CC`)
+  - See ADR-022 and `docs/DATA_PROVIDERS_REFERENCE.md` §2.0 for full details
+
+- **yfinance (FALLBACK)**: Free OHLCV data (Yahoo Finance, no API key)
+  - Fallback integration in settings.py `fallback_sources: ['yfinance']`
+  - Suitable for development when no EODHD API key is available; not recommended for production
 
 - **Alpaca Markets API**: Commission-free equity trading, paper trading, real-time data
-  - Integration: `src/brokers/alpaca_broker.py` (already in place)
+  - Integration: `src/execution/broker.py` (`AlpacaBroker`)
   - Paper trading enables live backtesting before capital deployment
 
 - **Alternative Data Sources** (Tier 2+)

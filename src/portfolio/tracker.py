@@ -97,7 +97,7 @@ class PortfolioTracker:
 
     def print_summary(self, positions: Dict[str, Position], cash: float) -> None:
         snap = self.snapshot(positions, cash)
-        print(f"\n--- Portfolio Summary ---")
+        print("\n--- Portfolio Summary ---")
         print(f"  Value:       ${snap['portfolio_value']:>12,.2f}")
         print(f"  Cash:        ${snap['cash']:>12,.2f}")
         print(f"  Market Val:  ${snap['market_value']:>12,.2f}")
@@ -105,7 +105,7 @@ class PortfolioTracker:
         print(f"  Unrealised:  ${snap['unrealized_pnl']:>12,.2f}")
         print(f"  Positions:   {snap['num_positions']}")
         if positions:
-            print(f"\n  Open positions:")
+            print("\n  Open positions:")
             for sym, pos in positions.items():
                 print(
                     f"    {sym:<8} qty={pos.qty:>8.2f}  "

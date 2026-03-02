@@ -1,0 +1,15 @@
+{
+  "asset_class": "forex",
+  "symbols": ["EURGBP", "USDJPY"],
+  "strategy": "pairs_mean_reversion",
+  "broker": "ibkr",
+  "session_window": {
+    "start_hour": 6,
+    "end_hour": 20
+  },
+  "risk": {
+    "max_position_pct": 0.1,
+    "stop_loss_pct": 0.03,
+    "take_profit_pct": 0.06
+  }
+}

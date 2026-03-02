@@ -7,7 +7,7 @@ To add a new strategy:
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -26,6 +26,16 @@ class BaseStrategy(ABC):
         self.settings = settings
         self.name = self.__class__.__name__
         self._bar_history: Dict[str, List[Bar]] = {}
+        self._context: Optional[Any] = None
+        self._alternative_registry: Optional[Any] = None
+
+    def set_context(self, context: Optional[Any]) -> None:
+        """Set or clear strategy execution context."""
+        self._context = context
+
+    def set_alternative_registry(self, registry: Optional[Any]) -> None:
+        """Attach or clear alternative data registry."""
+        self._alternative_registry = registry
 
     def on_bar(self, bar: Bar) -> Optional[Signal]:
         """Called by the engine/stream on each new bar. Do not override."""
@@ -76,6 +86,23 @@ class BaseStrategy(ABC):
             return None
         return float(val)
 
+    def get_alternative_features(self, symbol: str) -> pd.DataFrame:
+        """Return alternative feature frame aligned to current symbol history."""
+        history = self.get_history_df(symbol)
+        if history.empty:
+            return pd.DataFrame(index=history.index)
+        if self._alternative_registry is None:
+            return pd.DataFrame(index=history.index)
+
+        as_of = getattr(self._context, "current_timestamp", None)
+        return self._alternative_registry.get_features(
+            symbol,
+            history.index,
+            as_of=as_of,
+            start=history.index.min().to_pydatetime(),
+            end=history.index.max().to_pydatetime(),
+        )
+
     def load_history(self, symbol: str, df: pd.DataFrame) -> None:
         """Pre-load historical bars (used by BacktestEngine before replay)."""
         bars = []
@@ -102,3 +129,7 @@ class BaseStrategy(ABC):
     def min_bars_required(self) -> int:
         """Minimum bars needed before this strategy can generate a signal."""
         return 1
+
+    def required_symbols(self) -> list[str]:
+        """Optional extra symbols required by strategy logic."""
+        return []

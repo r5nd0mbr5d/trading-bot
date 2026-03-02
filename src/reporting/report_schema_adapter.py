@@ -13,8 +13,15 @@ class ReportSchemaAdapter:
     def __init__(self, repo_root: str | Path = ".") -> None:
         self._root = Path(repo_root)
         self._resource_paths = {
-            "step1a_latest": self._root / "reports" / "uk_tax" / "step1a_burnin" / "step1a_burnin_latest.json",
-            "paper_session_summary": self._root / "reports" / "session" / "paper_session_summary.json",
+            "step1a_latest": self._root
+            / "reports"
+            / "uk_tax"
+            / "step1a_burnin"
+            / "step1a_burnin_latest.json",
+            "paper_session_summary": self._root
+            / "reports"
+            / "session"
+            / "paper_session_summary.json",
             "mo2_latest": self._root / "reports" / "uk_tax" / "mo2_orchestrator" / "latest.json",
         }
 

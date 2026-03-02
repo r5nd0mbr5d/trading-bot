@@ -52,7 +52,9 @@ def test_run_checks_flags_missing_last_updated_marker(tmp_path):
     _write(tmp_path / "PROJECT_DESIGN.md", "# x\n")
     result = run_checks(tmp_path)
     assert result["passed"] is False
-    assert any("Missing 'Last Updated:' marker in PROJECT_DESIGN.md" in issue for issue in result["issues"])
+    assert any(
+        "Missing 'Last Updated:' marker in PROJECT_DESIGN.md" in issue for issue in result["issues"]
+    )
 
 
 def test_run_checks_flags_missing_backlog_pattern(tmp_path):

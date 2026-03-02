@@ -1,7 +1,5 @@
 """Unit tests for paper DB rotation command."""
 
-from pathlib import Path
-
 from config.settings import Settings
 from src.cli.runtime import cmd_rotate_paper_db
 

@@ -43,11 +43,20 @@ class ATRStopsStrategy(BaseStrategy):
         trend_up_now = fast_ma.iloc[-1] > slow_ma.iloc[-1]
         trend_up_prev = fast_ma.iloc[-2] > slow_ma.iloc[-2]
         low_vol_now = atr_ratio <= self.low_vol_threshold_pct
-        low_vol_prev = (float(atr_series.iloc[-2]) / float(close.iloc[-2])) <= self.low_vol_threshold_pct
+        low_vol_prev = (
+            float(atr_series.iloc[-2]) / float(close.iloc[-2])
+        ) <= self.low_vol_threshold_pct
 
         if trend_up_now and low_vol_now and (not trend_up_prev or not low_vol_prev):
             stop_price = atr_stop_loss(close_now, atr_now, multiplier=self.stop_multiplier)
-            strength = min(max((self.low_vol_threshold_pct - atr_ratio) / max(self.low_vol_threshold_pct, 1e-9), 0.0), 1.0)
+            strength = min(
+                max(
+                    (self.low_vol_threshold_pct - atr_ratio)
+                    / max(self.low_vol_threshold_pct, 1e-9),
+                    0.0,
+                ),
+                1.0,
+            )
             return Signal(
                 symbol=symbol,
                 signal_type=SignalType.LONG,
@@ -71,7 +80,9 @@ class ATRStopsStrategy(BaseStrategy):
                 strategy_name=self.name,
                 metadata={
                     "atr_value": round(atr_now, 6),
-                    "stop_price": round(atr_stop_loss(close_now, atr_now, multiplier=self.stop_multiplier), 6),
+                    "stop_price": round(
+                        atr_stop_loss(close_now, atr_now, multiplier=self.stop_multiplier), 6
+                    ),
                     "fast_ma": round(float(fast_ma.iloc[-1]), 6),
                     "slow_ma": round(float(slow_ma.iloc[-1]), 6),
                 },

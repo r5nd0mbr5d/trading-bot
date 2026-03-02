@@ -63,14 +63,20 @@ def test_paper_trial_strict_reconcile_returns_one_on_drift(monkeypatch):
             "reason": "threshold_met",
         },
     )
-    monkeypatch.setattr("src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": False})
+    monkeypatch.setattr(
+        "src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": False}
+    )
 
     async def fake_run(*args, **kwargs):
         return None
 
     monkeypatch.setattr("src.cli.runtime._run_paper_for_duration", fake_run)
-    monkeypatch.setattr("src.cli.runtime.cmd_paper_session_summary", lambda *args, **kwargs: {"summary": {}})
-    monkeypatch.setattr("src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []})
+    monkeypatch.setattr(
+        "src.cli.runtime.cmd_paper_session_summary", lambda *args, **kwargs: {"summary": {}}
+    )
+    monkeypatch.setattr(
+        "src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []}
+    )
     monkeypatch.setattr("src.cli.runtime.cmd_paper_reconcile", lambda *args, **kwargs: 3)
 
     rc = cmd_paper_trial(
@@ -105,7 +111,9 @@ def test_paper_trial_happy_path(monkeypatch):
             "reason": "threshold_met",
         },
     )
-    monkeypatch.setattr("src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": True})
+    monkeypatch.setattr(
+        "src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": True}
+    )
 
     calls = {"run": 0, "summary": 0, "reconcile": 0}
 
@@ -122,7 +130,9 @@ def test_paper_trial_happy_path(monkeypatch):
 
     monkeypatch.setattr("src.cli.runtime._run_paper_for_duration", fake_run)
     monkeypatch.setattr("src.cli.runtime.cmd_paper_session_summary", fake_summary)
-    monkeypatch.setattr("src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []})
+    monkeypatch.setattr(
+        "src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []}
+    )
     monkeypatch.setattr("src.cli.runtime.cmd_paper_reconcile", fake_reconcile)
 
     rc = cmd_paper_trial(
@@ -199,7 +209,9 @@ def test_paper_trial_applies_symbol_remediation_and_audits(monkeypatch):
             "reason": "remediated_with_healthy_subset",
         },
     )
-    monkeypatch.setattr("src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": False})
+    monkeypatch.setattr(
+        "src.cli.runtime.cmd_rotate_paper_db", lambda *args, **kwargs: {"rotated": False}
+    )
 
     calls = {"audit": 0, "run": 0}
 
@@ -211,8 +223,12 @@ def test_paper_trial_applies_symbol_remediation_and_audits(monkeypatch):
 
     monkeypatch.setattr("src.cli.runtime._log_symbol_universe_remediation_event", fake_audit)
     monkeypatch.setattr("src.cli.runtime._run_paper_for_duration", fake_run)
-    monkeypatch.setattr("src.cli.runtime.cmd_paper_session_summary", lambda *args, **kwargs: {"summary": {}})
-    monkeypatch.setattr("src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []})
+    monkeypatch.setattr(
+        "src.cli.runtime.cmd_paper_session_summary", lambda *args, **kwargs: {"summary": {}}
+    )
+    monkeypatch.setattr(
+        "src.cli.runtime.update_execution_trend", lambda *args, **kwargs: {"warnings": []}
+    )
 
     rc = cmd_paper_trial(
         settings,

@@ -1,13 +1,11 @@
 """Integration tests for broker reconciliation with mocked brokers."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from config.settings import ReconciliationConfig
 from src.audit.broker_reconciliation import BrokerReconciler
 from src.data.models import Position
-from src.execution.broker import AlpacaBroker, PaperBroker
+from src.execution.broker import PaperBroker
 
 
 class TestReconciliationWithMockedBroker:

@@ -21,13 +21,11 @@ class ReportingEngine:
         """Return audit events sorted by timestamp, or empty when table missing."""
         with self._connect() as conn:
             try:
-                return conn.execute(
-                    """
+                return conn.execute("""
                     SELECT timestamp, event_type, symbol, payload_json
                     FROM audit_log
                     ORDER BY timestamp ASC
-                    """
-                ).fetchall()
+                    """).fetchall()
             except sqlite3.OperationalError as exc:
                 if "no such table" in str(exc).lower() and "audit_log" in str(exc).lower():
                     return []
@@ -37,13 +35,11 @@ class ReportingEngine:
         """Return market bars sorted by symbol/timestamp, or empty when table missing."""
         with self._connect() as conn:
             try:
-                return conn.execute(
-                    """
+                return conn.execute("""
                     SELECT symbol, timestamp, open, high, low, close
                     FROM market_bars
                     ORDER BY symbol ASC, timestamp ASC
-                    """
-                ).fetchall()
+                    """).fetchall()
             except sqlite3.OperationalError as exc:
                 if "no such table" in str(exc).lower() and "market_bars" in str(exc).lower():
                     return []

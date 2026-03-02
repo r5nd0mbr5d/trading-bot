@@ -1,7 +1,7 @@
 # PROJECT_DESIGN.md — LLM Project Design Document (LPDD)
 
-**Version:** 1.5
-**Last Updated:** Feb 26, 2026
+**Version:** 1.6
+**Last Updated:** Mar 1, 2026
 **Status:** ACTIVE — primary architectural authority for this repository
 
 > This is the canonical design document for the trading bot project.
@@ -41,10 +41,11 @@
 ## §1 Project Identity
 
 ### Purpose
-Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/250 + liquid ETFs), supporting:
-1. Systematic rule-based strategy development and backtesting
-2. ML/research track (XGBoost → LSTM promotion pipeline)
-3. Paper trading via Alpaca and live trading via IBKR
+Enterprise-grade algorithmic trading platform operated from the UK, trading global equities (UK LSE, US NYSE/NASDAQ, European exchanges, and other IBKR-accessible markets), crypto (BTC/GBP), and planned forex. Supporting:
+1. Historical data collection & analysis — EODHD as primary data source (70+ global exchanges), yfinance as fallback
+2. Systematic rule-based strategy development and backtesting
+3. ML/research track (XGBoost → MLP → LSTM promotion pipeline) including fundamental and correlational analysis
+4. Paper trading via Alpaca and live trading via IBKR (global exchange routing)
 
 ### Current Phase
 **Phase: Paper Trial Validation** — Step 1 backtest signed off (Feb 24, 2026). Awaiting MO-2: 3 consecutive in-window paper sessions with fills. Latest Step 1A report remains non-qualifying (`signoff_ready=false`).
@@ -54,7 +55,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 - Options or futures (derivatives; out of scope indefinitely)
 - Crypto as primary focus — spot crypto (BTC/USD) is a planned secondary asset class (see ADR-015); full crypto support is gated behind MO-2 equity live gate
 - Multi-user / multi-tenant deployment
-- US equities as primary focus (UK-first; US equities only when justified by risk-adjusted return improvement)
+- Single-market restriction — the platform trades any market accessible from the UK via IBKR/EODHD, not limited to UK or US equities
 
 ### Guiding Philosophy
 > "Correctness before performance. Paper before live. Evidence before promotion."
@@ -72,7 +73,8 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 │  main.py CLI (55 lines — entrypoint-only wiring)                     │
 │    │                                                                 │
 │    ├─ MarketDataFeed ──► HistoricalDataProvider (Protocol)          │
-│    │        ├─ YFinanceProvider       ✅ Implemented                │
+│    │        ├─ EODHDProvider          ✅ Primary (ADR-022)          │
+│    │        ├─ YFinanceProvider       ✅ Fallback                   │
 │    │        ├─ PolygonProvider        ✅ Implemented (Step 24)      │
 │    │        ├─ AlphaVantageProvider   ✅ Implemented (Step 29)      │
 │    │        └─ MassiveWebSocketFeed   ✅ Scaffold (Step 30 pending) │
@@ -127,12 +129,13 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Metrics (Feb 25, 2026 — post Steps 33/44/45/46/47/48/49/50–56/58/59/60/61/63)
-- Test suite: **561 tests passing**
+### Key Metrics (Mar 1, 2026 — post EODHD primary provider switch)
+- Test suite: **657 tests passing**
 - `main.py` line count: **62 lines** (entrypoint-only; target ≤150 ✅)
 - Test files importing `main.py`: **0** (target 0 ✅)
-- Strategies registered: **8** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops)
+- Strategies registered: **10** (MA, RSI, MACD, Bollinger, ADX, OBV, Stochastic, ATR Stops, Pairs, MLStrategyWrapper)
 - Asset classes: **2** (EQUITY via IBKR/Alpaca paper; CRYPTO via Coinbase sandbox primary + Binance testnet fallback — BTCGBP)
+- Data provider: **EODHD (primary)**, yfinance (fallback) — ADR-022
 - Backtest result (uk_paper, 2025-01-01 → 2026-01-01): 93 signals, 26 trades, Sharpe 1.23, Return 1.10%, Max DD 0.90%
 
 ---
@@ -199,7 +202,7 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ---
 
 ### ADR-004: Tiered Data Provider Stack
-**Status:** ACCEPTED
+**Status:** SUPERSEDED BY ADR-022
 **Date:** 2026-02-23
 **Ref:** AQ4
 
@@ -213,13 +216,50 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 | 2 | Massive (Polygon.io) | Production UK equities | Paid |
 | 3 | Alpha Vantage | US equities fallback | Free (25 req/day) |
 
-**Consequences:**
-- ✅ Swappable providers via protocol — strategies never touch provider code
-- ✅ Free development tier; production tier available when needed
-- ❌ yfinance is unofficial (no SLA, 15–30 min LSE delay) — acceptable for paper, not production
-- ❌ Alpha Vantage 25 req/day limit requires Step 34 (persistent cache) before use
+**Superseded:** ADR-022 replaces this with EODHD as Tier 1 primary provider (Mar 1, 2026).
 
-**Note:** IEX Cloud was in original design; **permanently removed April 2025** (provider shut down). See session notes Feb 24, 2026.
+---
+
+### ADR-022: EODHD as Primary Data Provider
+**Status:** ACCEPTED
+**Date:** 2026-03-01
+**Author:** GitHub Copilot (IMPL session 2026-03-01)
+**Supersedes:** ADR-004
+**Ref:** Operator directive (Mar 1, 2026)
+
+**Context:** The operator directed that EODHD be used as the primary market data source. EODHD provides OHLCV, fundamentals (earnings, financials, ratios), corporate actions, and forex data via a single REST API with an API key covering 70+ global exchanges. yfinance (free, unofficial, no SLA) was previously Tier 1 but is unreliable for production use. EODHD supports global exchange symbology (`.LSE`, `.US`, `.PA`, `.XETRA`, etc.), enabling the platform's global equity scope (ADR-023).
+
+**Decision:** Four-tier data provider stack with EODHD as primary:
+
+| Tier | Provider | Use | Cost | Status |
+|---|---|---|---|---|
+| **1 (Primary)** | **EODHD** | OHLCV, fundamentals, corporate actions, forex | API key required (free tier: 20 req/day; paid tiers available) | ✅ Implemented |
+| 2 (Fallback) | yfinance | Fallback OHLCV when EODHD unavailable | Free (unofficial, no SLA) | ✅ Implemented |
+| 3 | Massive (Polygon.io) | Tick data, WebSocket, partner APIs | Paid | ✅ Implemented |
+| 4 | Alpha Vantage | US equities fallback, server-side indicators | Free (25 req/day) | Scaffolded |
+
+**Configuration:**
+- `DataConfig.source = "eodhd"` (default)
+- `DataConfig.fallback_sources = ["yfinance"]`
+- `EODHD_API_KEY` env var required
+- Symbol mapping: `.L` (yfinance LSE suffix) → `.LSE` (EODHD LSE suffix)
+
+**EODHD capabilities (current + planned):**
+- ✅ Daily OHLCV via `/api/eod/{ticker}` — implemented in `EODHDProvider`
+- ✅ Corporate actions via `/api/div/{ticker}` and `/api/splits/{ticker}` — implemented in `EODHDCorporateActionsProvider`
+- 🔲 Fundamentals via `/api/fundamentals/{ticker}` — planned (earnings, financials, ratios)
+- 🔲 Forex via `/api/eod/{pair}.FOREX` — planned
+- 🔲 Bulk data via `/api/eod-bulk-last-day/{exchange}` — planned for cache backfill
+
+**Consequences:**
+- ✅ Single vendor for OHLCV + fundamentals + corporate actions + forex — reduces multi-vendor complexity
+- ✅ API-key-authenticated with SLA — production-grade reliability vs yfinance's unofficial status
+- ✅ UK LSE symbols supported natively (`.LSE` suffix)
+- ✅ yfinance preserved as zero-cost fallback for development and offline work
+- ❌ EODHD free tier limited to 20 API calls/day — paid plan recommended for production
+- ❌ EODHD API key must be in `.env` — no API-key-free development path (use yfinance fallback)
+
+**Note:** IEX Cloud was in original ADR-004 design; **permanently removed April 2025** (provider shut down).
 
 ---
 
@@ -288,8 +328,9 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 ---
 
 ### ADR-009: UK-First Strategy Development
-**Status:** ACCEPTED
+**Status:** SUPERSEDED BY ADR-023
 **Date:** 2026-02-23
+**Superseded:** 2026-03-02 (scope expanded to global equities; see ADR-023)
 
 **Context:** Project originally designed for US equities. Pivoted to UK-first after user direction.
 
@@ -300,6 +341,45 @@ Enterprise-grade algorithmic trading platform for UK-first equities (FTSE 100/25
 - ✅ GBP FX normalisation in `PortfolioTracker`
 - ✅ UK tax export (`uk_tax_export` flow) preserved
 - ❌ yfinance LSE data has 15–30 min delay and `.L` suffix quirks — managed by `enable_stale_check=False` in `uk_paper` profile
+
+---
+
+### ADR-023: UK-Based Global Equity Scope
+**Status:** ACCEPTED
+**Date:** 2026-03-02
+**Author:** GitHub Copilot (IMPL session 2026-03-02)
+**Supersedes:** ADR-009
+**Ref:** Operator directive (Mar 2, 2026)
+
+**Context:** ADR-009 restricted the tradable universe to "UK-first" (FTSE 100/250 + liquid ETFs) with US equities only when justified by risk-adjusted return improvement. The operator clarified that the bot is operated from the UK but should trade **all applicable stocks accessible from the UK** — including US, European, Asian, and other global equities routable via IBKR. EODHD supports 70+ global exchanges. The previous UK-only restriction unnecessarily limited the strategy universe.
+
+**Decision:** The platform trades **any equity market accessible from the UK** via IBKR (execution) and EODHD (data). Base currency remains GBP. UK operational infrastructure (tax export, FX normalisation, session guardrails) is preserved.
+
+**Tradable universe (by exchange access):**
+
+| Region | Exchanges | Symbol Suffix (EODHD) | IBKR Routing |
+|--------|-----------|----------------------|--------------|
+| UK | LSE | `.LSE` | ✅ Native |
+| US | NYSE, NASDAQ | `.US` | ✅ Via IBKR |
+| Europe | Euronext, XETRA, SIX | `.PA`, `.XETRA`, `.SW` | ✅ Via IBKR |
+| Asia-Pacific | TSE, ASX, HKEX | `.TSE`, `.AU`, `.HK` | ✅ Via IBKR |
+| Other | Any EODHD-supported exchange | Per-exchange suffix | Via IBKR where available |
+
+**Research universe policy:**
+- UK equities (FTSE 100/250) remain the **baseline research universe** for initial strategy validation (regime coverage, walk-forward folds)
+- Global equities are added to the **expanded research universe** when the hypothesis requires cross-market signals, sector rotation, or diversification analysis
+- Symbol liquidity filters (ADV, spread) apply universally regardless of exchange
+- FX risk must be explicitly modelled for non-GBP instruments
+
+**Consequences:**
+- ✅ Strategy universe expanded from ~40 UK symbols to thousands of global equities
+- ✅ EODHD covers 70+ exchanges with a single API — no additional data vendors needed
+- ✅ IBKR routes orders to 150+ exchanges globally — execution path already exists
+- ✅ UK operational infrastructure preserved: GBP base, UK tax export, session guardrails for UK paper trials
+- ✅ Diversification benefit: strategies can access uncorrelated markets (US tech, EU industrials, APAC growth)
+- ❌ Additional FX complexity for non-GBP instruments — `PortfolioTracker` must handle multi-currency P&L
+- ❌ Session guardrails must be exchange-aware (LSE: 08:00–16:30, NYSE: 14:30–21:00 UK time, etc.)
+- ❌ Symbol normalisation in `symbol_utils.py` needs per-exchange suffix mapping for EODHD
 
 ---
 
@@ -563,6 +643,40 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 
 ---
 
+### ADR-021: Pre-Commit Repository Hygiene Gate
+**Status:** ACCEPTED
+**Date:** 2026-03-01
+**Author:** GitHub Copilot (REVIEW session 2026-03-01)
+**Ref:** Repository audit (Feb 28–Mar 1, 2026); hygiene commit `f59937a`
+
+**Context:** A repository audit revealed multiple hygiene issues that had accumulated over ~58 commits without detection: ~10K untracked `.venv_ci/` files due to a missing `.gitignore` glob, 149 tracked report artifacts that should have been gitignored, stale branches, CI producing silent failures (no verbose output), and a coverage threshold lowered without documentation. These problems were preventable if agents had performed a structured Git/repository review before committing.
+
+**Decision:** Every agent session that produces a `git commit` must execute a **Pre-Commit Repository Hygiene Gate** before staging and committing. The gate is defined in `SESSION_TOPOLOGY.md §11` and consists of a 10-point checklist covering:
+
+1. **`.gitignore` coverage** — verify no virtual environments, caches, IDE state, or generated artifacts are staged
+2. **Secrets scan** — confirm no API keys, tokens, `.env` files, or credentials are in the diff
+3. **Tracked artifact audit** — ensure report outputs, database files, and logs are not being committed
+4. **CI workflow validity** — if `.github/workflows/` was modified, confirm YAML is valid and jobs reference correct paths
+5. **Branch hygiene** — no orphaned local branches; current branch name follows convention
+6. **Commit message format** — follows `type(scope): description` convention with step/ADR references
+7. **Large file check** — no files >500KB in the staged diff (use `git diff --cached --stat`)
+8. **Configuration consistency** — `pyproject.toml`, `requirements.txt`, and `config/settings.py` are coherent
+9. **Test baseline** — all tests pass (`python -m pytest tests/ -v`); report count in commit or session log
+10. **Coverage threshold** — if `--cov` flags or `pyproject.toml [tool.coverage]` changed, verify `fail_under` is intentional and documented
+
+**Enforcement:**
+- The checklist is embedded in `SESSION_TOPOLOGY.md §11` and referenced from `.github/copilot-instructions.md`
+- Agents must run the gate before every non-trivial commit (>3 files changed OR any governance doc modified)
+- For trivial commits (typo fix, single test addition), items 1–3 and 9 are sufficient
+- The gate does **not** require a separate audit tool — it is a manual checklist run by the committing agent
+
+**Consequences:**
+- Prevents recurrence of the `.venv_ci/` gitignore miss, tracked report artifacts, and undocumented coverage changes
+- Adds ~2 minutes of review time per commit — acceptable given the cost of retroactive cleanup
+- Agents that skip the gate and cause a hygiene regression should note the skip reason in their session log
+
+---
+
 ## §4 Active RFCs (Change Proposals)
 
 > RFCs are proposals that have not yet been fully implemented. They become ADRs once accepted and completed.
@@ -760,10 +874,55 @@ The reading order in `.github/copilot-instructions.md` is updated to start with 
 | **TD-018** | No request-type-specific yfinance retry policy; local cache sizing decision undocumented | MEDIUM | Step 73 / RFC-005 | Intermittent provider false negatives may cause avoidable run instability; design/implementation tracked under Step 73 with explicit feasibility note requirement. |
 | **TD-019** | Step1A runs rely on manual IBKR client-id selection, causing avoidable collision failures | MEDIUM (RESOLVED) | Step 74 / RFC-006 | Resolved Feb 25, 2026 — added auto client-id wrapper with bounded retry on collision evidence and non-collision fail-fast behavior. |
 | **TD-020** | Git/repository hygiene risk: tracked `.env`, tracked runtime DB artifacts, mixed stash content, and CI/pre-commit policy drift | HIGH (RESOLVED) | Step 76 | Step 76 completed (Feb 26, 2026): `.env` and runtime DB artifacts untracked, CI policy checks added, and stash/commit hygiene runbook added. Operator attestation recorded: current `.env` contains no sensitive values; no credential rotation required at this time. |
+| **TD-021** | No pre-commit repository hygiene gate for LLM agents | HIGH (RESOLVED) | ADR-021 | Resolved Mar 1, 2026 — ADR-021 established mandatory 10-point pre-commit checklist in `SESSION_TOPOLOGY.md §11`; referenced from `.github/copilot-instructions.md` and `CLAUDE.md`. Prevents recurrence of `.venv_ci/` gitignore miss, tracked report artifacts, and undocumented coverage changes. |
 
 ---
 
 ## §6 Evolution Log
+
+### [2026-03-02] IMPL Session (GitHub Copilot) — Global Equity Scope + Forward Recommendations Backlog
+- **ADR-023** accepted: UK-Based Global Equity Scope (supersedes ADR-009 UK-First restriction)
+    - Platform now trades any equity market accessible from the UK via IBKR/EODHD (US, EU, APAC, etc.)
+    - UK operational infrastructure preserved: GBP base currency, UK tax export, session guardrails
+    - Research baseline remains UK equities (FTSE 100/250); global equities expand the available universe
+- Forward technical recommendations recorded as backlog Steps 111–115 (WebSocket feeds, ensemble voting, feature store, event-driven architecture, REST API dashboard)
+- Comprehensive README.md created for the project
+- Documentation updated across all governance files to reflect global equity scope
+
+### [2026-03-01] IMPL Session (GitHub Copilot) — EODHD Primary Provider + Documentation Overhaul
+- **ADR-022** accepted: EODHD as primary data provider (supersedes ADR-004 yfinance Tier 1)
+    - `EODHDProvider` implemented in `src/data/providers.py` with `.L` → `.LSE` symbol mapping
+    - `DataConfig.source` default changed from `"yfinance"` to `"eodhd"` with `fallback_sources=["yfinance"]`
+    - EODHD Corporate Actions provider already existed (`src/data/corporate_actions.py`)
+- Comprehensive documentation overhaul to align all docs with EODHD-as-primary reality:
+    - `CLAUDE.md`: project purpose (UK-first multi-asset), tech stack (EODHD primary), architecture table, completion tracker
+    - `PROJECT_DESIGN.md`: §1 purpose, §2 architecture snapshot + metrics, ADR-022
+    - `.github/copilot-instructions.md`: architecture table, test baseline (551 → 657)
+    - `DOCUMENTATION_INDEX.md`: stale test counts fixed, EODHD references added
+    - `docs/DATA_PROVIDERS_REFERENCE.md`: EODHD added as Provider #1
+    - `DEVELOPMENT_GUIDE.md`: EODHD references added
+- New backlog tickets added for: EODHD fundamentals pipeline, cross-dataset correlational analysis, forex integration, EODHD bulk cache, fundamental-driven strategies
+- Test baseline: **657 passing**
+
+### [2026-03-01] REVIEW Session (GitHub Copilot) — ADR-021 Pre-Commit Repository Hygiene Gate
+- After a full repository audit (Feb 28–Mar 1, 2026) revealed 17 hygiene issues accumulated over 58 commits:
+    - Established **ADR-021**: mandatory Pre-Commit Repository Hygiene Gate for all agent sessions
+    - Added **SESSION_TOPOLOGY.md §11**: 10-point checklist covering .gitignore, secrets, artifacts, CI, branch hygiene, commit messages, large files, config consistency, test baseline, and coverage threshold
+    - Updated `.github/copilot-instructions.md`: added Commit Gate section to Task Pickup Protocol
+    - Updated `CLAUDE.md`: added invariant reference for the pre-commit gate
+    - Added **TD-021** (resolved) to §5 technical debt register
+- Preventive measure: agents must now run the checklist before every non-trivial commit
+- Prior hygiene commit `f59937a` fixed 9 specific issues found by the audit
+
+### [2026-03-01] IMPL→REVIEW Burn-Down Session (GitHub Copilot / Claude Opus 4.6)
+- Systematically closed all actionable open items from the backlog:
+    - **SR-2 (mojibake cleanup)**: fixed 552 double-encoded UTF-8 characters in IMPLEMENTATION_BACKLOG.md (CP1252 roundtrip corruption: `âœ…` → `✅`, `â€"` → `—`, `â‰¥` → `≥`, `â\x9dŒ` → `❌`, `Ã—` → `×`)
+    - **SR-1 (test imports from main)**: verified resolved — AST scan of all test files confirmed 0 imports from `main.py`; marked RESOLVED with evidence
+    - **Steps 100/101/103 backlog gap**: added full step definitions (scope, completion notes, test counts) for 3 previously-implemented-but-untracked steps (WeatherDataProvider, MLStrategyWrapper, JSON runtime profiles)
+    - **Step 36 (QuantConnect cross-validation)**: created `ma_crossover_qc.py` and `rsi_momentum_qc.py` QCAlgorithm ports + `results/comparison.md` template; awaiting operator cloud execution
+    - **Executive summary**: updated counts — Total 95 (+3), Completed 91 (+3), Tests 654 (+68), Strategies 10 (+1)
+- Test baseline: 654 passing (unchanged — no runtime code modified)
+- Queue state after session: 1 NOT STARTED (Step 32, Opus-gated), 2 IN PROGRESS (Step 1A operator burn-in, Step 36 operator QC run), 7 operator milestones (MO-2 through MO-8)
 
 ### [2026-02-26] ARCH Session (Claude Opus 4.6) — Step 57 BTC LSTM Feature Design Decision
 - Resolved Opus design gate for Step 57 (BTC LSTM feature engineering):

@@ -11,7 +11,6 @@ from src.bridge.hooks import (
 from src.bridge.paios_types import HandoffPacket, SessionConfig, SessionType
 from src.bridge.session_classifier import classify_prompt
 
-
 # ---------------------------------------------------------------------------
 # SessionType
 # ---------------------------------------------------------------------------

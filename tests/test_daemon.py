@@ -36,9 +36,18 @@ def test_run_cycle_sleeps_outside_window(monkeypatch, tmp_path):
     daemon = _daemon(tmp_path)
     sleep_calls = []
 
-    monkeypatch.setattr("scripts.daemon.datetime", type("_D", (), {
-        "now": staticmethod(lambda _tz=None: datetime(2026, 2, 28, 9, 0, tzinfo=timezone.utc))
-    }))
+    monkeypatch.setattr(
+        "scripts.daemon.datetime",
+        type(
+            "_D",
+            (),
+            {
+                "now": staticmethod(
+                    lambda _tz=None: datetime(2026, 2, 28, 9, 0, tzinfo=timezone.utc)
+                )
+            },
+        ),
+    )
     monkeypatch.setattr("scripts.daemon.time.sleep", lambda seconds: sleep_calls.append(seconds))
 
     daemon.run_cycle()
@@ -52,9 +61,18 @@ def test_run_cycle_retries_with_exponential_backoff(monkeypatch, tmp_path):
     sleep_calls = []
     outcomes = iter([1, 1, 0])
 
-    monkeypatch.setattr("scripts.daemon.datetime", type("_D", (), {
-        "now": staticmethod(lambda _tz=None: datetime(2026, 2, 25, 9, 0, tzinfo=timezone.utc))
-    }))
+    monkeypatch.setattr(
+        "scripts.daemon.datetime",
+        type(
+            "_D",
+            (),
+            {
+                "now": staticmethod(
+                    lambda _tz=None: datetime(2026, 2, 25, 9, 0, tzinfo=timezone.utc)
+                )
+            },
+        ),
+    )
     monkeypatch.setattr("scripts.daemon.time.sleep", lambda seconds: sleep_calls.append(seconds))
     monkeypatch.setattr(daemon, "_launch_paper_process", lambda: next(outcomes))
 
@@ -67,9 +85,18 @@ def test_run_cycle_stops_after_max_retries(monkeypatch, tmp_path):
     daemon = _daemon(tmp_path)
     sleep_calls = []
 
-    monkeypatch.setattr("scripts.daemon.datetime", type("_D", (), {
-        "now": staticmethod(lambda _tz=None: datetime(2026, 2, 25, 9, 0, tzinfo=timezone.utc))
-    }))
+    monkeypatch.setattr(
+        "scripts.daemon.datetime",
+        type(
+            "_D",
+            (),
+            {
+                "now": staticmethod(
+                    lambda _tz=None: datetime(2026, 2, 25, 9, 0, tzinfo=timezone.utc)
+                )
+            },
+        ),
+    )
     monkeypatch.setattr("scripts.daemon.time.sleep", lambda seconds: sleep_calls.append(seconds))
     monkeypatch.setattr(daemon, "_launch_paper_process", lambda: 1)
 

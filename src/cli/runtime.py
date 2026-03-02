@@ -6,22 +6,22 @@ import hashlib
 import json
 import logging
 import os
-import random
 import shutil
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlparse
 
-from src.cli.registry import command
-
+from backtest.engine import BacktestEngine
+from backtest.walk_forward import WalkForwardEngine
 from config.settings import Settings
-from src.audit.logger import AuditLogger
+from research.bridge.strategy_bridge import load_candidate_bundle, register_candidate_strategy
 from src.audit.daily_report import DailyReportGenerator
+from src.audit.logger import AuditLogger
 from src.audit.reconciliation import export_paper_reconciliation
 from src.audit.session_summary import export_paper_session_summary
 from src.audit.uk_tax_export import export_uk_tax_reports
+from src.cli.registry import command
 from src.data.feeds import MarketDataFeed
 from src.data.symbol_health import apply_symbol_universe_policy
 from src.execution.ibkr_broker import IBKRBroker
@@ -29,10 +29,6 @@ from src.monitoring.execution_trend import update_execution_trend
 from src.promotions.checklist import export_promotion_checklist
 from src.reporting.data_quality_report import export_data_quality_report
 from src.reporting.execution_dashboard import export_execution_dashboard
-from src.strategies.registry import StrategyRegistry
-from src.trial.manifest import TrialManifest
-from src.trial.runner import TrialAndRunner
-from research.bridge.strategy_bridge import load_candidate_bundle, register_candidate_strategy
 from src.risk.kill_switch import KillSwitch
 from src.risk.manager import RiskManager
 from src.strategies.adx_filter import ADXFilterStrategy
@@ -41,12 +37,14 @@ from src.strategies.base import BaseStrategy
 from src.strategies.bollinger_bands import BollingerBandsStrategy
 from src.strategies.ma_crossover import MACrossoverStrategy
 from src.strategies.macd_crossover import MACDCrossoverStrategy
+from src.strategies.ml_wrapper import MLStrategyWrapper
 from src.strategies.obv_momentum import OBVMomentumStrategy
 from src.strategies.pairs_mean_reversion import PairsMeanReversionStrategy
+from src.strategies.registry import StrategyRegistry
 from src.strategies.rsi_momentum import RSIMomentumStrategy
 from src.strategies.stochastic_oscillator import StochasticOscillatorStrategy
-from backtest.engine import BacktestEngine
-from backtest.walk_forward import WalkForwardEngine
+from src.trial.manifest import TrialManifest
+from src.trial.runner import TrialAndRunner
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,6 +56,7 @@ logger = logging.getLogger(__name__)
 STRATEGIES = {
     "atr_stops": ATRStopsStrategy,
     "bollinger_bands": BollingerBandsStrategy,
+    "ml_model": MLStrategyWrapper,
     "ma_crossover": MACrossoverStrategy,
     "macd_crossover": MACDCrossoverStrategy,
     "obv_momentum": OBVMomentumStrategy,
@@ -147,21 +146,13 @@ def _ensure_db_matches_mode(
     if expected is None:
         return
     if db_path != expected:
-        raise RuntimeError(
-            f"{context} DB mismatch: mode={mode} expects {expected}, got {db_path}"
-        )
+        raise RuntimeError(f"{context} DB mismatch: mode={mode} expects {expected}, got {db_path}")
     if mode == "paper" and db_path in {live_db, test_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: paper mode cannot use live/test DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: paper mode cannot use live/test DB ({db_path})")
     if mode == "live" and db_path in {paper_db, test_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: live mode cannot use paper/test DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: live mode cannot use paper/test DB ({db_path})")
     if mode == "test" and db_path in {paper_db, live_db}:
-        raise RuntimeError(
-            f"{context} DB mismatch: test mode cannot use paper/live DB ({db_path})"
-        )
+        raise RuntimeError(f"{context} DB mismatch: test mode cannot use paper/live DB ({db_path})")
 
 
 def _ensure_trading_mode_matches(settings: Settings, runtime_mode: str, *, context: str) -> None:
@@ -193,8 +184,68 @@ def _require_explicit_confirmation(
         raise SystemExit(2)
 
 
+def _apply_profile_risk_overrides(
+    settings: Settings, asset_class: str, overrides: dict[str, Any]
+) -> None:
+    normalized_asset = (asset_class or "equity").strip().lower()
+    if normalized_asset == "crypto":
+        target_cfg = settings.crypto_risk
+    else:
+        target_cfg = settings.risk
+
+    for key, value in overrides.items():
+        if not hasattr(target_cfg, key):
+            raise ValueError(f"Unknown risk override field: {key}")
+        setattr(target_cfg, key, value)
+
+
+def _apply_json_runtime_profile(settings: Settings, profile_path: str) -> None:
+    profile_file = Path(profile_path)
+    if not profile_file.exists():
+        raise ValueError(f"Profile file not found: {profile_path}")
+
+    payload = json.loads(profile_file.read_text())
+    if not isinstance(payload, dict):
+        raise ValueError("Profile payload must be a JSON object")
+
+    asset_class = payload.get("asset_class", "auto")
+    if asset_class is not None:
+        normalized_asset_class = str(asset_class).strip().lower()
+        if normalized_asset_class not in {"auto", "equity", "crypto"}:
+            raise ValueError("Profile asset_class must be one of: auto, equity, crypto")
+        settings.data.asset_class = normalized_asset_class
+
+    strategy_name = payload.get("strategy")
+    if strategy_name is not None:
+        settings.strategy.name = str(strategy_name).strip()
+
+    model_path = payload.get("model_path")
+    if model_path is not None:
+        settings.strategy.model_path = str(model_path).strip()
+
+    symbols = payload.get("symbols")
+    if symbols is not None:
+        if not isinstance(symbols, list) or not all(isinstance(symbol, str) for symbol in symbols):
+            raise ValueError("Profile symbols must be a list of symbol strings")
+        settings.data.symbols = [symbol.strip() for symbol in symbols if symbol.strip()]
+
+    broker = payload.get("broker")
+    if broker is not None:
+        settings.broker.provider = str(broker).strip().lower()
+
+    risk_overrides = payload.get("risk")
+    if risk_overrides is not None:
+        if not isinstance(risk_overrides, dict):
+            raise ValueError("Profile risk must be an object")
+        _apply_profile_risk_overrides(settings, settings.data.asset_class, risk_overrides)
+
+
 @command("apply_runtime_profile")
 def apply_runtime_profile(settings: Settings, profile: str) -> None:
+    if profile.endswith(".json"):
+        _apply_json_runtime_profile(settings, profile)
+        return
+
     if profile == "uk_paper":
         settings.broker.provider = "ibkr"
         settings.broker.paper_trading = True
@@ -240,6 +291,10 @@ def apply_runtime_profile(settings: Settings, profile: str) -> None:
                 "primary_exchange": "LSE",
             },
         }
+        return
+
+    if profile not in {"default", ""}:
+        raise ValueError(f"Unknown runtime profile: {profile}")
 
 
 @command("backtest")
@@ -393,7 +448,9 @@ def cmd_execution_dashboard(
     metrics = result["metrics"]
     logger.info("Execution dashboard export completed")
     logger.info("  html: %s", result["output_path"])
-    logger.info("  events=%s symbols=%s", metrics["event_count"], len(metrics["reject_rate_by_symbol"]))
+    logger.info(
+        "  events=%s symbols=%s", metrics["event_count"], len(metrics["reject_rate_by_symbol"])
+    )
 
 
 @command("data_quality_report")
@@ -623,15 +680,18 @@ def cmd_paper_trial(
 ) -> int:
     """Run an end-to-end paper trial: checks -> paper run -> summary -> reconcile."""
     import time
+
     from src.execution.ibkr_broker import IBKRBroker
-    
+
     settings.broker.paper_trading = True
     _ensure_db_matches_mode(settings, "paper", db_path, context="paper_trial")
 
     if not skip_health_check:
         health_errors = cmd_uk_health_check(settings, with_data_check=False, json_output=False)
         if health_errors > 0:
-            logger.error("Paper trial aborted: health check reported %s blocking error(s)", health_errors)
+            logger.error(
+                "Paper trial aborted: health check reported %s blocking error(s)", health_errors
+            )
             return 2
         # Allow event loop to fully clean up after health check broker disconnect
         time.sleep(0.5)
@@ -683,7 +743,7 @@ def cmd_paper_trial(
     broker = None
     if settings.broker.provider.lower() == "ibkr":
         broker = IBKRBroker(settings)
-    
+
     logger.info("Starting timed paper trial for %ss", duration_seconds)
     try:
         asyncio.run(
@@ -916,9 +976,15 @@ def cmd_uk_health_check(
                 mode = "paper" if broker.is_paper_account() else "live"
                 ok(f"IBKR account detected: {account} ({mode})", "ibkr_account")
                 if settings.broker.paper_trading and broker.is_live_account():
-                    fail("Running in paper mode but connected account appears live", "ibkr_mode_match")
+                    fail(
+                        "Running in paper mode but connected account appears live",
+                        "ibkr_mode_match",
+                    )
                 if (not settings.broker.paper_trading) and broker.is_paper_account():
-                    fail("Running in live mode but connected account appears paper", "ibkr_mode_match")
+                    fail(
+                        "Running in live mode but connected account appears paper",
+                        "ibkr_mode_match",
+                    )
             else:
                 warn("IBKR account not detected yet", "ibkr_account")
         finally:
@@ -978,11 +1044,11 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
 
     strategy = _build_strategy(settings)
     risk = RiskManager(settings)
-    
+
     # Use pre-created broker if provided, otherwise create new one
     if broker is None:
         broker = build_runtime_broker(settings)
-    
+
     if broker is not None:
         if isinstance(broker, IBKRBroker):
             account = broker.get_primary_account()
@@ -1002,14 +1068,10 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
         elif hasattr(broker, "is_paper_mode"):
             actual_paper = broker.is_paper_mode()
             if settings.broker.paper_trading and not actual_paper:
-                raise RuntimeError(
-                    "Alpaca live endpoint detected while running in paper mode."
-                )
+                raise RuntimeError("Alpaca live endpoint detected while running in paper mode.")
             if (not settings.broker.paper_trading) and actual_paper:
-                raise RuntimeError(
-                    "Alpaca paper endpoint detected while running in live mode."
-                )
-    
+                raise RuntimeError("Alpaca paper endpoint detected while running in live mode.")
+
     tracker = PortfolioTracker(settings.initial_capital)
     feed = MarketDataFeed(settings)
     data_quality = DataQualityGuard(
@@ -1110,9 +1172,15 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
             interval_seconds=300,
             heartbeat_callback=on_stream_heartbeat,
             error_callback=on_stream_error,
-            backoff_base_seconds=float(getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.25),
-            backoff_max_seconds=float(getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 2.0),
-            max_consecutive_failure_cycles=int(getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 3),
+            backoff_base_seconds=float(
+                getattr(settings.broker, "outage_backoff_base_seconds", 0.25) or 0.25
+            ),
+            backoff_max_seconds=float(
+                getattr(settings.broker, "outage_backoff_max_seconds", 2.0) or 2.0
+            ),
+            max_consecutive_failure_cycles=int(
+                getattr(settings.broker, "outage_consecutive_failure_limit", 3) or 3
+            ),
         )
     finally:
         await audit.log_event(
@@ -1134,5 +1202,3 @@ async def cmd_paper(settings: Settings, broker=None, auto_rotate_at_start: bool 
                 broker.disconnect()
             except Exception as exc:
                 logger.error("Broker cleanup failed: %s", exc)
-
-

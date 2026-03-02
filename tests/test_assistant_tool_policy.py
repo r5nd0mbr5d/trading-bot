@@ -2,9 +2,11 @@
 
 import pytest
 
-from src.execution.assistant_tool_policy import endpoint_profile_tag
-from src.execution.assistant_tool_policy import validate_non_overlapping_bands
-from src.execution.assistant_tool_policy import validate_probe_range
+from src.execution.assistant_tool_policy import (
+    endpoint_profile_tag,
+    validate_non_overlapping_bands,
+    validate_probe_range,
+)
 
 
 def test_validate_non_overlapping_bands_rejects_overlap() -> None:
@@ -24,5 +26,7 @@ def test_validate_probe_range_rejects_sequence_overflow() -> None:
 
 
 def test_endpoint_profile_tag_uses_mode_from_port() -> None:
-    assert endpoint_profile_tag("uk_paper", "127.0.0.1", 7497) == "ibkr:uk_paper:paper:127.0.0.1:7497"
+    assert (
+        endpoint_profile_tag("uk_paper", "127.0.0.1", 7497) == "ibkr:uk_paper:paper:127.0.0.1:7497"
+    )
     assert endpoint_profile_tag("default", "localhost", 7496) == "ibkr:default:live:localhost:7496"

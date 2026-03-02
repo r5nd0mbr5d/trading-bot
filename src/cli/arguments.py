@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Callable, Iterable
 
 from config.settings import Settings
 from src.cli.registry import get_registry
@@ -53,11 +53,13 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("mode", choices=MODE_CHOICES)
     parser.add_argument("--start", default="2022-01-01")
     parser.add_argument("--end", default=datetime.today().strftime("%Y-%m-%d"))
-    parser.add_argument("--strategy", default="ma_crossover", choices=list(strategy_choices))
+    parser.add_argument("--strategy", default=None, choices=list(strategy_choices))
+    parser.add_argument("--model-path", default=None)
     parser.add_argument("--symbols", nargs="+", default=None)
-    parser.add_argument("--capital", type=float, default=100_000.0)
+    parser.add_argument("--capital", type=float, default=None)
     parser.add_argument("--broker", choices=["alpaca", "ibkr"], default=None)
-    parser.add_argument("--profile", choices=["default", "uk_paper"], default="default")
+    parser.add_argument("--profile", default="default")
+    parser.add_argument("--asset-class", choices=["equity", "crypto", "auto"], default=None)
     parser.add_argument("--no-market-hours", action="store_true")
     parser.add_argument("--with-data-check", action="store_true")
     parser.add_argument("--health-json", action="store_true")
@@ -110,7 +112,9 @@ def build_argument_parser(strategy_choices: Iterable[str]) -> argparse.ArgumentP
     parser.add_argument("--label-version", default="h5")
     parser.add_argument("--xgb-params-json", default=None)
     parser.add_argument("--xgb-preset", default=None)
-    parser.add_argument("--xgb-presets-path", default="research/experiments/configs/xgb_params_presets.json")
+    parser.add_argument(
+        "--xgb-presets-path", default="research/experiments/configs/xgb_params_presets.json"
+    )
     parser.add_argument("--print-presets", action="store_true")
     parser.add_argument("--calibrate", action="store_true")
     parser.add_argument("--label-type", choices=["direction", "threshold"], default="direction")
@@ -147,8 +151,12 @@ def apply_common_settings(
 ) -> None:
     """Apply common runtime/profile flags to settings before dispatch."""
     apply_runtime_profile(settings, args.profile)
-    settings.strategy.name = args.strategy
-    settings.initial_capital = args.capital
+    if args.strategy:
+        settings.strategy.name = args.strategy
+    if getattr(args, "model_path", None):
+        settings.strategy.model_path = args.model_path
+    if args.capital is not None:
+        settings.initial_capital = args.capital
     if args.broker:
         settings.broker.provider = args.broker
     if args.no_market_hours:
@@ -159,6 +167,8 @@ def apply_common_settings(
         settings.auto_rotate_paper_db = False
     if args.symbols:
         settings.data.symbols = args.symbols
+    if getattr(args, "asset_class", None):
+        settings.data.asset_class = args.asset_class
 
 
 def dispatch(
@@ -386,7 +396,9 @@ def dispatch(
             if not args.experiment_id:
                 raise SystemExit("--experiment-id is required for research_train_xgboost mode")
             if not args.symbols or len(args.symbols) != 1:
-                raise SystemExit("--symbols must include exactly one symbol for research_train_xgboost")
+                raise SystemExit(
+                    "--symbols must include exactly one symbol for research_train_xgboost"
+                )
 
         params = None
         if args.xgb_params_json:
@@ -468,7 +480,9 @@ def dispatch(
 
     elif mode == "research_download_ticks":
         if not args.symbols or len(args.symbols) != 1:
-            raise SystemExit("--symbols must include exactly one symbol for research_download_ticks")
+            raise SystemExit(
+                "--symbols must include exactly one symbol for research_download_ticks"
+            )
         if not args.tick_date and not (args.tick_start_date and args.tick_end_date):
             raise SystemExit("Provide --tick-date or both --tick-start-date and --tick-end-date")
 
@@ -527,7 +541,9 @@ def dispatch(
 
     elif mode == "research_build_tick_splits":
         if not args.tick_input_manifest:
-            raise SystemExit("--tick-input-manifest is required for research_build_tick_splits mode")
+            raise SystemExit(
+                "--tick-input-manifest is required for research_build_tick_splits mode"
+            )
         if not args.tick_train_end or not args.tick_val_end:
             raise SystemExit("--tick-train-end and --tick-val-end are required")
 

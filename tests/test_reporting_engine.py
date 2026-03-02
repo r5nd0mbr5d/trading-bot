@@ -8,18 +8,15 @@ from src.reporting.engine import ReportingEngine
 
 def _create_db(path: Path) -> None:
     conn = sqlite3.connect(path)
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS audit_log (
             timestamp TEXT,
             event_type TEXT,
             symbol TEXT,
             payload_json TEXT
         )
-        """
-    )
-    conn.execute(
-        """
+        """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS market_bars (
             symbol TEXT,
             timestamp TEXT,
@@ -28,8 +25,7 @@ def _create_db(path: Path) -> None:
             low REAL,
             close REAL
         )
-        """
-    )
+        """)
     conn.commit()
     conn.close()
 

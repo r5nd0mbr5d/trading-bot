@@ -7,6 +7,7 @@ import pytest
 
 from src.data.providers import (
     AlphaVantageProvider,
+    EODHDProvider,
     NotImplementedProvider,
     PolygonProvider,
     ProviderError,
@@ -36,6 +37,11 @@ def test_get_provider_returns_scaffold_for_non_implemented_providers():
 def test_get_provider_returns_polygon_provider():
     provider = get_provider("polygon")
     assert isinstance(provider, PolygonProvider)
+
+
+def test_get_provider_returns_eodhd_provider():
+    provider = get_provider("eodhd")
+    assert isinstance(provider, EODHDProvider)
 
 
 def test_polygon_provider_returns_utc_frame(monkeypatch):
@@ -88,6 +94,55 @@ def test_polygon_provider_raises_provider_error_without_api_key(monkeypatch):
     provider = PolygonProvider(api_key="")
     with pytest.raises(ProviderError):
         provider.fetch_historical("AAPL", start="2024-01-01", end="2024-01-02")
+
+
+def test_eodhd_provider_returns_utc_frame(monkeypatch):
+    payload = [
+        {
+            "date": "2024-01-01",
+            "open": 100.0,
+            "high": 101.0,
+            "low": 99.5,
+            "close": 100.5,
+            "volume": 12000,
+        }
+    ]
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps(payload).encode("utf-8")
+
+    captured = {}
+
+    def fake_urlopen(url, timeout):
+        captured["url"] = url
+        captured["timeout"] = timeout
+        return _Resp()
+
+    monkeypatch.setenv("EODHD_API_KEY", "test-key")
+    monkeypatch.setattr("src.data.providers.urlopen", fake_urlopen)
+
+    provider = EODHDProvider()
+    result = provider.fetch_historical("VOD.L", start="2024-01-01", end="2024-01-03")
+
+    assert "api_token=test-key" in captured["url"]
+    assert "/eod/VOD.LSE?" in captured["url"]
+    assert result.index.tz is not None
+    assert str(result.index.tz) == "UTC"
+    assert list(result.columns) == ["open", "high", "low", "close", "volume"]
+
+
+def test_eodhd_provider_raises_provider_error_without_api_key(monkeypatch):
+    monkeypatch.delenv("EODHD_API_KEY", raising=False)
+    provider = EODHDProvider(api_key="")
+    with pytest.raises(ProviderError):
+        provider.fetch_historical("AAPL.L")
 
 
 def test_unknown_provider_defaults_to_yfinance():

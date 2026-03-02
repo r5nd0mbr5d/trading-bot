@@ -11,8 +11,7 @@ from src.cli.runtime import cmd_daily_report
 
 def _init_audit_db(db_path: str) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS audit_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
@@ -22,8 +21,7 @@ def _init_audit_db(db_path: str) -> None:
                 severity TEXT NOT NULL,
                 payload_json TEXT NOT NULL
             )
-            """
-        )
+            """)
         conn.commit()
 
 
@@ -37,8 +35,22 @@ def test_daily_report_generator_build_report_aggregates_metrics(tmp_path):
     rows = [
         (now_ts, "FILL", "AAPL", "ma_crossover", "info", json.dumps({"pnl": 12.5})),
         (now_ts, "FILL", "AAPL", "ma_crossover", "info", json.dumps({"realized_pnl": -2.0})),
-        (now_ts, "PORTFOLIO_SNAPSHOT", None, "ma_crossover", "info", json.dumps({"positions": [{"symbol": "AAPL"}], "drawdown": 0.04, "sharpe": 1.1})),
-        (now_ts, "PAPER_GUARDRAIL_BLOCK", "AAPL", "ma_crossover", "warning", json.dumps({"reason": "daily limit"})),
+        (
+            now_ts,
+            "PORTFOLIO_SNAPSHOT",
+            None,
+            "ma_crossover",
+            "info",
+            json.dumps({"positions": [{"symbol": "AAPL"}], "drawdown": 0.04, "sharpe": 1.1}),
+        ),
+        (
+            now_ts,
+            "PAPER_GUARDRAIL_BLOCK",
+            "AAPL",
+            "ma_crossover",
+            "warning",
+            json.dumps({"reason": "daily limit"}),
+        ),
     ]
 
     with sqlite3.connect(db_path) as conn:
@@ -83,7 +95,9 @@ def test_daily_report_generator_write_report_creates_json(tmp_path):
     output_path = generator.write_report(report, output_dir=str(tmp_path / "reports" / "daily"))
     assert output_path.endswith("2026-02-25.json")
 
-    payload = json.loads((tmp_path / "reports" / "daily" / "2026-02-25.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        (tmp_path / "reports" / "daily" / "2026-02-25.json").read_text(encoding="utf-8")
+    )
     assert payload["report_date"] == "2026-02-25"
 
 

@@ -1,4 +1,42 @@
 #
+## [2026-03-01 — ] — IMPL→REVIEW Burn-Down — GitHub Copilot (Claude Opus 4.6)
+
+**Goal:** Systematically close all actionable open items from IMPLEMENTATION_BACKLOG.md in priority order, respecting dependencies and signoff-gate policy.
+
+**Outcome:**
+- SR-2 (mojibake cleanup): Fixed 552 double-encoded UTF-8 characters in IMPLEMENTATION_BACKLOG.md. Root cause: CP1252 roundtrip corruption. Two-pass fix using Python CP1252→UTF-8 mapping script.
+- SR-1 (test imports from main.py): Verified already resolved via AST scan (0 imports). Marked RESOLVED with evidence.
+- Steps 100/101/103 governance gap: Added full step definitions for 3 implemented-but-untracked steps (WeatherDataProvider, MLStrategyWrapper, JSON runtime profiles).
+- Step 36 (QuantConnect cross-validation): Created QCAlgorithm ports of MA Crossover and RSI Momentum strategies plus comparison template. Awaiting operator cloud execution.
+- Executive summary updated: Total 95, Completed 91, Tests 654, Strategies 10.
+- PROJECT_DESIGN.md §6 Evolution Log entry appended.
+
+**Queue Changes:**
+- Steps completed: SR-1, SR-2 (standards review items)
+- Steps partially completed: Step 36 (code done, operator must run on QC Cloud)
+- Steps added to backlog: 100, 101, 103 (already implemented, now tracked)
+- Steps blocked: Step 32 (Opus + MO-7/MO-8), MO-2 through MO-8 (all operator)
+
+**Files Modified:**
+- `IMPLEMENTATION_BACKLOG.md` — mojibake fix, SR-1/SR-2 closed, Steps 100/101/103 added, executive summary updated, Step 36 status updated
+- `PROJECT_DESIGN.md` — §6 Evolution Log entry
+- `SESSION_LOG.md` — this entry
+- `research/experiments/qc_crossvalidation/ma_crossover_qc.py` — new (Step 36)
+- `research/experiments/qc_crossvalidation/rsi_momentum_qc.py` — new (Step 36)
+- `research/experiments/qc_crossvalidation/results/comparison.md` — new (Step 36)
+
+**Test Baseline:** 654 passing (no runtime code modified this session)
+
+**Handoff Notes:**
+> All Copilot-actionable items are now closed or in operator-dependent state. Remaining open items:
+> - Step 32 (LSTM baseline): blocked on MLP performance gate + MO-7/MO-8 — needs Claude Opus
+> - Step 36 (QC cross-validation): code complete, operator must upload to QuantConnect Cloud and fill in comparison.md
+> - Step 1A: operator burn-in continues
+> - MO-2 through MO-8: all operator action items
+> Next useful session: OPERATOR (run QC backtests, continue Step 1A burn-in) or ARCH/Opus (design Step 32 LSTM when MLP evidence available).
+
+---
+
 ## [2026-02-25 16:30 UTC] — REVIEW/IMPL — Copilot (GPT-4.1)
 
 **Goal:** Run LPDD-governed REVIEW audit, complete highest-priority unblocked Copilot ticket (Step 70), and synchronize governance artifacts.
